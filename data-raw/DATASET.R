@@ -28,8 +28,7 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimul
   path_to_pkg_logo_1L_chr = "data-raw/logo/default.png",
   piggyback_to_1L_chr = "ready4-dev/ready4", # Modelling project GitHub organisation
   ready4_type_1L_chr = "modelling",
-  zenodo_badge_1L_chr = character(0)# Once Zenodo DOI is set up, replace with link in the format of:
-    # "[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXXX"#
+  zenodo_badge_1L_chr = "[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15232854.svg)](https://doi.org/10.5281/zenodo.15232854"# 10.5281/zenodo.15232854
   )
 y <- ready4class::ready4class_constructor()
 z <- ready4pack::make_pt_ready4pack_manifest(x,
@@ -50,9 +49,9 @@ write_to_tidy_pkg(z$x_ready4fun_manifest,
 #   writeLines(con = "_pkgdown.yml")
 write_citation_fl(z$x_ready4fun_manifest)
 desc_chr <- readLines("DESCRIPTION")
-# ready4::write_citation_cff(z$x_ready4fun_manifest$initial_ls$pkg_desc_ls %>% append(list(Version = desc_chr[desc_chr %>% startsWith("Version")] %>% stringr::str_remove("Version: "))),
-#                            citation_chr = readLines("inst/CITATION"),
-#                            publisher_1L_chr = "")
+ready4::write_citation_cff(z$x_ready4fun_manifest$initial_ls$pkg_desc_ls %>% append(list(Version = desc_chr[desc_chr %>% startsWith("Version")] %>% stringr::str_remove("Version: "))),
+                           citation_chr = readLines("inst/CITATION"),
+                           publisher_1L_chr = "")
 index_1L_int <- which(desc_chr=="    person(\"CopyrightHolder\", role = \"cph\")")
 if(!identical(index_1L_int, integer(0))){
   c(desc_chr[1:(index_1L_int-2)], stringr::str_sub(desc_chr[(index_1L_int-1)], end = -2), desc_chr[(index_1L_int+1):length(desc_chr)]) %>%

@@ -1,4 +1,4 @@
-# template
+# mimic
 
 ## Implement Simple Microsimulation to Economically Evaluate Mental Health Services
 

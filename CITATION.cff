@@ -1,9 +1,10 @@
 cff-version: 1.2.0
-message: "Author1Given Author1Family (2024). template: Do Something Related to Mental Health Economic Modelling. Version 0.0.0.9002. "
+message: "Matthew Hamilton <matthew.hamilton1@monash.edu> [aut, cph and cre] (<https://orcid.org/0000-0001-7407-9194>)  (2025). template: Implement Simple Microsimulation to Economically Evaluate Mental Health Services. Version 0.0.0.9003. . https://doi.org/10.5281/zenodo.5606250"
 authors:
-  - family-names: "Author1Family"
-    given-names: "Author1Given"
-title: "template: Do Something Related to Mental Health Economic Modelling"
-version: 0.0.0.9002
-date-released: 2024-12-02
-url: "https://ready4-dev.github.io/template/"
+  - family-names: "(<https://orcid.org/0000-0001-7407-9194>)"
+    given-names: "Matthew Hamilton <matthew.hamilton1@monash.edu> [aut, cph, cre]"
+title: "mimic: Implement Simple Microsimulation to Economically Evaluate Mental Health Services"
+version: 0.0.0.9003
+doi: 10.5281/zenodo.15232854
+date-released: 2025-04-17
+url: "https://ready4-dev.github.io/mimic/"

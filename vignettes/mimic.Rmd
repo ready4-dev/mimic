@@ -1,0 +1,21 @@
+---
+title: "mimic"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mimic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mimic)
+```
+
+This development version of the mimic package has been made available as part of the process of testing and documenting the package. Currently there are no vignettes available.
