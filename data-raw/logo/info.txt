@@ -1,0 +1,14 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: Unique
+font link: http://www.1001fonts.com/unique-font.html
+font author: artmaker
+font author site: https://www.behance.net/artmaker
+
+
+icon designer: ProSymbols
+icon designer link: /prosymbols
+        
+{"bg-gradient-0":"#410FF8","bg-gradient-1":"#410FF8","icon":"#ffffff","font":"#ffffff","slogan":"#ffffff"}
+      

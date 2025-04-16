@@ -1,0 +1,35 @@
+Package: template
+Title: Do Something Related to Mental Health Economic Modelling
+Version: 0.0.0.9003
+Authors@R: c(
+    person("Author1Given", "Author1Family", , "name@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0000-0000-0000")),
+    person("CopyrightHolder", role = "cph")
+  )
+Description: A description of what this model module library does. Mention
+    that it is developed with the ready4 framework
+    (https://ready4-dev.github.io/ready4/).  If a development version, you
+    may wish to note that the software has been made available as part of
+    the process of testing and documenting the library.  You can also
+    direct users with any questions about the library to the maintainer's
+    email address (supply email here).
+License: GPL-3
+URL: https://ready4-dev.github.io/template/,
+    https://github.com/ready4-dev/template,
+    https://ready4-dev.github.io/ready4/
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Suggests: 
+    knitr,
+    knitrBootstrap,
+    pkgload,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
+Imports: 
+    lifecycle,
+    magrittr,
+    methods,
+    purrr,
+    rlang

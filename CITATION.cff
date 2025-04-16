@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "Author1Given Author1Family (2024). template: Do Something Related to Mental Health Economic Modelling. Version 0.0.0.9002. "
+authors:
+  - family-names: "Author1Family"
+    given-names: "Author1Given"
+title: "template: Do Something Related to Mental Health Economic Modelling"
+version: 0.0.0.9002
+date-released: 2024-12-02
+url: "https://ready4-dev.github.io/template/"
