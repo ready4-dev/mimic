@@ -1,0 +1,187 @@
+transform_ds_to_wide <- function(X_Ready4useDyad,
+                                      processed_ls,
+                                      join_before_dtm = NULL,
+                                      key_vars_chr = make_project_keys(),
+                                      max_periods_1L_int = integer(0),
+                                      max_tenure_1L_dbl = numeric(0),
+                                      metric_var_1L_chr = "Minutes",
+                                      patterns_ls = list(c("[[:space:]]", ""), c("NA","MISSING")),
+                                      period_var_1L_chr = "Year",
+                                      separation_after_dbl = 3,
+                                      service_var_1L_chr = "primary_purpose"){
+  Y_Ready4useDyad <- serious::make_service_summary(X_Ready4useDyad, 
+                                                   max_periods_1L_int = max_periods_1L_int,
+                                                   service_var_1L_chr = service_var_1L_chr, 
+                                                   metrics_chr = make_project_metrics(processed_ls$costs_unit@ds_tb), 
+                                                   metric_var_1L_chr = metric_var_1L_chr,
+                                                   patterns_ls = patterns_ls,
+                                                   period_var_1L_chr = period_var_1L_chr)
+  Y_Ready4useDyad <- serious::make_summary_ds(X_Ready4useDyad,
+                                              add_with_join_xx = Y_Ready4useDyad,
+                                              join_before_dtm = join_before_dtm,
+                                              key_vars_chr = key_vars_chr,
+                                              max_tenure_1L_dbl = max_tenure_1L_dbl,
+                                              patterns_ls = patterns_ls,
+                                              separation_after_dbl = separation_after_dbl)
+  return(Y_Ready4useDyad)
+}
+transform_project_outcomes_ds <- function(outcomes_xx,
+                                       transform_gender_1L_lgl = F,
+                                       follow_up_1L_int = 12,
+                                       minutes_chr = c("direct_mins", "indirect_mins", "Minutes")){
+  X_Ready4useDyad <- outcomes_xx %>% serious::transform_data_fmt(type_1L_chr = "input")
+  if(!identical(intersect(names(X_Ready4useDyad@ds_tb), minutes_chr), character(0))){
+    minutes_tb <- X_Ready4useDyad@ds_tb %>% 
+      dplyr::select(tidyselect::any_of(c("UID", "MeasurementWeek", minutes_chr)))  %>% 
+      tidyr::pivot_wider(names_from = "MeasurementWeek",values_from = minutes_chr)
+    weeks_chr <- names(minutes_tb)[names(minutes_tb) %>% stringr::str_detect("\\_Week-+\\d+") | names(minutes_tb) %>% stringr::str_detect("\\_Week+\\d+")] 
+    starts_chr <- weeks_chr %>% stringr::str_remove_all("\\_Week-+\\d+") %>% stringr::str_remove_all("\\_Week+\\d+")
+    weeks_int <- weeks_chr %>% 
+      stringr::str_extract_all("\\-+\\d+")  %>% purrr::map2_int(weeks_chr %>% 
+                                                                  stringr::str_remove_all("\\-+\\d+")  %>%
+                                                                  stringr::str_extract_all("\\d+"),
+                                                                ~ c(.x,.y) %>% as.integer)
+    ref_1L_int <- min(weeks_int)
+    replacements_chr <- starts_chr %>% purrr::map2_chr(weeks_int,
+                                                       ~ ifelse(.y==ref_1L_int,.x,paste0(.x, "_",.y,"_Weeks"))
+    )
+    unchanged_chr <- intersect(starts_chr, replacements_chr) %>% sort()
+    changed_chr <- paste0(unchanged_chr, "_change")
+    renamed_chr <- setdiff(replacements_chr, starts_chr) %>% sort()
+    changed_int <- which(replacements_chr %in% renamed_chr)
+    minutes_tb <- purrr::reduce(1:length(replacements_chr), .init = minutes_tb,
+                                ~ {
+                                  change_1L_lgl <- .y %in% changed_int
+                                  ds_tb <- .x
+                                  if(change_1L_lgl){
+                                    ds_tb <- dplyr::rename(ds_tb, !!rlang::sym(paste0(starts_chr[.y],"_change")) := !!rlang::sym(weeks_chr[.y]))
+                                  }else{
+                                    ds_tb <- dplyr::rename(ds_tb, !!rlang::sym(paste0(starts_chr[.y],"_",weeks_int[.y],"_Weeks")) := !!rlang::sym(weeks_chr[.y]))
+                                  }
+                                  ds_tb
+                                }
+    )
+    minutes_tb <- starts_chr %>% unique() %>% sort() %>%
+      purrr::reduce(.init = minutes_tb,
+                    ~dplyr::mutate(.x, !!rlang::sym(paste0(.y,"_",max(weeks_int), "_Weeks")) := !!rlang::sym(paste0(.y,"_",ref_1L_int, "_Weeks")) + !!rlang::sym(paste0(.y,"_change"))))
+    
+  }else{
+    minutes_tb <- NULL
+  }
+  outcomes_tb <- X_Ready4useDyad@ds_tb
+  additions_tb <- outcomes_tb %>% 
+    dplyr::select(c("UID", "MeasurementWeek","AQoL6D","AQoL6D_change", "AQoL6D_QALYs", "CHU9D_change", "CHU9D_QALYs", "k10_change", "gad7_change", "phq9_change", "treatment_status","treatment_change")) %>% 
+    tidyr::pivot_wider(names_from = "MeasurementWeek", values_from = c("AQoL6D","AQoL6D_change", "AQoL6D_QALYs", "CHU9D_change", "CHU9D_QALYs", "k10_change", "gad7_change", "phq9_change", "treatment_status", "treatment_change")) %>% 
+    dplyr::select(c("UID", paste0(c("AQoL6D_change_Week", "AQoL6D_QALYs_Week", "CHU9D_change_Week", "CHU9D_QALYs_Week", "k10_change_Week", "gad7_change_Week", "phq9_change_Week", "treatment_status_Week", "treatment_change_Week"), follow_up_1L_int)))
+  additions_tb <- additions_tb %>%
+    dplyr::rename_with(~ stringr::str_replace(.,paste0("_Week", follow_up_1L_int),""), setdiff(names(additions_tb), "UID")) %>%
+    dplyr::rename(treatment_status_t2 = treatment_status)
+  tfmd_outcomes_tb <- outcomes_tb %>% dplyr::select(-c(AQoL6D_change, AQoL6D_QALYs, CHU9D_change, CHU9D_QALYs, k10_change, gad7_change, phq9_change, treatment_change)) %>%
+    dplyr::filter(MeasurementWeek != paste0("Week", follow_up_1L_int)) %>% dplyr::select(-MeasurementWeek) %>%
+    dplyr::inner_join(additions_tb) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.character),as.factor)) %>%
+    dplyr::select(tidyr::any_of(c(
+      "UID", "Date", 
+      "treatment_status", "treatment_status_t2", "treatment_change", #"stage_of_treatment", 
+      "platform", "clinic_type", "clinic_state", "Age", "employment_status", "gender", 
+      "gad7", "gad7_change", "k10", "k10_change",  "phq9", "phq9_change", 
+      "AQoL6D", "AQoL6D_change", "AQoL6D_QALYs", "CHU9D", "CHU9D_change", "CHU9D_QALYs")))
+  if(transform_gender_1L_lgl){
+    tfmd_outcomes_tb <- tfmd_outcomes_tb %>% update_gender()
+    # dplyr::mutate(gender = dplyr::case_when(gender %in% c("Other","Prefer not to say") ~ "OtherPNTS",
+    #                                         T ~ gender))
+  }
+  X_Ready4useDyad@ds_tb <- tfmd_outcomes_tb
+  
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0("AQoL6D_",follow_up_1L_int,"_Weeks")) := (AQoL6D+AQoL6D_change) %>% as.double(),# %>% youthvars::youthvars_aqol6d_adol(),
+                                                                                                !!rlang::sym(paste0("CHU9D_",follow_up_1L_int,"_Weeks")) :=  (CHU9D+CHU9D_change) %>% as.double(),
+                                                                                                !!rlang::sym(paste0("gad7_",follow_up_1L_int,"_Weeks")) :=  (gad7+gad7_change) %>% as.integer(),
+                                                                                                !!rlang::sym(paste0("k10_",follow_up_1L_int,"_Weeks")) :=  (k10+k10_change) %>% as.integer(),
+                                                                                                !!rlang::sym(paste0("phq9_",follow_up_1L_int,"_Weeks")) :=  (phq9+phq9_change) %>% as.integer()))# %>% youthvars::youthvars_chu9d_adolaus())) 
+  if(!is.null(minutes_tb)){
+    X_Ready4useDyad@ds_tb <- X_Ready4useDyad@ds_tb %>% dplyr::left_join(minutes_tb)
+    new_r3 <- unchanged_chr %>%
+      purrr::map2_dfr(renamed_chr,
+                      ~{
+                        week_1L_chr <- stringr::str_remove(.y,paste0(.x,"_"))
+                        X_Ready4useDyad@dictionary_r3 %>% dplyr::filter(var_nm_chr == .x) %>%
+                          dplyr::mutate(var_nm_chr = paste0(var_nm_chr, "_", week_1L_chr),
+                                        var_desc_chr = paste0(var_desc_chr, " (Cumulative up to end of most recent period - ending ", week_1L_chr %>% stringr::str_replace("_", " "), ")"))
+                        
+                      }) %>%
+      rbind(unchanged_chr %>% purrr::map_dfr(~X_Ready4useDyad@dictionary_r3 %>% dplyr::filter(var_nm_chr == .x) %>%
+                                               dplyr::mutate(var_nm_chr = paste0(var_nm_chr, "_change"),
+                                                             var_desc_chr = paste0(var_desc_chr, " (During most recent period)"))))
+    X_Ready4useDyad@dictionary_r3 <- ready4use::renew.ready4use_dictionary(X_Ready4useDyad@dictionary_r3 %>% 
+                                                                             dplyr::filter(!var_nm_chr %in% minutes_chr) %>%
+                                                                             dplyr::mutate(var_desc_chr = dplyr::case_when(var_nm_chr %in% unchanged_chr ~ paste0(var_desc_chr, " (Cumulative up to start of most recent period)"),
+                                                                                                                           T ~ var_nm_chr)),
+                                                                           new_cases_r3 = new_r3)
+  }
+  X_Ready4useDyad <- X_Ready4useDyad %>% renew(what_1L_chr = "dictionary", type_1L_chr = "update")
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_change = as.factor(as.character(treatment_change))))
+  
+  outcomes_xx <- outcomes_xx %>% serious::transform_data_fmt(X_Ready4useDyad = X_Ready4useDyad, type_1L_chr = "output")
+  return(outcomes_xx)
+}
+transform_tx_mdlng_ds <- function(data_tb,
+                                       treatment_vars_chr = c("treatment_status", "treatment_status_t2"),
+                                       what_1L_chr = c("Waitlist", "Treatment", "Discharged")){
+  what_1L_chr <- match.arg(what_1L_chr)
+  data_tb <- data_tb %>% 
+    dplyr::filter(!!rlang::sym(treatment_vars_chr[1]) == what_1L_chr) %>% 
+    dplyr::mutate(!!rlang::sym(treatment_vars_chr[2]) := as.factor(as.character(!!rlang::sym(treatment_vars_chr[2]))))
+  return(data_tb)
+}
+transform_to_long_results <- function(X_Ready4useDyad,
+                                      var_1L_chr,
+                                      add_means_1L_lgl = TRUE,
+                                      tidy_1L_lgl = TRUE){
+  # if(!identical(var_1L_chr, character(0))){
+  names_chr <- setdiff(names(X_Ready4useDyad@ds_tb)[names(X_Ready4useDyad@ds_tb) %>% startsWith(paste0(var_1L_chr, "_sim_"))],  
+                       paste0(var_1L_chr, "_sim_mean")) 
+  if(add_means_1L_lgl){
+    names_chr <- c(paste0(var_1L_chr, "_sim_mean"), names_chr)
+  }
+  bind_ls  <- names_chr %>%
+    purrr::map(~{
+      iteration_1L_dbl <- ifelse(.x==paste0(var_1L_chr, "_sim_mean"),0,stringr::str_remove(.x,paste0(var_1L_chr, "_sim_")) %>% as.numeric())
+      ds_tb <- X_Ready4useDyad@ds_tb 
+      if("Iteration" %in% names(ds_tb)){
+        ds_tb <- ds_tb %>% dplyr::filter(Iteration == iteration_1L_dbl)
+      }
+      ds_tb %>% dplyr::mutate(!!rlang::sym(var_1L_chr) := !!rlang::sym(.x),
+                              Iteration = iteration_1L_dbl) 
+    }
+    ) 
+  if(length(bind_ls)>1){
+    X_Ready4useDyad@ds_tb <- purrr::reduce(bind_ls[-1],
+                                           .init = bind_ls[[1]],
+                                           ~rbind(.x,.y))
+  }else{
+    X_Ready4useDyad@ds_tb <- bind_ls[[1]]
+  }
+  if(tidy_1L_lgl){
+    X_Ready4useDyad@ds_tb <- X_Ready4useDyad@ds_tb %>% dplyr::select(-tidyr::all_of(names_chr))
+  }
+  X_Ready4useDyad@ds_tb <- X_Ready4useDyad@ds_tb %>% dplyr::select(Iteration, dplyr::everything())
+  X_Ready4useDyad <- X_Ready4useDyad %>% renew(what_1L_chr = "dictionary", type_1L_chr = "update")
+  # }
+  return(X_Ready4useDyad)
+}
+transform_to_min_and_max <- function(X_Ready4useDyad,
+                                     vars_chr,
+                                     max_1L_dbl = 0.999999,
+                                     min_1L_dbl = 0.000001){
+  Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                               X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(vars_chr, 
+                                                                                     ~ .x %>% purrr::map_dbl(~min(max(.x,0.000001), 0.999999)))))
+  return(Y_Ready4useDyad)
+}
+transform_tx_factor <- function(data_tb,
+                                treatment_vars_chr = c("treatment_status", "treatment_status_t2"),
+                                what_1L_chr = c("Waitlist", "Treatment", "Discharged")){
+  data_tb <- data_tb %>% dplyr::filter(!!rlang::sym(treatment_vars_chr[1]) == what_1L_chr) %>%
+    dplyr::mutate(!!rlang::sym(treatment_vars_chr[2]) := as.factor(as.character(!!rlang::sym(treatment_vars_chr[2]))))
+  return(data_tb)
+}

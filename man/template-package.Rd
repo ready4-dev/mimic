@@ -3,40 +3,35 @@
 \docType{package}
 \name{template-package}
 \alias{template-package}
-\title{template: Do Something Related to Mental Health Economic Modelling}
+\title{template: Implement Simple Microsimulation to Economically Evaluate Mental Health Services}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-A description of what this model module library does. Mention that it is developed with the ready4 framework (https://ready4-dev.github.io/ready4/). If a development version, you may wish to note that the software has been made available as part of the process of testing and documenting the library. You can also direct users with any questions about the library to the maintainer's email address (supply email here).
+Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
 
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-A description of what this model module library does. Mention that it is developed with the ready4 framework (https://ready4-dev.github.io/ready4/). If a development version, you may wish to note that the software has been made available as part of the process of testing and documenting the library. You can also direct users with any questions about the library to the maintainer's email address (supply email here).
+Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://ready4-dev.github.io/template/}
-  \item \url{https://github.com/ready4-dev/template}
-  \item \url{https://ready4-dev.github.io/ready4/}
+  \item \url{https://ready4-dev.github.io/mimic/}
+  \item \url{https://github.com/ready4-dev/mimic}
+  \item \url{https://ready4-dev.github.io/mimic/}
 }
 
 
 Useful links:
 \itemize{
-  \item \url{https://ready4-dev.github.io/template/}
-  \item \url{https://github.com/ready4-dev/template}
-  \item \url{https://ready4-dev.github.io/ready4/}
+  \item \url{https://ready4-dev.github.io/mimic/}
+  \item \url{https://github.com/ready4-dev/mimic}
+  \item \url{https://ready4-dev.github.io/mimic/}
 }
 
 }
 \author{
-\strong{Maintainer}: Author1Given Author1Family \email{name@example.com} (\href{https://orcid.org/0000-0000-0000-0000}{ORCID})
-
-Other contributors:
-\itemize{
-  \item CopyrightHolder [copyright holder]
-}
+\strong{Maintainer}: Matthew Hamilton \email{matthew.hamilton1@monash.edu} (\href{https://orcid.org/0000-0001-7407-9194}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

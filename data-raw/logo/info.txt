@@ -1,14 +1,14 @@
 
 Hope you enjoy your new logo, here are the people that
 made your beautiful logo happen :)
-font name: Unique
-font link: http://www.1001fonts.com/unique-font.html
-font author: artmaker
-font author site: https://www.behance.net/artmaker
+font name: Aileron-SemiBold
+font link: http://dotcolon.net/font/aileron/
+font author: dot colon
+font author site: http://dotcolon.net/
 
 
-icon designer: ProSymbols
-icon designer link: /prosymbols
+icon designer: Gregor Cresnar
+icon designer link: /grega.cresnar
         
-{"bg-gradient-0":"#410FF8","bg-gradient-1":"#410FF8","icon":"#ffffff","font":"#ffffff","slogan":"#ffffff"}
+{"bg-gradient-0":"#EB6E00","bg-gradient-1":"#F3BCE6","icon":"#ffffff","font":"#ffffff","slogan":"#ffffff"}
       

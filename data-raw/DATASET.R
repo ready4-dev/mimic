@@ -2,30 +2,28 @@ library(ready4)
 library(ready4use)
 library(ready4fun)
 # MANUAL STEP. Write all your functions to R files in the new "fns" directory.
-x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Do Something Related To Mental Health Economic Modelling",
-                                 pkg_desc_1L_chr = "A description of what this model module library does. Mention that it is developed with the ready4 framework (https://ready4-dev.github.io/ready4/).
-                            If a development version, you may wish to note that the software has been made available as part of the process of testing and documenting the library.
-                            You can also direct users with any questions about the library to the maintainer's email address (supply email here).",
-                                 authors_prsn = c(utils::person(given = "Author1Given",family = "Author1Family",email = "name@example.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0000-0000-0000")),
-                                                  utils::person("CopyrightHolder", role = c("cph") # If no copyright holder is to be specified, leave as is. Otherwise update these details.
-                                                                )
-                                 ),
-                                 urls_chr = c("https://ready4-dev.github.io/template/",
-                                              "https://github.com/ready4-dev/template",
-                                              "https://ready4-dev.github.io/ready4/")) %>%
+x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimulation To Economically Evaluate Mental Health Services",
+                                 pkg_desc_1L_chr = "Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/).
+                            This early development version of mimic has been made available as part of the process of testing and documenting the library.
+                            If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).",
+                                 authors_prsn = c(utils::person(given = "Matthew",family = "Hamilton",email = "matthew.hamilton1@monash.edu", role = c("aut", "cph","cre"), comment = c(ORCID = "0000-0001-7407-9194"))),
+                                 urls_chr = c("https://ready4-dev.github.io/mimic/",
+                                              "https://github.com/ready4-dev/mimic",
+                                              "https://ready4-dev.github.io/mimic/")) %>%
   ready4fun::make_manifest(addl_pkgs_ls = ready4fun::make_addl_pkgs_ls(suggests_chr = c("knitr","knitrBootstrap","rmarkdown")#,
                                                                        #imports_chr = c(),
                                                                        #depends_chr = c()
   ),
   build_ignore_ls = ready4fun::make_build_ignore_ls(file_nms_chr = c("initial_setup.R")),
   check_type_1L_chr = "ready4",
-  copyright_holders_chr = "CopyrightHolder", # If no copyright holder is to be specified, leave as is. Otherwise update these details.
-  custom_dmt_ls = ready4fun::make_custom_dmt_ls(user_manual_fns_chr = c("get_this_from_that"
+  copyright_holders_chr = "Matthew Hamilton", # If no copyright holder is to be specified, leave as is. Otherwise update these details.
+  custom_dmt_ls = ready4fun::make_custom_dmt_ls(user_manual_fns_chr = c("predict_from_pool",
+                                                                        "predict_with_sim"
                                                                         #,
                                                                         # all other functions that you plan to include in the main manual are named here.
 
                                                                         )),##
-  dev_pkgs_chr = NA_character_, # Name any development packages imported / suggested / depended on
+  dev_pkgs_chr = c("ready4show", "ready4use","youthu", "scorz", "specific", "serious"), # Name any development packages imported / suggested / depended on
   lifecycle_stage_1L_chr = "experimental",
   path_to_pkg_logo_1L_chr = "data-raw/logo/default.png",
   piggyback_to_1L_chr = "ready4-dev/ready4", # Modelling project GitHub organisation

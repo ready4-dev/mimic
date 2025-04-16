@@ -20,3 +20,13 @@
 ^initial_setup\.R$
 ^doc$
 ^Meta$
+^.*\.Rproj$
+^\.Rproj\.user$
+^data-raw/fns/add\.R$
+^data-raw/fns/import\.R$
+^data-raw/fns/make\.R$
+^data-raw/fns/plot\.R$
+^data-raw/fns/predict\.R$
+^data-raw/fns/transform\.R$
+^data-raw/fns/update\.R$
+^data-raw/fns/write\.R$

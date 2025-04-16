@@ -1,4 +1,4 @@
-url: https://ready4-dev.github.io/template/
+url: https://ready4-dev.github.io/mimic/
 
 template:
   bootstrap: 5
@@ -7,14 +7,15 @@ template:
 home:
   links:
   - text: Manual - User (PDF)
-    href: https://github.com/ready4-dev/template/releases/download/Documentation_0.0/template_User.pdf
+    href: https://github.com/ready4-dev/mimic/releases/download/Documentation_0.0/template_User.pdf
   - text: Manual - Developer (PDF)
-    href: https://github.com/ready4-dev/template/releases/download/Documentation_0.0/template_Developer.pdf
+    href: https://github.com/ready4-dev/mimic/releases/download/Documentation_0.0/template_Developer.pdf
   - text: Framework
-    href:  https://ready4-dev.github.io/ready4/
+    href:  https://ready4-dev.github.io/mimic/
 development:
   mode: auto
 reference:
 - title: "Functions"
 - contents:
-  - get_this_from_that
+  - predict_from_pool
+  - predict_with_sim
