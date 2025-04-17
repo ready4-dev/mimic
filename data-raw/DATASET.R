@@ -23,7 +23,7 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimul
                                                                         # all other functions that you plan to include in the main manual are named here.
 
                                                                         )),##
-  dev_pkgs_chr = c("ready4show", "ready4use","youthu", "scorz", "specific", "serious"), # Name any development packages imported / suggested / depended on
+  dev_pkgs_chr = c("didgformula", "ready4show", "ready4use","scorz", "specific", "serious", "youthu", "youthvars"), # Name any development packages imported / suggested / depended on
   lifecycle_stage_1L_chr = "experimental",
   path_to_pkg_logo_1L_chr = "data-raw/logo/default.png",
   piggyback_to_1L_chr = "ready4-dev/ready4", # Modelling project GitHub organisation
@@ -48,14 +48,23 @@ write_to_tidy_pkg(z$x_ready4fun_manifest,
 #   stringr::str_replace_all("  - text: Model", "  - text: Framework & Model") %>%
 #   writeLines(con = "_pkgdown.yml")
 write_citation_fl(z$x_ready4fun_manifest)
-desc_chr <- readLines("DESCRIPTION")
-ready4::write_citation_cff(z$x_ready4fun_manifest$initial_ls$pkg_desc_ls %>% append(list(Version = desc_chr[desc_chr %>% startsWith("Version")] %>% stringr::str_remove("Version: "))),
-                           citation_chr = readLines("inst/CITATION"),
-                           publisher_1L_chr = "")
-index_1L_int <- which(desc_chr=="    person(\"CopyrightHolder\", role = \"cph\")")
-if(!identical(index_1L_int, integer(0))){
-  c(desc_chr[1:(index_1L_int-2)], stringr::str_sub(desc_chr[(index_1L_int-1)], end = -2), desc_chr[(index_1L_int+1):length(desc_chr)]) %>%
-    writeLines("DESCRIPTION")
-  devtools::document()
-}
-
+# desc_chr <- readLines("DESCRIPTION")
+# ready4::write_citation_cff(z$x_ready4fun_manifest$initial_ls$pkg_desc_ls %>% append(list(Version = desc_chr[desc_chr %>% startsWith("Version")] %>% stringr::str_remove("Version: "))),
+#                            citation_chr = readLines("inst/CITATION"),
+#                            publisher_1L_chr = "")
+# index_1L_int <- which(desc_chr=="    person(\"CopyrightHolder\", role = \"cph\")")
+# if(!identical(index_1L_int, integer(0))){
+#   c(desc_chr[1:(index_1L_int-2)], stringr::str_sub(desc_chr[(index_1L_int-1)], end = -2), desc_chr[(index_1L_int+1):length(desc_chr)]) %>%
+#     writeLines("DESCRIPTION")
+#   devtools::document()
+# }
+paste0(".github/workflows/", c("pkgdown.yaml", "R-CMD-check.yaml")) %>%
+  purrr::walk(~{
+    path_1L_chr <- .x
+    matches_int <- which(readLines(path_1L_chr) %>% startsWith("    # Addresses issue with incompatibility between libcurl4-gnutls-dev and libcurl4-openssl-dev") | readLines(path_1L_chr) %>% startsWith("        # Addresses issue with incompatibility between libcurl4-gnutls-dev and libcurl4-openssl-dev"))
+    if(!identical(matches_int,integer(0))){
+      readLines(path_1L_chr)[- (matches_int%>%
+                                  purrr::map(~.x:(.x+6)) %>% purrr::flatten_int())] %>%
+        writeLines(path_1L_chr)
+    }
+  })
