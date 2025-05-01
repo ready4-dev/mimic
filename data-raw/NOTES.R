@@ -14,7 +14,7 @@ Y <- renewSlot(Y,
                  # prototype_lup = prototype_lup,
                  # seed_obj_lup_tb = seed_obj_lup_tb,
                  # seed_obj_type_lup = seed_obj_type_lup
-                 treat_as_words_chr = c(Y@b_Ready4useIngest@objects_ls$treat_as_words_chr, c("anonymise")) %>% sort()
+                 treat_as_words_chr = c(Y@b_Ready4useIngest@objects_ls$treat_as_words_chr, c("contacters")) %>% sort()
                )),
                slot_nm_1L_chr = "b_Ready4useIngest")
 Y <- share(Y, type_1L_chr = "prefer_gh")

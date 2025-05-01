@@ -11,7 +11,9 @@ add_k10_scores(
   join_with_chr = character(0),
   k10_var_1L_chr = "k10",
   params_tb = make_project_params_tb(),
-  type_1L_chr = c("Model", "Table"),
+  sensitivities_ls = make_sensitivities_ls(),
+  tfmn_ls = make_class_tfmns(T),
+  type_1L_chr = c("Model", "Project", "Table"),
   var_1L_chr = "k10_12_Weeks",
   what_1L_chr = c("old", "new")
 )
@@ -29,7 +31,11 @@ add_k10_scores(
 
 \item{params_tb}{Parameters (a tibble), Default: make_project_params_tb()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Table")}
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
+\item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project", "Table")}
 
 \item{var_1L_chr}{Variable (a character vector of length one), Default: 'k10_12_Weeks'}
 

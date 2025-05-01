@@ -10,8 +10,8 @@ import_project_data(
   r_dir_1L_chr = "R",
   divider_1L_chr = "\\\\",
   names_ls = NULL,
-  type_1L_chr = c("raw", "experts", "processed", "modelling", "pooled", "population",
-    "regressions", "results", "simulation")
+  type_1L_chr = c("raw", "experts", "forecasts", "processed", "modelling", "pooled",
+    "population", "regressions", "results", "simulation")
 )
 }
 \arguments{
@@ -25,8 +25,8 @@ import_project_data(
 
 \item{names_ls}{Names (a list), Default: NULL}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("raw", "experts", "processed", "modelling", "pooled", "population",
-"regressions", "results", "simulation")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("raw", "experts", "forecasts", "processed", "modelling", "pooled",
+"population", "regressions", "results", "simulation")}
 }
 \value{
 Data (a list)

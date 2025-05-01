@@ -60,6 +60,20 @@ update_k10_event_schedule <- function (X_Ready4useDyad, type_1L_chr = c("Model",
     }
     return(X_Ready4useDyad)
 }
+#' Update order
+#' @description update_order() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update order. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname update_order
+#' @export 
+#' @importFrom dplyr arrange
+#' @keywords internal
+update_order <- function (X_Ready4useDyad) 
+{
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::arrange(Iteration, UID))
+    return(X_Ready4useDyad)
+}
 #' Update population classes
 #' @description update_population_classes() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update population classes. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -88,42 +102,31 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @description update_predictions_ds() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update predictions dataset. The function is called for its side effects and does not return a value.
 #' @param Y_Ready4useDyad PARAM_DESCRIPTION
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
-#' @param var_1L_chr Variable (a character vector of length one), Default: character(0)
 #' @param do_int Do (an integer vector), Default: 1:5
 #' @param follow_up_1L_int Follow up (an integer vector of length one), Default: 12
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
-#' @param suffixes_chr Suffixes (a character vector), Default: c("_YR1", "_YR1_S1", "_YR1_S2")
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tfmn_1L_chr Transformation (a character vector of length one), Default: 'NTF'
+#' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param utility_1L_chr Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")
+#' @param var_1L_chr Variable (a character vector of length one), Default: character(0)
 #' @param with_1L_chr With (a character vector of length one), Default: '_sim_mean'
 #' @return Y (A dataset and data dictionary pair.)
 #' @rdname update_predictions_ds
 #' @export 
-#' @importFrom youthvars youthvars_chu9d_adolaus youthvars_aqol6d_adol
-#' @importFrom dplyr mutate select arrange
+#' @importFrom dplyr mutate select
 #' @importFrom rlang sym
 #' @importFrom purrr map_dbl
-#' @importFrom lubridate weeks years days
 #' @importFrom tidyselect any_of
 #' @keywords internal
-update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, var_1L_chr = character(0), 
-    do_int = 1:5, follow_up_1L_int = 12L, maintain_for_1L_int = 0L, 
-    suffixes_chr = c("_YR1", "_YR1_S1", "_YR1_S2"), tfmn_1L_chr = "NTF", 
-    utility_1L_chr = c("AQoL6D", "CHU9D"), with_1L_chr = "_sim_mean") 
+update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_int = 1:5, 
+    follow_up_1L_int = 12L, maintain_for_1L_int = 0L, sensitivities_ls = make_sensitivities_ls(), 
+    tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(), utility_1L_chr = c("AQoL6D", 
+        "CHU9D"), var_1L_chr = character(0), with_1L_chr = "_sim_mean") 
 {
     utility_1L_chr <- match.arg(utility_1L_chr)
-    if (identical(var_1L_chr, character(0))) {
-        var_1L_chr <- paste0(utility_1L_chr, "_", follow_up_1L_int, 
-            "_Weeks")
-    }
-    if (utility_1L_chr == "CHU9D") {
-        class_fn <- youthvars::youthvars_chu9d_adolaus
-        min_1L_dbl <- -0.2118
-    }
-    if (utility_1L_chr == "AQoL6D") {
-        class_fn <- youthvars::youthvars_aqol6d_adol
-        min_1L_dbl <- 0.03
-    }
+    var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, 
+        fup_var_1L_chr = var_1L_chr, type_1L_chr = "fup")
     if (1 %in% do_int) {
         Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
             !!rlang::sym(paste0(var_1L_chr, with_1L_chr))))
@@ -131,74 +134,38 @@ update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, var_1
     if (2 %in% do_int) {
         Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
             !!rlang::sym(var_1L_chr) %>% purrr::map_dbl(~max(min(.x, 
-                1), min_1L_dbl))))
+                1), ifelse(utility_1L_chr == "CHU9D", -0.2118, 
+                0.03)))))
     }
     if (3 %in% do_int | 4 %in% do_int | 6 %in% do_int) {
-        qaly_vars_chr <- paste0(paste0(utility_1L_chr, "_QALYs"), 
-            c("", suffixes_chr))
-        if (!identical(follow_up_1L_int, integer(0))) {
-            yrs_1L_dbl <- lubridate::weeks(follow_up_1L_int)/lubridate::years(1)
-        }
-        else {
-            yrs_1L_dbl <- numeric(0)
-        }
+        yrs_1L_dbl <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, 
+            type_1L_chr = "years")
     }
     if (3 %in% do_int) {
         Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
             "_change")), (!!rlang::sym(var_1L_chr) - !!rlang::sym(utility_1L_chr)) %>% 
-            as.double)) %>% dplyr::mutate(`:=`(!!rlang::sym(qaly_vars_chr[1]), 
-            (((!!rlang::sym(var_1L_chr) + !!rlang::sym(utility_1L_chr))/2) %>% 
-                as.double()) * yrs_1L_dbl))
+            as.double)) %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
+            "_QALYs")), (((!!rlang::sym(var_1L_chr) + !!rlang::sym(utility_1L_chr))/2) %>% 
+            as.double()) * yrs_1L_dbl))
     }
     if (4 %in% do_int | 6 %in% do_int | 7 %in% do_int) {
-        maintain_yrs_1L_dbl <- lubridate::weeks(maintain_for_1L_int)/lubridate::years(1)
-        if (!identical(follow_up_1L_int, integer(0))) {
-            multiplier_1L_dbl <- 1 + maintain_yrs_1L_dbl/yrs_1L_dbl
-            adjusted_yrs_1L_dbl <- yrs_1L_dbl + maintain_yrs_1L_dbl
-            start_var_1L_chr <- utility_1L_chr
-            end_var_1L_chr <- var_1L_chr
-            Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
-                Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_years")), yrs_1L_dbl), `:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_multiplier")), multiplier_1L_dbl), `:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_adjusted")), adjusted_yrs_1L_dbl)))
-        }
-        else {
-            start_var_1L_chr <- paste0(utility_1L_chr, "_previous")
-            end_var_1L_chr <- utility_1L_chr
-            Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
-                Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_days")), lubridate::days(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_date")) - !!rlang::sym(paste0(utility_1L_chr, 
-                  "_date_previous")))), `:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_years")), (!!rlang::sym(paste0(utility_1L_chr, 
-                  "_days"))/lubridate::years(1))), `:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_multiplier")), 1 + maintain_yrs_1L_dbl/(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_years")))), `:=`(!!rlang::sym(paste0(utility_1L_chr, 
-                  "_adjusted")), !!rlang::sym(paste0(utility_1L_chr, 
-                  "_years")) + maintain_yrs_1L_dbl)))
-        }
+        Y_Ready4useDyad <- add_outcome_time_vars(Y_Ready4useDyad, 
+            outcome_1L_chr = utility_1L_chr, add_adjustments_1L_lgl = (4 %in% 
+                do_int), follow_up_1L_int = follow_up_1L_int, 
+            fup_var_1L_chr = var_1L_chr, maintain_for_1L_int = maintain_for_1L_int)
+        end_var_1L_chr <- make_conditional_vars(utility_1L_chr, 
+            follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, 
+            type_1L_chr = "end")
+        start_var_1L_chr <- make_conditional_vars(utility_1L_chr, 
+            follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, 
+            type_1L_chr = "start")
     }
     if (4 %in% do_int) {
-        Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
-            Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(end_var_1L_chr), 
-                !!rlang::sym(end_var_1L_chr) %>% purrr::map_dbl(~max(min(.x, 
-                  1), min_1L_dbl)) %>% class_fn())) %>% dplyr::mutate(`:=`(!!rlang::sym(qaly_vars_chr[2]), 
-                !!rlang::sym(qaly_vars_chr[1]) * !!rlang::sym(paste0(utility_1L_chr, 
-                  "_multiplier")) + (((!!rlang::sym(end_var_1L_chr) + 
-                  !!rlang::sym(start_var_1L_chr))/2) %>% as.double()) * 
-                  (1 - !!rlang::sym(paste0(start_var_1L_chr, 
-                    "_adjusted"))))) %>% dplyr::mutate(`:=`(!!rlang::sym(qaly_vars_chr[3]), 
-                !!rlang::sym(qaly_vars_chr[1]) * !!rlang::sym(paste0(utility_1L_chr, 
-                  "_multiplier")) + (((!!rlang::sym(start_var_1L_chr))) %>% 
-                  as.double()) * (1 - !!rlang::sym(paste0(start_var_1L_chr, 
-                  "_adjusted"))))) %>% dplyr::mutate(`:=`(!!rlang::sym(qaly_vars_chr[4]), 
-                !!rlang::sym(qaly_vars_chr[1]) * !!rlang::sym(paste0(utility_1L_chr, 
-                  "_multiplier")) + (((!!rlang::sym(end_var_1L_chr))) %>% 
-                  as.double()) * (1 - !!rlang::sym(paste0(start_var_1L_chr, 
-                  "_adjusted"))))) %>% dplyr::select(-tidyselect::any_of(paste0(utility_1L_chr, 
-                c("_days", "_years", "_multiplier", "_adjusted")))) %>% 
-                dplyr::arrange(UID))
+        Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, 
+            end_var_1L_chr = end_var_1L_chr, start_var_1L_chr = start_var_1L_chr, 
+            suffixes_chr = suffixes_chr, utility_1L_chr = utility_1L_chr, 
+            type_1L_chr = "legacy")
+        do_int <- c(do_int, 8) %>% unique()
     }
     if (5 %in% do_int) {
         Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary", 
@@ -206,14 +173,15 @@ update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, var_1
     }
     if (6 %in% do_int) {
         Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
-            Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(qaly_vars_chr[1]), 
-                !!rlang::sym(qaly_vars_chr[1]) + (((!!rlang::sym(start_var_1L_chr) + 
-                  !!rlang::sym(end_var_1L_chr))/2) %>% as.double()) * 
-                  !!rlang::sym(paste0(utility_1L_chr, "_years")))))
+            Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
+                "_QALYs")), !!rlang::sym(paste0(utility_1L_chr, 
+                "_QALYs")) + (((!!rlang::sym(start_var_1L_chr) + 
+                !!rlang::sym(end_var_1L_chr))/2) %>% as.double()) * 
+                !!rlang::sym(paste0(utility_1L_chr, "_years")))))
     }
     if (7 %in% do_int) {
-        Y_Ready4useDyad <- add_QALYs_sensitivities(Y_Ready4useDyad, 
-            suffixes_chr = suffixes_chr, utility_1L_chr = utility_1L_chr)
+        Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, 
+            sensitivities_ls = sensitivities_ls, utility_1L_chr = utility_1L_chr)
     }
     if (8 %in% do_int) {
         Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
@@ -248,6 +216,7 @@ update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pat
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
 #' @param follow_up_1L_int Follow up (an integer vector of length one), Default: integer(0)
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tidy_1L_lgl Tidy (a logical vector of length one), Default: FALSE
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @return X (A dataset and data dictionary pair.)
@@ -259,8 +228,8 @@ update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pat
 #' @importFrom tidyselect any_of
 #' @keywords internal
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
-    follow_up_1L_int = integer(0), maintain_for_1L_int = 0, tidy_1L_lgl = FALSE, 
-    utilities_chr = c("AQoL6D", "CHU9D")) 
+    follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(), 
+    tidy_1L_lgl = FALSE, utilities_chr = c("AQoL6D", "CHU9D")) 
 {
     sensitivity_1L_int <- integer(0)
     if (add_sensitivity_1L_lgl) {
@@ -278,7 +247,8 @@ update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjus
                 modifiable_chr = paste0(.y, "_QALYs"))
             Y_Ready4useDyad %>% update_predictions_ds(adjustment_1L_dbl = adjustment_1L_dbl, 
                 do_int = c(6, sensitivity_1L_int, 8), follow_up_1L_int = follow_up_1L_int, 
-                utility_1L_chr = .y, maintain_for_1L_int = maintain_for_1L_int)
+                utility_1L_chr = .y, maintain_for_1L_int = maintain_for_1L_int, 
+                sensitivities_ls = sensitivities_ls)
         })
     if (tidy_1L_lgl) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 

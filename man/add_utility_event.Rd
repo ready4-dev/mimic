@@ -13,10 +13,12 @@ add_utility_event(
   iterations_int = 1:100L,
   maintain_for_1L_int = 0L,
   models_ls = NULL,
+  sensitivities_ls = make_sensitivities_ls(),
   simulate_1L_lgl = TRUE,
   tfmn_ls = NULL,
   tidy_1L_lgl = TRUE,
   utilities_chr = c("AQoL6D", "CHU9D"),
+  type_1L_chr = c("Model", "Project"),
   what_1L_chr = c("old", "new")
 )
 }
@@ -37,6 +39,8 @@ add_utility_event(
 
 \item{models_ls}{Models (a list), Default: NULL}
 
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
 \item{simulate_1L_lgl}{Simulate (a logical vector of length one), Default: TRUE}
 
 \item{tfmn_ls}{Transformation (a list), Default: NULL}
@@ -44,6 +48,8 @@ add_utility_event(
 \item{tidy_1L_lgl}{Tidy (a logical vector of length one), Default: TRUE}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project")}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("old", "new")}
 }

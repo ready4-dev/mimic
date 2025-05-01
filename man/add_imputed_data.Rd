@@ -7,9 +7,12 @@
 add_imputed_data(
   X_Ready4useDyad,
   Y_Ready4useDyad = ready4use::Ready4useDyad(),
+  add_cumulatives_1L_lgl = FALSE,
   characteristics_chr = c("platform", "clinic_type", "gender", "employment_status",
     "clinic_state", "clinic_postcode", "role_type", "treatment_stage"),
   extras_chr = character(0),
+  ignore_x_chr = character(0),
+  ignore_y_chr = character(0),
   impute_age_1L_lgl = FALSE,
   method_1L_chr = "rf",
   treatment_status_1L_int = 0L,
@@ -21,10 +24,16 @@ add_imputed_data(
 
 \item{Y_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
 
+\item{add_cumulatives_1L_lgl}{Add cumulatives (a logical vector of length one), Default: FALSE}
+
 \item{characteristics_chr}{Characteristics (a character vector), Default: c("platform", "clinic_type", "gender", "employment_status", "clinic_state",
 "clinic_postcode", "role_type", "treatment_stage")}
 
 \item{extras_chr}{Extras (a character vector), Default: character(0)}
+
+\item{ignore_x_chr}{Ignore x (a character vector), Default: character(0)}
+
+\item{ignore_y_chr}{Ignore y (a character vector), Default: character(0)}
 
 \item{impute_age_1L_lgl}{Impute age (a logical vector of length one), Default: FALSE}
 

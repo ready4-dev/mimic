@@ -7,12 +7,15 @@
 add_outcomes_event_sequence(
   X_Ready4useDyad,
   inputs_ls,
+  add_sensitivity_1L_lgl = FALSE,
   adjustment_1L_dbl = -2,
   iterations_int = 1:100L,
   k10_method_1L_chr = c("Model", "Table"),
+  sensitivities_ls = make_sensitivities_ls(),
   suffix_1L_chr = character(0),
   tfmn_ls = make_class_tfmns(T),
-  utilities_chr = c("AQoL6D", "CHU9D")
+  utilities_chr = c("AQoL6D", "CHU9D"),
+  type_1L_chr = c("Model", "Project")
 )
 }
 \arguments{
@@ -20,17 +23,23 @@ add_outcomes_event_sequence(
 
 \item{inputs_ls}{Inputs (a list)}
 
+\item{add_sensitivity_1L_lgl}{Add sensitivity (a logical vector of length one), Default: FALSE}
+
 \item{adjustment_1L_dbl}{Adjustment (a double vector of length one), Default: -2}
 
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
 \item{k10_method_1L_chr}{K10 method (a character vector of length one), Default: c("Model", "Table")}
 
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: character(0)}
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project")}
 }
 \value{
 X (A dataset and data dictionary pair.)

@@ -6,16 +6,25 @@
 \usage{
 add_qalys_sensitivities(
   X_Ready4useDyad,
-  suffixes_chr = c("_YR1", "_YR1_S1", "_YR1_S2"),
-  utility_1L_chr = c("AQoL6D", "CHU9D")
+  end_var_1L_chr = character(0),
+  sensitivities_ls = make_sensitivities_ls(),
+  start_var_1L_chr = character(0),
+  utility_1L_chr = c("AQoL6D", "CHU9D"),
+  type_1L_chr = c("main", "legacy")
 )
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
-\item{suffixes_chr}{Suffixes (a character vector), Default: c("_YR1", "_YR1_S1", "_YR1_S2")}
+\item{end_var_1L_chr}{End variable (a character vector of length one), Default: character(0)}
+
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
+\item{start_var_1L_chr}{Start variable (a character vector of length one), Default: character(0)}
 
 \item{utility_1L_chr}{Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("main", "legacy")}
 }
 \value{
 X (A dataset and data dictionary pair.)

@@ -15,6 +15,10 @@
 #' @rdname transform_ds_to_wide
 #' @export 
 #' @importFrom serious make_service_summary make_summary_ds
+#' @importFrom dplyr left_join select ends_with where mutate across case_when
+#' @importFrom tidyselect any_of all_of
+#' @importFrom stringr str_sub
+#' @importFrom purrr map2 reduce map_lgl
 #' @keywords internal
 transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm = NULL, 
     key_vars_chr = make_project_keys(), max_periods_1L_int = integer(0), 
@@ -31,6 +35,36 @@ transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm
         add_with_join_xx = Y_Ready4useDyad, join_before_dtm = join_before_dtm, 
         key_vars_chr = key_vars_chr, max_tenure_1L_dbl = max_tenure_1L_dbl, 
         patterns_ls = patterns_ls, separation_after_dbl = separation_after_dbl)
+    Z_Ready4useDyad <- make_project_minutes_ds(processed_ls)
+    Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", dplyr::left_join(Y_Ready4useDyad@ds_tb %>% 
+        dplyr::select(-tidyselect::any_of(dplyr::ends_with("EpisodeEnd"))), 
+        Z_Ready4useDyad@ds_tb %>% dplyr::select(-Minutes)))
+    numerics_chr <- setdiff(Y_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(is.numeric)) %>% 
+        names(), c("Age", "days_to_start", "days_to_end", "days_to_first", 
+        "days_to_last"))
+    numerics_chr <- numerics_chr[!numerics_chr %>% endsWith("MISSING")]
+    episode_separations_chr <- numerics_chr[numerics_chr %>% 
+        endsWith("Episodes") | numerics_chr %>% endsWith("Separations")]
+    others_chr <- setdiff(numerics_chr, episode_separations_chr)
+    years_chr <- others_chr[others_chr %>% startsWith("Year")]
+    main_chr <- setdiff(others_chr, years_chr)
+    years_int <- years_chr %>% stringr::str_sub(start = 5, end = 5) %>% 
+        as.numeric() %>% unique()
+    Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(IntersectingYears = days_to_start %>% purrr::map2(days_to_end, 
+            ~unique(c(ceiling(.x/365.25), ceiling(.y/365.25))))) %>% 
+        dplyr::mutate(dplyr::across(tidyselect::all_of(episode_separations_chr), 
+            ~dplyr::case_when(is.na(days_to_first) ~ NA_real_, 
+                TRUE ~ .x))))
+    Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", purrr::reduce(years_int, 
+        .init = Y_Ready4useDyad@ds_tb, ~{
+            year_1L_int <- .y
+            .x %>% dplyr::mutate(dplyr::across(tidyselect::all_of(years_chr[years_chr %>% 
+                startsWith(paste0("Year", year_1L_int))]), ~dplyr::case_when(IntersectingYears %>% 
+                purrr::map_lgl(~{
+                  year_1L_int %in% .x
+                }) ~ .x, T ~ NA_real_)))
+        }) %>% dplyr::select(-IntersectingYears))
     return(Y_Ready4useDyad)
 }
 #' Transform project outcomes dataset

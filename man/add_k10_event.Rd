@@ -10,8 +10,10 @@ add_k10_event(
   k10_mdl = NULL,
   iterations_int = 1:100L,
   params_tb = make_project_params_tb(),
+  sensitivities_ls = make_sensitivities_ls(),
   suffix_1L_chr = character(0),
-  type_1L_chr = c("Model", "Table")
+  tfmn_ls = make_class_tfmns(T),
+  type_1L_chr = c("Model", "Project", "Table")
 )
 }
 \arguments{
@@ -25,9 +27,13 @@ add_k10_event(
 
 \item{params_tb}{Parameters (a tibble), Default: make_project_params_tb()}
 
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: character(0)}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Table")}
+\item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project", "Table")}
 }
 \value{
 X (A dataset and data dictionary pair.)

@@ -13,10 +13,12 @@ predict_with_sim(
   purge_1L_lgl = TRUE,
   scale_1L_int = 10L,
   seed_1L_int = 2001L,
+  sensitivities_ls = make_sensitivities_ls(),
   start_dtm = Sys.Date(),
   tfmn_ls = make_class_tfmns(),
   tx_duration_dtm = lubridate::weeks(12),
   type_1L_chr = c("D", "AB", "C"),
+  utilities_chr = c("AQoL6D", "CHU9D"),
   write_to_1L_chr = character(0)
 )
 }
@@ -37,6 +39,8 @@ predict_with_sim(
 
 \item{seed_1L_int}{Seed (an integer vector of length one), Default: 2001}
 
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
 \item{start_dtm}{Start (a date vector), Default: Sys.Date()}
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns()}
@@ -44,6 +48,8 @@ predict_with_sim(
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
+
+\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 
 \item{write_to_1L_chr}{Write to (a character vector of length one), Default: character(0)}
 }

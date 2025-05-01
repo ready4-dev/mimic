@@ -6,19 +6,24 @@
 \usage{
 predict_digital_pathway(
   inputs_ls,
+  arm_1L_chr = "Intervention",
   base_for_rates_int = c(1000L, 1L, 1L),
   draws_tb = NULL,
   iterations_int = 1:100L,
   horizon_dtm = lubridate::years(1),
   modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
+  seed_1L_int = 2001L,
+  sensitivities_ls = make_sensitivities_ls(),
+  start_dtm = Sys.Date(),
   tfmn_ls = make_class_tfmns(),
   tx_duration_dtm = lubridate::weeks(12),
-  seed_1L_int = 2001L,
-  start_dtm = Sys.Date()
+  utilities_chr = c("AQoL6D", "CHU9D")
 )
 }
 \arguments{
 \item{inputs_ls}{Inputs (a list)}
+
+\item{arm_1L_chr}{Arm (a character vector of length one), Default: 'Intervention'}
 
 \item{base_for_rates_int}{Base for rates (an integer vector), Default: c(1000L, 1L, 1L)}
 
@@ -30,13 +35,17 @@ predict_digital_pathway(
 
 \item{modifiable_chr}{Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")}
 
+\item{seed_1L_int}{Seed (an integer vector of length one), Default: 2001}
+
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
+
+\item{start_dtm}{Start (a date vector), Default: Sys.Date()}
+
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns()}
 
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 
-\item{seed_1L_int}{Seed (an integer vector of length one), Default: 2001}
-
-\item{start_dtm}{Start (a date vector), Default: Sys.Date()}
+\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 }
 \value{
 X (A dataset and data dictionary pair.)

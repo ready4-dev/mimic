@@ -1,3 +1,42 @@
+#' Import population K10
+#' @description import_population_k10() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import population k10. The function returns Population K10 (a tibble).
+#' @param dir_1L_chr Directory (a character vector of length one)
+#' @param fl_nm_1L_chr File name (a character vector of length one), Default: 'HILDA k10.xlsx'
+#' @param areas_chr Areas (a character vector), Default: c("Intervention", "Matched")
+#' @param divider_1L_chr Divider (a character vector of length one), Default: '\'
+#' @return Population K10 (a tibble)
+#' @rdname import_population_k10
+#' @export 
+#' @importFrom purrr map2_dfr map_chr
+#' @importFrom readxl read_xlsx
+#' @importFrom dplyr mutate across relocate
+#' @importFrom lubridate month year
+#' @keywords internal
+import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", areas_chr = c("Intervention", 
+    "Matched"), divider_1L_chr = "\\") 
+{
+    population_k10_tb <- list(c("A9:F11", "A15:F17", "A39:F41", 
+        "A45:F47"), c("A9:F11", "A15:F17", "A40:F42", "A46:F48")) %>% 
+        purrr::map2_dfr(c("MOST", "Matched"), ~{
+            area_1L_chr <- .y
+            .x %>% purrr::map2_dfr(c(rep("Untreated", 2), rep("Treated", 
+                2)), ~{
+                table_tb <- readxl::read_xlsx(paste0(dir_1L_chr, 
+                  "\\", fl_nm_1L_chr), sheet = ifelse(area_1L_chr == 
+                  areas_chr[1], 2, 3), range = .x)
+                names(table_tb) <- c("Wave", "From", "To", "Mean", 
+                  "SD", "N")
+                table_tb %>% dplyr::mutate(Treatment = .y) %>% 
+                  dplyr::mutate(dplyr::across(c("Mean", "SD"), 
+                    ~as.numeric(.x))) %>% dplyr::relocate(Treatment, 
+                  .before = "Mean")
+            }) %>% dplyr::mutate(Area = area_1L_chr) %>% dplyr::relocate(Area, 
+                .before = "Treatment")
+        }) %>% dplyr::mutate(dplyr::across(c("From", "To"), ~.x %>% 
+        purrr::map_chr(~paste0(lubridate::month(.x, label = T) %>% 
+            as.character(), " ", lubridate::year(.x)))))
+    return(population_k10_tb)
+}
 #' Import project data
 #' @description import_project_data() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import project data. The function returns Data (a list).
 #' @param path_to_private_1L_chr Path to private (a character vector of length one)
@@ -5,8 +44,8 @@
 #' @param r_dir_1L_chr R directory (a character vector of length one), Default: 'R'
 #' @param divider_1L_chr Divider (a character vector of length one), Default: '\'
 #' @param names_ls Names (a list), Default: NULL
-#' @param type_1L_chr Type (a character vector of length one), Default: c("raw", "experts", "processed", "modelling", "pooled", "population", 
-#'    "regressions", "results", "simulation")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("raw", "experts", "forecasts", "processed", "modelling", "pooled", 
+#'    "population", "regressions", "results", "simulation")
 #' @return Data (a list)
 #' @rdname import_project_data
 #' @export 
@@ -19,8 +58,8 @@
 #' @keywords internal
 import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_chr = "R", 
     divider_1L_chr = "\\", names_ls = NULL, type_1L_chr = c("raw", 
-        "experts", "processed", "modelling", "pooled", "population", 
-        "regressions", "results", "simulation")) 
+        "experts", "forecasts", "processed", "modelling", "pooled", 
+        "population", "regressions", "results", "simulation")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "raw") {
@@ -33,6 +72,16 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_ch
             divider_1L_chr, dir_1L_chr, divider_1L_chr, "SEE", 
             divider_1L_chr, .x), skip = 1)) %>% stats::setNames(names_ls %>% 
             purrr::flatten_chr() %>% stringr::str_sub(end = -6))
+    }
+    if (type_1L_chr %in% c("forecasts")) {
+        names_ls <- list.files(paste0(path_to_private_1L_chr, 
+            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
+            divider_1L_chr, type_1L_chr)) %>% stringr::str_sub(end = -5) %>% 
+            as.list()
+        data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
+            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
+            divider_1L_chr, type_1L_chr, divider_1L_chr, .x, 
+            ".RDS"))) %>% stats::setNames(names_ls %>% purrr::flatten_chr())
     }
     if (type_1L_chr == "modelling") {
         if (is.null(names_ls)) {
@@ -48,7 +97,7 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_ch
         }) %>% stats::setNames(paste0(names_ls %>% unlist(), 
             "_ls"))
     }
-    if (type_1L_chr == "pooled") {
+    if (type_1L_chr %in% c("pooled")) {
         data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
             divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
             divider_1L_chr, type_1L_chr, divider_1L_chr, .x, 
@@ -102,4 +151,33 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_ch
                 type_1L_chr = "processed")$costs_unit@ds_tb)
     }
     return(data_ls)
+}
+#' Import results batches
+#' @description import_results_batches() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import results batches. The function returns Results (a list).
+#' @param batches_1L_int Batches (an integer vector of length one)
+#' @param dir_1L_chr Directory (a character vector of length one)
+#' @return Results (a list)
+#' @rdname import_results_batches
+#' @export 
+#' @importFrom purrr reduce
+#' @importFrom dplyr bind_rows
+#' @keywords internal
+import_results_batches <- function (batches_1L_int, dir_1L_chr) 
+{
+    results_ls <- 1:batches_1L_int %>% purrr::reduce(.init = list(), 
+        ~{
+            additions_ls <- readRDS(paste0(dir_1L_chr, "/SimBatch", 
+                .y, ".RDS"))
+            if (identical(.x, list())) {
+                additions_ls
+            }
+            else {
+                list(Y_Ready4useDyad = renewSlot(.x$Y_Ready4useDyad, 
+                  "ds_tb", dplyr::bind_rows(.x$Y_Ready4useDyad@ds_tb, 
+                    additions_ls$Y_Ready4useDyad@ds_tb)), Z_Ready4useDyad = renewSlot(.x$Z_Ready4useDyad, 
+                  "ds_tb", dplyr::bind_rows(.x$Z_Ready4useDyad@ds_tb, 
+                    additions_ls$Z_Ready4useDyad@ds_tb)))
+            }
+        })
+    return(results_ls)
 }

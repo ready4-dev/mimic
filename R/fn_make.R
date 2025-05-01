@@ -1,3 +1,20 @@
+#' Make annual overview
+#' @description make_annual_overview() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make annual overview. The function returns Annual (a tibble).
+#' @param processed_ls Processed (a list)
+#' @return Annual (a tibble)
+#' @rdname make_annual_overview
+#' @export 
+#' @importFrom serious add_temporal_vars
+#' @importFrom dplyr group_by select summarise across where
+#' @keywords internal
+make_annual_overview <- function (processed_ls) 
+{
+    annual_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
+        dplyr::group_by(FiscalYear) %>% dplyr::select(-c(Age, 
+        Year, FiscalQuarter)) %>% dplyr::summarise(Clients = length(unique(UID)), 
+        dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm = T)))
+    return(annual_tb)
+}
 #' Make class transformations
 #' @description make_class_tfmns() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make class transformations. The function returns Transformations (a list).
 #' @param force_1L_lgl Force (a logical vector of length one), Default: FALSE
@@ -5,13 +22,14 @@
 #' @rdname make_class_tfmns
 #' @export 
 #' @importFrom youthvars youthvars_k10_aus youthvars_aqol6d_adol youthvars_chu9d_adolaus
-#' @importFrom purrr map_dbl
+#' @importFrom purrr map_int map_dbl
 #' @keywords internal
 make_class_tfmns <- function (force_1L_lgl = FALSE) 
 {
     if (force_1L_lgl) {
         tfmns_ls <- list(UID = as.integer, K10 = function(x) {
-            youthvars::youthvars_k10_aus(as.integer(x))
+            youthvars::youthvars_k10_aus(purrr::map_int(x, ~as.integer(max(10, 
+                min(round(.x, 0), 50)))))
         }, AQoL6D = function(x) {
             youthvars::youthvars_aqol6d_adol(purrr::map_dbl(x, 
                 ~max(0.03, min(.x, 1))))
@@ -26,6 +44,30 @@ make_class_tfmns <- function (force_1L_lgl = FALSE)
         }, AQoL6D = youthvars::youthvars_aqol6d_adol, CHU9D = youthvars::youthvars_chu9d_adolaus)
     }
     return(tfmns_ls)
+}
+#' Make clinic summary
+#' @description make_clinic_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make clinic summary. The function returns Clinics (a tibble).
+#' @param processed_ls Processed (a list)
+#' @param type_1L_chr Type (a character vector of length one), Default: serious::make_temporal_vars()
+#' @return Clinics (a tibble)
+#' @rdname make_clinic_summary
+#' @export 
+#' @importFrom serious make_temporal_vars add_temporal_vars
+#' @importFrom dplyr group_by summarise mutate across where
+#' @importFrom rlang sym
+#' @importFrom tidyr pivot_wider
+#' @importFrom purrr map_int
+#' @keywords internal
+make_clinic_summary <- function (processed_ls, type_1L_chr = serious::make_temporal_vars()) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    clinics_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
+        dplyr::group_by(!!rlang::sym(type_1L_chr), clinic_type) %>% 
+        dplyr::summarise(Clinics = length(unique(clinic_postcode))) %>% 
+        tidyr::pivot_wider(names_from = clinic_type, values_from = Clinics) %>% 
+        dplyr::mutate(dplyr::across(dplyr::where(is.integer), 
+            ~.x %>% purrr::map_int(~ifelse(is.na(.x), 0, .x))))
+    return(clinics_tb)
 }
 #' Make composite results
 #' @description make_composite_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make composite results. The function is called for its side effects and does not return a value.
@@ -94,6 +136,39 @@ make_composite_results <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4us
     }
     return(A_Ready4useDyad)
 }
+#' Make conditional variables
+#' @description make_conditional_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make conditional variables. The function returns Variable (a character vector of length one).
+#' @param outcome_1L_chr Outcome (a character vector of length one)
+#' @param follow_up_1L_int Follow up (an integer vector of length one), Default: integer(0)
+#' @param fup_var_1L_chr Follow-up variable (a character vector of length one), Default: character(0)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("end", "fup", "start", "years")
+#' @return Variable (a character vector of length one)
+#' @rdname make_conditional_vars
+#' @export 
+#' @importFrom lubridate weeks years
+#' @keywords internal
+make_conditional_vars <- function (outcome_1L_chr, follow_up_1L_int = integer(0), fup_var_1L_chr = character(0), 
+    type_1L_chr = c("end", "fup", "start", "years")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(fup_var_1L_chr, character(0))) {
+        fup_var_1L_chr <- paste0(outcome_1L_chr, "_", follow_up_1L_int, 
+            "_Weeks")
+    }
+    if (!identical(follow_up_1L_int, integer(0))) {
+        start_var_1L_chr <- outcome_1L_chr
+        end_var_1L_chr <- fup_var_1L_chr
+        yrs_1L_dbl <- lubridate::weeks(follow_up_1L_int)/lubridate::years(1)
+    }
+    else {
+        start_var_1L_chr <- paste0(outcome_1L_chr, "_previous")
+        end_var_1L_chr <- outcome_1L_chr
+        yrs_1L_dbl <- numeric(0)
+    }
+    var_1L_chr <- switch(type_1L_chr, end = end_var_1L_chr, fup = fup_var_1L_chr, 
+        start = start_var_1L_chr, years = yrs_1L_dbl)
+    return(var_1L_chr)
+}
 #' Make confusion list
 #' @description make_confusion_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make confusion list. The function returns Confusion (a list).
 #' @param regressions_ls Regressions (a list)
@@ -147,6 +222,47 @@ make_confusion_ls <- function (regressions_ls, X_Ready4useDyad, var_1L_chr, high
             ggplot2::autoplot(type = "heatmap") + ggplot2::scale_fill_gradient(low = low_1L_chr, 
             high = high_1L_chr))
     return(confusion_ls)
+}
+#' Make contacters series
+#' @description make_contacters_series() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make contacters series. The function is called for its side effects and does not return a value.
+#' @param model_data_ls Model data (a list)
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_contacters_series
+#' @export 
+#' @importFrom dplyr filter pull mutate case_when
+#' @keywords internal
+make_contacters_series <- function (model_data_ls) 
+{
+    end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% 
+        max()
+    start_dtm <- model_data_ls$imputed_ls$Series_r4@ds_tb %>% 
+        dplyr::filter(Minutes > 0) %>% dplyr::pull(Date) %>% 
+        min()
+    X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Series_r4, 
+        "ds_tb", model_data_ls$imputed_ls$Series_r4@ds_tb %>% 
+            dplyr::mutate(Contacts = dplyr::case_when(direct_mins > 
+                0 ~ 1, T ~ 0)) %>% dplyr::filter(Date >= start_dtm, 
+            Date <= end_dtm))
+    return(X_Ready4useDyad)
+}
+#' Make contacters summary
+#' @description make_contacters_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make contacters summary. The function returns Contacters (a tibble).
+#' @param processed_ls Processed (a list)
+#' @param type_1L_chr Type (a character vector of length one), Default: serious::make_temporal_vars()
+#' @return Contacters (a tibble)
+#' @rdname make_contacters_summary
+#' @export 
+#' @importFrom serious make_temporal_vars add_temporal_vars
+#' @importFrom dplyr group_by summarise mutate
+#' @importFrom rlang sym
+#' @keywords internal
+make_contacters_summary <- function (processed_ls, type_1L_chr = serious::make_temporal_vars()) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    contacters_tb <- processed_ls$contacts@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "date_contacted") %>% 
+        dplyr::group_by(!!rlang::sym(type_1L_chr)) %>% dplyr::summarise(Minutes = sum(Minutes), 
+        Clients = length(unique(UID))) %>% dplyr::mutate(`Minutes per Client` = Minutes/Clients)
+    return(contacters_tb)
 }
 #' Make draws tibble
 #' @description make_draws_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make draws tibble. The function returns Draws (a tibble).
@@ -308,6 +424,57 @@ make_experts_tb <- function (experts_ls, anonymise_1L_lgl = T, prefix_1L_chr = "
             name)
     }
     return(experts_tb)
+}
+#' Make interactions summary
+#' @description make_interactions_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make interactions summary. The function returns Interactions (a tibble).
+#' @param processed_ls Processed (a list)
+#' @return Interactions (a tibble)
+#' @rdname make_interactions_summary
+#' @export 
+#' @importFrom serious add_temporal_vars
+#' @importFrom dplyr filter group_by select summarise across where
+#' @keywords internal
+make_interactions_summary <- function (processed_ls) 
+{
+    interactions_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
+        dplyr::filter(FiscalYear == "2023-2024") %>% dplyr::group_by(Month) %>% 
+        dplyr::select(-c(Age, Year, FiscalQuarter)) %>% dplyr::summarise(Clients = length(unique(UID)), 
+        dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm = T)))
+    return(interactions_tb)
+}
+#' Make joiners series
+#' @description make_joiners_series() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make joiners series. The function is called for its side effects and does not return a value.
+#' @param model_data_ls Model data (a list)
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_joiners_series
+#' @export 
+#' @importFrom dplyr select filter
+#' @keywords internal
+make_joiners_series <- function (model_data_ls) 
+{
+    end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% 
+        max()
+    X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Series_r4, 
+        "ds_tb", model_data_ls$imputed_ls$Series_r4@ds_tb %>% 
+            dplyr::select(-Minutes) %>% dplyr::filter(Date <= 
+            end_dtm))
+    return(X_Ready4useDyad)
+}
+#' Make K10 change tibble
+#' @description make_k10_change_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make k10 change tibble. The function returns K10 change (a tibble).
+#' @param population_k10_tb Population K10 (a tibble)
+#' @return K10 change (a tibble)
+#' @rdname make_k10_change_tb
+#' @export 
+#' @importFrom dplyr group_by summarise nth first
+#' @keywords internal
+make_k10_change_tb <- function (population_k10_tb) 
+{
+    k10_change_tb <- population_k10_tb %>% dplyr::group_by(Area, 
+        Treatment) %>% dplyr::summarise(`K10 change W17 to W19` = dplyr::nth(Mean, 
+        2) - dplyr::first(Mean), `K10 change W21 to W23` = dplyr::nth(Mean, 
+        4) - dplyr::nth(Mean, 3))
+    return(k10_change_tb)
 }
 #' Make K10 severity cuts
 #' @description make_k10_severity_cuts() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make k10 severity cuts. The function returns Severity cuts (a list).
@@ -643,16 +810,19 @@ make_project_contacts_ds <- function (raw_data_ls, demographics_tb, recode_lup_r
 #' @rdname make_project_cost_mdlng_ds
 #' @export 
 #' @importFrom dplyr filter select starts_with arrange mutate case_when
-#' @importFrom tidyr all_of
+#' @importFrom tidyr all_of any_of
 #' @importFrom lubridate years
 #' @keywords internal
 make_project_cost_mdlng_ds <- function (W_Ready4useDyad, X_Ready4useDyad, transform_gender_1L_lgl = T) 
 {
     Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::filter(IncludedDays > 0) %>% dplyr::select(-tidyr::all_of(c(dplyr::starts_with("Year")))) %>% 
-        dplyr::select(-tidyr::all_of(c("Active", "Episodes", 
+        dplyr::select(-tidyr::any_of(c("Active", "Episodes", 
             "Separations", "role_type", "primary_mode", "primary_participant", 
-            "primary_purpose", "Activity", "Enroll", "EpisodeEnd"))))
+            "primary_purpose", "Activity", "Enroll", "EpisodeEnd", 
+            "Presentation", "onboarding_date", "first_contact", 
+            "last_contact", "days_to_start", "days_to_end", "days_to_first", 
+            "days_to_last", "IntersectingYears"))))
     duplicates_chr <- W_Ready4useDyad@ds_tb$UID[W_Ready4useDyad@ds_tb$UID %>% 
         duplicated()] %>% unique()
     duplicates_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% 
@@ -929,8 +1099,8 @@ make_project_dictionary <- function (raw_data_ls, platform_1L_chr, dss_ls = NULL
         startsWith(Description, "Feeling bad about yourself") ~ 
             "Feeling bad about yourself", startsWith(Description, 
             "Trouble concentrating") ~ "Trouble concentrating", 
-        startsWith(Description, paste0("Would you recommend "), 
-            platform_1L_chr) ~ "Satisfaction - would recommend", 
+        startsWith(Description, paste0("Would you recommend ", 
+            platform_1L_chr)) ~ "Satisfaction - would recommend", 
         T ~ Description)) %>% dplyr::mutate(Description = stringr::str_replace_all(Description, 
         "Number of DM", "Number of direct messages") %>% stringr::str_replace_all("About how often did you feel ", 
         "") %>% stringr::str_replace_all("How satisfied are you with ", 
@@ -1376,6 +1546,128 @@ make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names
         }))
     return(comparison_tb)
 }
+#' Make project minutes dataset
+#' @description make_project_minutes_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project minutes dataset. The function is called for its side effects and does not return a value.
+#' @param processed_ls Processed (a list)
+#' @param cut_weeks_int Cut weeks (an integer vector), Default: c(14, 53)
+#' @param drop_1L_lgl Drop (a logical vector of length one), Default: TRUE
+#' @param model_data_ls Model data (a list), Default: NULL
+#' @param period_dtm Period (a date vector), Default: lubridate::years(1) - lubridate::days(1)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("imputed", "unimputed")
+#' @param what_1L_chr What (a character vector of length one), Default: c("wide", "long")
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_project_minutes_ds
+#' @export 
+#' @importFrom lubridate years days interval weeks NA_Date_
+#' @importFrom dplyr pull select filter group_by summarise first mutate bind_rows arrange relocate case_when left_join across everything
+#' @importFrom purrr map_dfr
+#' @importFrom tidyselect any_of
+#' @importFrom ready4use add_dictionary
+#' @importFrom stringr str_replace_all
+#' @importFrom Hmisc capitalize
+#' @keywords internal
+make_project_minutes_ds <- function (processed_ls, cut_weeks_int = c(14, 53), drop_1L_lgl = TRUE, 
+    model_data_ls = NULL, period_dtm = lubridate::years(1) - 
+        lubridate::days(1), type_1L_chr = c("imputed", "unimputed"), 
+    what_1L_chr = c("wide", "long")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    what_1L_chr <- match.arg(what_1L_chr)
+    start_dtm <- processed_ls$contacts@ds_tb %>% dplyr::pull(date_contacted) %>% 
+        min()
+    end_dtm <- processed_ls$contacts@ds_tb %>% dplyr::pull(date_contacted) %>% 
+        max()
+    if (!is.null(period_dtm)) {
+        end_dtm <- min((start_dtm + period_dtm), end_dtm)
+    }
+    overview_tb <- processed_ls$overview@ds_tb %>% dplyr::select(UID, 
+        onboarding_date) %>% dplyr::filter(onboarding_date <= 
+        end_dtm)
+    minutes_tb <- processed_ls$contacts@ds_tb %>% dplyr::filter(date_contacted <= 
+        end_dtm) %>% dplyr::group_by(UID) %>% dplyr::summarise(direct_mins = sum(direct_mins, 
+        na.rm = T), indirect_mins = sum(indirect_mins, na.rm = T), 
+        Minutes = sum(Minutes, na.rm = T), onboarding_date = dplyr::first(onboarding_date), 
+        first_contact = min(date_contacted), last_contact = max(date_contacted)) %>% 
+        dplyr::mutate(days_to_start = lubridate::interval(onboarding_date, 
+            start_dtm)/lubridate::days(1), days_to_first = lubridate::interval(onboarding_date, 
+            first_contact)/lubridate::days(1), days_to_last = lubridate::interval(onboarding_date, 
+            last_contact)/lubridate::days(1))
+    new_tb <- minutes_tb %>% dplyr::filter(days_to_start <= 0)
+    new_chr <- unique(new_tb$UID)
+    legacy_tb <- minutes_tb %>% dplyr::filter(days_to_start > 
+        0)
+    legacy_chr <- unique(legacy_tb$UID)
+    zeros_tb <- overview_tb %>% dplyr::filter(!UID %in% c(new_chr, 
+        legacy_chr)) %>% dplyr::mutate(days_to_start = lubridate::interval(onboarding_date, 
+        start_dtm)/lubridate::days(1), direct_mins = 0, indirect_mins = 0, 
+        Minutes = 0)
+    new_tb <- dplyr::bind_rows(new_tb, zeros_tb %>% dplyr::filter(days_to_start <= 
+        0)) %>% dplyr::arrange(onboarding_date)
+    legacy_tb <- dplyr::bind_rows(legacy_tb, zeros_tb %>% dplyr::filter(days_to_start > 
+        0)) %>% dplyr::arrange(onboarding_date)
+    minutes_tb <- dplyr::bind_rows(new_tb %>% dplyr::mutate(Presentation = "New"), 
+        legacy_tb %>% dplyr::mutate(Presentation = "Prior")) %>% 
+        dplyr::mutate(days_to_end = lubridate::interval(onboarding_date, 
+            end_dtm)/lubridate::days(1)) %>% dplyr::relocate(days_to_end, 
+        .after = days_to_start) %>% dplyr::relocate(direct_mins, 
+        indirect_mins, Minutes, .after = days_to_last) %>% dplyr::relocate(Presentation, 
+        .after = UID)
+    if (what_1L_chr == "long") {
+        minutes_tb <- 1:length(cut_weeks_int) %>% purrr::map_dfr(~{
+            period_int <- c(0, cut_weeks_int)[c(.x, .x + 1)]
+            minutes_tb %>% dplyr::mutate(MeasurementWeek = paste0("Week", 
+                period_int[2]), CutStart = onboarding_date + 
+                lubridate::weeks(period_int[1]), CutEnd = onboarding_date + 
+                lubridate::weeks(period_int[2])) %>% dplyr::mutate(CutStart = dplyr::case_when(CutStart < 
+                start_dtm ~ lubridate::NA_Date_, T ~ CutStart)) %>% 
+                dplyr::mutate(CutEnd = dplyr::case_when(CutEnd > 
+                  end_dtm ~ lubridate::NA_Date_, T ~ CutEnd))
+        }) %>% dplyr::arrange(UID, MeasurementWeek) %>% dplyr::select(-c(direct_mins, 
+            indirect_mins, Minutes))
+        if (drop_1L_lgl) {
+            minutes_tb <- minutes_tb %>% dplyr::filter(!is.na(CutStart) & 
+                !is.na(CutEnd))
+        }
+        Y_Ready4useDyad <- get_project_model_data(model_data_ls, 
+            what_1L_chr = "MicroLong", type_1L_chr = type_1L_chr)
+        minutes_tb <- minutes_tb$MeasurementWeek %>% unique() %>% 
+            purrr::map_dfr(~{
+                filtered_tb <- minutes_tb %>% dplyr::filter(MeasurementWeek == 
+                  .x) %>% dplyr::select(UID, Presentation, MeasurementWeek, 
+                  CutStart, CutEnd, days_to_start, days_to_end, 
+                  days_to_first, days_to_last)
+                Y_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% 
+                  filtered_tb$UID) %>% dplyr::left_join(filtered_tb) %>% 
+                  dplyr::group_by(UID) %>% dplyr::filter(Date >= 
+                  CutStart) %>% dplyr::filter(Date < CutEnd) %>% 
+                  dplyr::summarise(dplyr::across(c("direct_mins", 
+                    "indirect_mins", "Minutes"), ~sum(.))) %>% 
+                  dplyr::mutate(MeasurementWeek = .x) %>% dplyr::left_join(filtered_tb)
+            }) %>% dplyr::arrange(UID, MeasurementWeek) %>% dplyr::left_join(Y_Ready4useDyad@ds_tb %>% 
+            dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(c("platform", 
+            "clinic_type", "clinic_state", "Age", "gender", "employment_status"), 
+            ~dplyr::first(.))))
+        minutes_tb <- minutes_tb %>% dplyr::select(tidyselect::any_of(c("UID", 
+            "MeasurementWeek", "CutStart", "CutEnd", "days_to_start", 
+            "days_to_end", "days_to_first", "days_to_last", "Presentation")), 
+            dplyr::everything())
+        minutes_tb <- minutes_tb %>% dplyr::mutate(dplyr::across(c(direct_mins, 
+            indirect_mins, Minutes), .names = "{.col}_change", 
+            ~.x))
+    }
+    X_Ready4useDyad <- renewSlot(processed_ls$overview, "ds_tb", 
+        minutes_tb)
+    X_Ready4useDyad <- X_Ready4useDyad %>% renewSlot("dictionary_r3", 
+        .@dictionary_r3 %>% dplyr::filter(var_nm_chr %in% names(X_Ready4useDyad@ds_tb))) %>% 
+        ready4use::add_dictionary()
+    X_Ready4useDyad <- X_Ready4useDyad %>% renewSlot("dictionary_r3", 
+        .@dictionary_r3 %>% dplyr::filter(!duplicated(var_nm_chr)) %>% 
+            dplyr::mutate(var_desc_chr = stringr::str_replace_all(var_desc_chr, 
+                "_", " ") %>% Hmisc::capitalize()) %>% dplyr::mutate(var_ctg_chr = dplyr::case_when(var_nm_chr %in% 
+            c("Presentation", "Minutes") ~ "Engagement", var_ctg_chr == 
+            "Uncategorised" ~ "Temporal", T ~ var_ctg_chr)))
+    return(X_Ready4useDyad)
+}
 #' Make project minutes models
 #' @description make_project_minutes_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project minutes models. The function returns Tpm models (a list).
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -1398,23 +1690,12 @@ make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma
     data_tb <- X_Ready4useDyad@ds_tb
     if (is.null(x_part_1_ls)) {
         x_part_1_ls <- list(c("Age", "employment_status", "gender", 
-            "clinic_type", "treatment_status", "Minutes_start", 
+            "clinic_type", "MeasurementWeek"), c("Age", "employment_status", 
+            "clinic_type", "MeasurementWeek"), c("Age", "gender", 
+            "clinic_type", "MeasurementWeek"), c("employment_status", 
+            "gender", "clinic_type", "MeasurementWeek"), c("Age", 
             "MeasurementWeek"), c("Age", "employment_status", 
-            "gender", "clinic_type", "Minutes_start", "MeasurementWeek"), 
-            c("Age", "employment_status", "gender", "treatment_status", 
-                "Minutes_start", "MeasurementWeek"), c("Age", 
-                "employment_status", "gender", "clinic_type", 
-                "treatment_status", "Minutes_start", "MeasurementWeek"), 
-            c("Age", "employment_status", "clinic_type", "treatment_status", 
-                "Minutes_start", "MeasurementWeek"), c("Age", 
-                "gender", "clinic_type", "treatment_status", 
-                "Minutes_start", "MeasurementWeek"), c("employment_status", 
-                "gender", "clinic_type", "treatment_status", 
-                "Minutes_start", "MeasurementWeek"), c("Age", 
-                "Minutes_start", "MeasurementWeek"), c("Age", 
-                "employment_status", "gender"), c("Age", "employment_status", 
-                "treatment_status"), c("Age", "Minutes_start", 
-                "MeasurementWeek"), "Age")
+            "gender"), c("Age", "employment_status"), "Age")
     }
     if (is.null(x_part_2_ls)) {
         x_part_2_ls <- x_part_1_ls
@@ -2631,6 +2912,19 @@ make_results_synthesis <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4us
                 severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
     }
     return(A_Ready4useDyad)
+}
+#' Make sensitivities list
+#' @description make_sensitivities_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make sensitivities list. The function returns Sensitivities (a list).
+
+#' @return Sensitivities (a list)
+#' @rdname make_sensitivities_ls
+#' @export 
+#' @keywords internal
+make_sensitivities_ls <- function () 
+{
+    sensitivities_ls <- list(costs_ls = list(), outcomes_ls = list(YR1 = add_projected_maintenance, 
+        YR1_S1 = add_projected_decay, YR1_S2 = add_projected_growth))
+    return(sensitivities_ls)
 }
 #' Make simulated draws
 #' @description make_simulated_draws() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulated draws. The function returns Simulations (a data.frame).

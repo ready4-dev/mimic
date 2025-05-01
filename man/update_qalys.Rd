@@ -10,6 +10,7 @@ update_qalys(
   adjustment_1L_dbl = 0,
   follow_up_1L_int = integer(0),
   maintain_for_1L_int = 0,
+  sensitivities_ls = make_sensitivities_ls(),
   tidy_1L_lgl = FALSE,
   utilities_chr = c("AQoL6D", "CHU9D")
 )
@@ -24,6 +25,8 @@ update_qalys(
 \item{follow_up_1L_int}{Follow up (an integer vector of length one), Default: integer(0)}
 
 \item{maintain_for_1L_int}{Maintain for (an integer vector of length one), Default: 0}
+
+\item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
 
 \item{tidy_1L_lgl}{Tidy (a logical vector of length one), Default: FALSE}
 

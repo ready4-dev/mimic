@@ -1,16 +1,39 @@
-make_class_tfmns <- function(force_1L_lgl = FALSE){
-  if(force_1L_lgl){
-    tfmns_ls <- list(UID = as.integer, 
-                     K10 = function(x){youthvars::youthvars_k10_aus(as.integer(x))}, 
-                     AQoL6D = function(x){youthvars::youthvars_aqol6d_adol(purrr::map_dbl(x,~max(0.03,min(.x,1))))}, 
-                     CHU9D = function(x){youthvars::youthvars_chu9d_adolaus(purrr::map_dbl(x,~max(-0.2118,min(.x,1))))} )
-  }else{
-    tfmns_ls <- list(UID = as.integer, k10 = function(x){youthvars::youthvars_k10_aus(as.integer(x))}, 
-                     AQoL6D = youthvars::youthvars_aqol6d_adol, 
-                     CHU9D = youthvars::youthvars_chu9d_adolaus)
+make_annual_overview <- function(processed_ls){
+  annual_tb <- processed_ls$overview@ds_tb %>% 
+    serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
+    dplyr::group_by(FiscalYear) %>% dplyr::select(-c(Age, Year, FiscalQuarter)) %>% 
+    dplyr::summarise(Clients = length(unique(UID)), dplyr::across(dplyr::where(is.numeric), ~ sum(.x,na.rm = T)))
+  return(annual_tb)
+}
+make_class_tfmns <- function (force_1L_lgl = FALSE) 
+{
+  if (force_1L_lgl) {
+    tfmns_ls <- list(UID = as.integer, K10 = function(x) {
+      youthvars::youthvars_k10_aus(purrr::map_int(x, ~as.integer(max(10, min(round(.x,0), 50)))))
+    }, AQoL6D = function(x) {
+      youthvars::youthvars_aqol6d_adol(purrr::map_dbl(x, 
+                                                      ~max(0.03, min(.x, 1))))
+    }, CHU9D = function(x) {
+      youthvars::youthvars_chu9d_adolaus(purrr::map_dbl(x, 
+                                                        ~max(-0.2118, min(.x, 1))))
+    })
+  }  else {
+    tfmns_ls <- list(UID = as.integer, k10 = function(x) {
+      youthvars::youthvars_k10_aus(as.integer(x))
+    }, AQoL6D = youthvars::youthvars_aqol6d_adol, CHU9D = youthvars::youthvars_chu9d_adolaus)
   }
-
   return(tfmns_ls)
+}
+make_clinic_summary <- function(processed_ls,
+                                type_1L_chr = serious::make_temporal_vars()){
+  type_1L_chr <- match.arg(type_1L_chr)
+  clinics_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
+    dplyr::group_by(!!rlang::sym(type_1L_chr), clinic_type) %>% 
+    dplyr::summarise(Clinics = length(unique(clinic_postcode))) %>%
+    tidyr::pivot_wider(names_from = clinic_type, values_from = Clinics) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.integer), ~.x %>% purrr::map_int(~ifelse(is.na(.x),0,.x))))
+  
+  return(clinics_tb)
 }
 make_composite_results <- function(X_Ready4useDyad,
                                    Y_Ready4useDyad,
@@ -49,6 +72,30 @@ make_composite_results <- function(X_Ready4useDyad,
   }
   return(A_Ready4useDyad)
 }
+make_conditional_vars <- function(outcome_1L_chr,
+                                  follow_up_1L_int = integer(0),
+                                  fup_var_1L_chr = character(0),
+                                  type_1L_chr = c("end", "fup","start","years")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if (identical(fup_var_1L_chr, character(0))) {
+    fup_var_1L_chr <- paste0(outcome_1L_chr, "_", follow_up_1L_int, "_Weeks")
+  }
+  if (!identical(follow_up_1L_int, integer(0))) {
+    start_var_1L_chr <- outcome_1L_chr
+    end_var_1L_chr <- fup_var_1L_chr 
+    yrs_1L_dbl <- lubridate::weeks(follow_up_1L_int)/lubridate::years(1)
+  } else {
+    start_var_1L_chr <- paste0(outcome_1L_chr, "_previous")
+    end_var_1L_chr <- outcome_1L_chr
+    yrs_1L_dbl <- numeric(0)
+  }
+  var_1L_chr <- switch(type_1L_chr,
+                       end = end_var_1L_chr,
+                       fup = fup_var_1L_chr,
+                       start = start_var_1L_chr,
+                       years = yrs_1L_dbl)
+  return(var_1L_chr)
+}
 make_confusion_ls <- function(regressions_ls,
                               X_Ready4useDyad,
                               var_1L_chr,
@@ -75,6 +122,23 @@ make_confusion_ls <- function(regressions_ls,
                          ggplot2::scale_fill_gradient(low=low_1L_chr,high = high_1L_chr))
   
   return(confusion_ls)
+}
+make_contacters_series <- function(model_data_ls){
+  end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% max()
+  start_dtm <- model_data_ls$imputed_ls$Series_r4@ds_tb %>% dplyr::filter(Minutes>0) %>% dplyr::pull(Date) %>% min()
+  X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Series_r4, "ds_tb",
+                               model_data_ls$imputed_ls$Series_r4@ds_tb %>% 
+                                 dplyr::mutate(Contacts = dplyr::case_when(direct_mins>0 ~ 1, T ~ 0)) %>%
+                                 dplyr::filter(Date >= start_dtm,
+                                               Date <= end_dtm))
+  return(X_Ready4useDyad)
+}
+make_contacters_summary <- function(processed_ls,
+                                    type_1L_chr = serious::make_temporal_vars()){
+  type_1L_chr <- match.arg(type_1L_chr)
+  contacters_tb <- processed_ls$contacts@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "date_contacted") %>% dplyr::group_by(!!rlang::sym(type_1L_chr)) %>% 
+    dplyr::summarise(Minutes = sum(Minutes), Clients = length(unique(UID))) %>% dplyr::mutate(`Minutes per Client` = Minutes/Clients)
+  return(contacters_tb)
 }
 make_draws_tb <- function(inputs_ls,
                           iterations_int = 1:100,
@@ -166,6 +230,25 @@ make_experts_tb <- function(experts_ls,
     experts_tb <- experts_tb %>% dplyr::arrange(Question, name)
   }
   return(experts_tb)
+}
+make_interactions_summary <- function(processed_ls){
+  interactions_tb <-processed_ls$overview@ds_tb %>% 
+    serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% dplyr::filter(FiscalYear == "2023-2024") %>% dplyr::group_by(Month) %>% 
+    dplyr::select(-c(Age, Year, FiscalQuarter)) %>% dplyr::summarise(Clients = length(unique(UID)), dplyr::across(dplyr::where(is.numeric), ~ sum(.x,na.rm = T)))
+  return(interactions_tb)
+}
+make_joiners_series <- function(model_data_ls){
+  end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% max()
+  X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Series_r4, "ds_tb",
+                               model_data_ls$imputed_ls$Series_r4@ds_tb %>%
+                                 dplyr::select(-Minutes) %>%
+                                 dplyr::filter(Date <= end_dtm) )
+  return(X_Ready4useDyad)
+}
+make_k10_change_tb <- function(population_k10_tb){
+  k10_change_tb <- population_k10_tb %>% dplyr::group_by(Area, Treatment) %>% dplyr::summarise(`K10 change W17 to W19` = dplyr::nth(Mean, 2) - dplyr::first(Mean),
+                                                                                               `K10 change W21 to W23` = dplyr::nth(Mean, 4) - dplyr::nth(Mean, 3))
+  return(k10_change_tb)
 }
 make_k10_severity_cuts <- function(mild_int = c(10,15), moderate_int = c(16,21), high_int = c(22,29), very_high_int = c(30,50)){
   severity_cuts_ls <- list(Low = mild_int, Moderate = moderate_int, High = high_int, VeryHigh = very_high_int)
@@ -310,45 +393,78 @@ make_project_chu9d_mdls <- function(X_Ready4useDyad){
   #                           data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "sqrt"))
   return(chu9d_ls)
 }
-make_project_cost_mdlng_ds <- function(W_Ready4useDyad,
-                                    X_Ready4useDyad,
-                                    transform_gender_1L_lgl = T){
-  Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::filter(IncludedDays>0) %>%
-                                 dplyr::select(-tidyr::all_of(c(dplyr::starts_with("Year")))) %>%
-                                 dplyr::select(-tidyr::all_of( c("Active", "Episodes", "Separations",
-                                                                 "role_type", "primary_mode", "primary_participant", "primary_purpose", "Activity",
-                                                                 "Enroll", "EpisodeEnd"
+make_project_consolidated_ds <- function(X_Ready4useDyad,
+                                         Y_Ready4useDyad,
+                                         Z_Ready4useDyad = ready4use::Ready4useDyad,
+                                         type_1L_chr = c("outcomes", "tx_status")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr == "outcomes"){
+    A_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb",
+                                 rbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == "Week0"),
+                                       X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == "Week12") %>%
+                                         dplyr::filter(!UID %in% unique(Y_Ready4useDyad@ds_tb$UID)),
+                                       Y_Ready4useDyad@ds_tb) %>%
+                                   dplyr::group_by(UID) %>%
+                                   dplyr::mutate(`Data Collection Rounds` = as.character(dplyr::n())) %>%
+                                   dplyr::ungroup() %>%
+                                   dplyr::arrange(UID))
+  }
+  if(type_1L_chr == "tx_status"){
+    A_Ready4useDyad <- make_project_tx_mdlng_ds(X_Ready4useDyad = X_Ready4useDyad,
+                                                Y_Ready4useDyad = Y_Ready4useDyad,
+                                                Z_Ready4useDyad = Z_Ready4useDyad)
+  }
+  
+  return(A_Ready4useDyad)
+}
+make_project_contacts_ds <- function(raw_data_ls,
+                                     demographics_tb,
+                                     recode_lup_r3 = make_project_recode_lup()){
+  contacts_tb <- demographics_tb %>% dplyr::inner_join(raw_data_ls$contacts) 
+  contacts_tb <- contacts_tb %>%
+    dplyr::mutate(primary_purpose = recode_lup_r3 %>% 
+                    ready4show::manufacture.ready4show_correspondences(contacts_tb %>% dplyr::select(primary_purpose), flatten_1L_lgl = TRUE))
+  contacts_tb <- contacts_tb %>%
+    dplyr::mutate(Minutes = direct_mins + indirect_mins)
+  return(contacts_tb)
+}
+make_project_cost_mdlng_ds <- function (W_Ready4useDyad, X_Ready4useDyad, transform_gender_1L_lgl = T) 
+{
+  Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::filter(IncludedDays > 0) %>% dplyr::select(-tidyr::all_of(c(dplyr::starts_with("Year")))) %>% 
+                                 dplyr::select(-tidyr::any_of(c("Active", "Episodes", 
+                                                                "Separations", "role_type", "primary_mode", "primary_participant", 
+                                                                "primary_purpose", "Activity", "Enroll", "EpisodeEnd",
+                                                                "Presentation",      "onboarding_date",   "first_contact",     "last_contact",      "days_to_start",     "days_to_end",       "days_to_first",     "days_to_last",      "IntersectingYears"
+                                                                
                                  ))))
-  duplicates_chr <- W_Ready4useDyad@ds_tb$UID[W_Ready4useDyad@ds_tb$UID %>% duplicated()] %>% unique()
-  duplicates_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% duplicates_chr) %>% dplyr::arrange(UID) %>% dplyr::filter(Onboarded==1)
-  W_Ready4useDyad@ds_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(!UID %in% duplicates_chr) %>%
-    rbind(duplicates_tb) %>% dplyr::arrange(Date, UID)
-  onboarded_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(Date>= Z_Ready4useDyad@ds_tb$Date %>% min() & Date < (Z_Ready4useDyad@ds_tb$Date %>% min() + lubridate::years(1))) %>%
-    dplyr::filter(!UID %in% unique(Z_Ready4useDyad@ds_tb$UID)) 
-  onboarded_tb <- onboarded_tb %>%
-    add_activity() 
-  onboarded_tb <- onboarded_tb %>%
-    dplyr::select(intersect(names(onboarded_tb), names(Z_Ready4useDyad@ds_tb))) %>%
-    dplyr::mutate(direct_mins = 0,
-                  indirect_mins = 0,
-                  Minutes = 0,
-                  Tenure = 0,
-                  Cost = 0,
-                  Cost_S1 = 0,
-                  Psychosocial = 0,
-                  Coordination = 0,
-                  Psychological = 0,
-                  Suicideprevention = 0,
-                  Assessment = 0)  %>%
-    dplyr::mutate(IncludedDays = as.numeric(((Z_Ready4useDyad@ds_tb$Date %>% min() + lubridate::years(1)) - Date))) %>%
-    dplyr::mutate(IncludedDays = dplyr::case_when(IncludedDays>366 ~ 0,
-                                                  IncludedDays<0 ~ 0,
-                                                  TRUE ~ IncludedDays))
-  Z_Ready4useDyad@ds_tb <- rbind(Z_Ready4useDyad@ds_tb, onboarded_tb) %>% dplyr::arrange(Date)
-  if(transform_gender_1L_lgl){
+  duplicates_chr <- W_Ready4useDyad@ds_tb$UID[W_Ready4useDyad@ds_tb$UID %>% 
+                                                duplicated()] %>% unique()
+  duplicates_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% 
+                                                             duplicates_chr) %>% dplyr::arrange(UID) %>% dplyr::filter(Onboarded == 
+                                                                                                                         1)
+  W_Ready4useDyad@ds_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(!UID %in% 
+                                                                     duplicates_chr) %>% rbind(duplicates_tb) %>% dplyr::arrange(Date, 
+                                                                                                                                 UID)
+  onboarded_tb <- W_Ready4useDyad@ds_tb %>% dplyr::filter(Date >= 
+                                                            Z_Ready4useDyad@ds_tb$Date %>% min() & Date < (Z_Ready4useDyad@ds_tb$Date %>% 
+                                                                                                             min() + lubridate::years(1))) %>% dplyr::filter(!UID %in% 
+                                                                                                                                                               unique(Z_Ready4useDyad@ds_tb$UID))
+  onboarded_tb <- onboarded_tb %>% add_activity()
+  onboarded_tb <- onboarded_tb %>% dplyr::select(intersect(names(onboarded_tb), 
+                                                           names(Z_Ready4useDyad@ds_tb))) %>% dplyr::mutate(direct_mins = 0, 
+                                                                                                            indirect_mins = 0, Minutes = 0, Tenure = 0, Cost = 0, 
+                                                                                                            Cost_S1 = 0, Psychosocial = 0, Coordination = 0, Psychological = 0, 
+                                                                                                            Suicideprevention = 0, Assessment = 0) %>% dplyr::mutate(IncludedDays = as.numeric(((Z_Ready4useDyad@ds_tb$Date %>% 
+                                                                                                                                                                                                   min() + lubridate::years(1)) - Date))) %>% dplyr::mutate(IncludedDays = dplyr::case_when(IncludedDays > 
+                                                                                                                                                                                                                                                                                              366 ~ 0, IncludedDays < 0 ~ 0, TRUE ~ IncludedDays))
+  Z_Ready4useDyad@ds_tb <- rbind(Z_Ready4useDyad@ds_tb, onboarded_tb) %>% 
+    dplyr::arrange(Date)
+  if (transform_gender_1L_lgl) {
     Z_Ready4useDyad@ds_tb <- Z_Ready4useDyad@ds_tb %>% update_gender()
   }
-  Z_Ready4useDyad <- Z_Ready4useDyad %>% renew(what_1L_chr = "dictionary", type_1L_chr = "update")
+  Z_Ready4useDyad <- Z_Ready4useDyad %>% renew(what_1L_chr = "dictionary", 
+                                               type_1L_chr = "update")
   return(Z_Ready4useDyad)
 }
 make_project_costs_ds <- function(dss_ls,
@@ -460,208 +576,175 @@ make_project_costs_ds <- function(dss_ls,
   
   return(costs_tb)
 }
-make_project_dictionary <- function(raw_data_ls, 
-                                    platform_1L_chr,
-                                 dss_ls = NULL,
-                                 financial_yrs_chr = c("FY 2021", "FY 2022", "FY 2023", "FY 2024"),
-                                 gender_1L_chr = "gender",
-                                 index_date_1L_chr = "onboarding_date",
-                                 outcomes_chr = c("gad2",  "phq2",  "gad7",  "phq9",   "k10", "chu9d_utl"),
-                                 
-                                 price_indices_dbl = c(97.2,	100.0,	100.7796,	102.5514), 
-                                 price_ref_1L_int = 4L,
-                                 recode_1L_lgl = T,
-                                 recode_lup_r3 = make_project_recode_lup(),
-                                 ref_1L_chr = "FY 2024",
-                                 type_1L_chr = c("core", "all", "values"),
-                                 what_chr = c("activity", "contacts", "costs_constant", "costs_current", "costs_adjusted", "costs_unit", "outcomes", "overview", "notes")){
+make_project_dictionary <- function (raw_data_ls, platform_1L_chr, dss_ls = NULL, financial_yrs_chr = c("FY 2021", 
+                                                                                                        "FY 2022", "FY 2023", "FY 2024"), gender_1L_chr = "gender", 
+                                     index_date_1L_chr = "onboarding_date", outcomes_chr = c("gad2", 
+                                                                                             "phq2", "gad7", "phq9", "k10", "chu9d_utl"), price_indices_dbl = c(97.2, 
+                                                                                                                                                                100, 100.7796, 102.5514), price_ref_1L_int = 4L, recode_1L_lgl = T, 
+                                     recode_lup_r3 = make_project_recode_lup(), ref_1L_chr = "FY 2024", 
+                                     type_1L_chr = c("core", "all", "values"), what_chr = c("activity", 
+                                                                                            "contacts", "costs_constant", "costs_current", "costs_adjusted", 
+                                                                                            "costs_unit", "outcomes", "overview", "notes")) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
-  if(is.null(dss_ls)){
-    dss_ls <- make_project_ds(raw_data_ls, 
-                              platform_1L_chr = platform_1L_chr,
-                           financial_yrs_chr = financial_yrs_chr,
-                           gender_1L_chr = gender_1L_chr,
-                           index_date_1L_chr = index_date_1L_chr,
-                           outcomes_chr = outcomes_chr,
-                           price_indices_dbl = price_indices_dbl,
-                           recode_1L_lgl = recode_1L_lgl,
-                           recode_lup_r3 = recode_lup_r3,
-                           ref_1L_chr = ref_1L_chr,
-                           type_1L_chr = "tibble", what_1L_chr = "all")
-  }else{
+  if (is.null(dss_ls)) {
+    dss_ls <- make_project_ds(raw_data_ls, platform_1L_chr = platform_1L_chr, 
+                              financial_yrs_chr = financial_yrs_chr, gender_1L_chr = gender_1L_chr, 
+                              index_date_1L_chr = index_date_1L_chr, outcomes_chr = outcomes_chr, 
+                              price_indices_dbl = price_indices_dbl, recode_1L_lgl = recode_1L_lgl, 
+                              recode_lup_r3 = recode_lup_r3, ref_1L_chr = ref_1L_chr, 
+                              type_1L_chr = "tibble", what_1L_chr = "all")
+  } else {
     dss_ls <- dss_ls %>% purrr::map(~{
-      if(inherits(.x, "Ready4useDyad")){
+      if (inherits(.x, "Ready4useDyad")) {
         .x@ds_tb
-      }else{
-        .x}
-    }
-    )
+      }  else {
+        .x
+      }
+    })
   }
   dss_ls <- dss_ls %>% purrr::keep_at(what_chr)
-  dictionary_tb <- raw_data_ls$dictionary %>% janitor::row_to_names(1) 
+  dictionary_tb <- raw_data_ls$dictionary %>% janitor::row_to_names(1)
   names(dictionary_tb) <- c(names(dictionary_tb)[1:3], "Value")
-  dictionary_tb <- dictionary_tb %>%
-    dplyr::filter(is.na(Section) | Section !="Section") %>%
-    dplyr::filter((!is.na(Variable))) %>%
-    tidyr::fill(Section, .direction = "down") %>%
-    dplyr::mutate(Section = dplyr::case_when(startsWith(Section, "Patient Health Questionnaire 2 (PHQ-2)") ~ "Patient Health Questionnaire 2 (PHQ-2)",
-                                             startsWith(Section, "Patient Health Questionnaire 2 (PHQ-9)") ~ "Patient Health Questionnaire 9 (PHQ-9)",
-                                             startsWith(Section, "Kessler Psychological Distress Scale (K10)") ~ "Kessler Psychological Distress Scale (K10)",
-                                             startsWith(Section, "Quality of life (Child Health Utility 9D)") ~ "Quality of life (Child Health Utility 9D)",
-                                             startsWith(Section, "Generalized Anxiety Disorder 2-item (GAD-2)") ~ "Generalized Anxiety Disorder 2-item (GAD-2)",
-                                             startsWith(Section, "Generalized Anxiety Disorder 7-item (GAD-7)") ~ "Generalized Anxiety Disorder 7-item (GAD-7)",
-                                             startsWith(Section, "Customer Satisfaction Survey") ~ "Customer Satisfaction Survey",
-                                             Section == "Metadata" ~ "Service",
-                                             T ~ Section),
-                  Description = dplyr::case_when(endsWith(Description, "Do you identify as Aboriginal and/or Torres Strait Islander?") ~ "Aboriginal and/or Torres Strait Islander",
-                                                 startsWith(Description, "Case number") ~ "Unique identifier",
-                                                 startsWith(Description, "12-14 platform") ~ "Platform assignment (age-based)",
-                                                 startsWith(Description, "Date of birth for YP") ~ "Date of birth",
-                                                 startsWith(Description, "Sign-up date") ~ "Sign-up date",
-                                                 startsWith(Description, "Date of onboarding") ~ "Date of onboarding",
-                                                 startsWith(Description, "How do you describe your gender identity?") ~ "Gender identity",
-                                                 startsWith(Description, "Employment status") ~ "Employment status",
-                                                 startsWith(Description, "Classification of referring clinic") ~ "Clinic type",
-                                                 startsWith(Description, "Number of sessions") ~ "Number of sessions",
-                                                 startsWith(Description, "Cumulative total of session durations") ~ "Cumulative sessions duration",
-                                                 startsWith(Description, "YP are encouraged to re-visit therapy items") ~ "Number of therapy items viewed",
-                                                 Variable == "therapy_views" ~ "Number of views of therapy items",
-                                                 startsWith(Description, "Number of posts/comment/reactions made") ~ "Number of posts made",
-                                                 Variable == "comments_made" ~ "Number of comments made", 
-                                                 Variable == "reactions_made" ~ "Number of reactions made", 
-                                                 startsWith(Description, "YP's current stage of treatment") ~ "Current stage of treatment",
-                                                 startsWith(Description, "Role of the internal team member") ~ "Role",
-                                                 startsWith(Description, "Moving or speaking") ~ "Moving or speaking (slow / more than usual)",
-                                                 startsWith(Description, "Feeling bad about yourself") ~ "Feeling bad about yourself",
-                                                 startsWith(Description, "Trouble concentrating") ~ "Trouble concentrating",
-                                                 startsWith(Description, paste0("Would you recommend "), platform_1L_chr) ~ "Satisfaction - would recommend",
-                                                 T ~ Description)) %>%
-    dplyr::mutate(Description = stringr::str_replace_all(Description, "Number of DM", "Number of direct messages") %>%
-                    stringr::str_replace_all("About how often did you feel ", "") %>%
-                    stringr::str_replace_all("How satisfied are you with ", "Satistfaction - ") %>%
-                    stringr::str_replace_all(paste0(platform_1L_chr, " overall"), "overall") %>%
-                    stringr::str_replace_all(paste0("the therapy content on ", platform_1L_chr, " (e.g., Journey and Explore)?"), "therapy content") %>%
-                    stringr::str_replace_all(paste0("the peer community on ", platform_1L_chr, " (e.g., Newsfeed and Talk it Out)?"), "peer community") %>%
-                    stringr::str_replace_all(paste0("the human support you received on ", platform_1L_chr, " (e.g., a Clinician, Peer Worker, or Career Consultant)?"), "human support") %>%
-                    stringr::str_replace_all(paste0("Has ", platform_1L_chr, " helped you feel better?"), "Satisfaction - feel better") %>%
-                    stringr::str_replace_all(paste0("Have you felt safe using ", platform_1L_chr, "?"), "Satisfaction - felt safe") %>%
-                    stringr::str_replace_all(" (things like eating, having a bath/shower, getting dressed)", "") %>%
-                    stringr::str_replace_all(" (things like going out with your friends, doing sports, joining in things)", "") %>%
-                    stringr::str_replace_all("\\?", "")) %>%
-    dplyr::mutate(Description = dplyr::case_when(startsWith(Description, "Satistfaction - therapy content") ~ "Satistfaction - therapy content",
-                                                 startsWith(Description, "Satistfaction - peer community") ~ "Satistfaction - peer community",
-                                                 startsWith(Description, "Satistfaction - human support") ~ "Satistfaction - human support",
-                                                 T ~ Description))  %>%
-    dplyr::mutate(Variable = dplyr::case_when(startsWith(Variable, "GAD7-") ~ Variable %>% stringr::str_replace_all("GAD7-","gad7_"),
-                                              startsWith(Variable, "GAD2-") ~ Variable %>% stringr::str_replace_all("GAD2-","gad2_"),
-                                              T ~ Variable))%>%
+  dictionary_tb <- dictionary_tb %>% dplyr::filter(is.na(Section) | 
+                                                     Section != "Section") %>% dplyr::filter((!is.na(Variable))) %>% 
+    tidyr::fill(Section, .direction = "down") %>% dplyr::mutate(Section = dplyr::case_when(startsWith(Section, 
+                                                                                                      "Patient Health Questionnaire 2 (PHQ-2)") ~ "Patient Health Questionnaire 2 (PHQ-2)", 
+                                                                                           startsWith(Section, "Patient Health Questionnaire 2 (PHQ-9)") ~ 
+                                                                                             "Patient Health Questionnaire 9 (PHQ-9)", startsWith(Section, 
+                                                                                                                                                  "Kessler Psychological Distress Scale (K10)") ~ "Kessler Psychological Distress Scale (K10)", 
+                                                                                           startsWith(Section, "Quality of life (Child Health Utility 9D)") ~ 
+                                                                                             "Quality of life (Child Health Utility 9D)", startsWith(Section, 
+                                                                                                                                                     "Generalized Anxiety Disorder 2-item (GAD-2)") ~ 
+                                                                                             "Generalized Anxiety Disorder 2-item (GAD-2)", startsWith(Section, 
+                                                                                                                                                       "Generalized Anxiety Disorder 7-item (GAD-7)") ~ 
+                                                                                             "Generalized Anxiety Disorder 7-item (GAD-7)", startsWith(Section, 
+                                                                                                                                                       "Customer Satisfaction Survey") ~ "Customer Satisfaction Survey", 
+                                                                                           Section == "Metadata" ~ "Service", T ~ Section), Description = dplyr::case_when(endsWith(Description, 
+                                                                                                                                                                                    "Do you identify as Aboriginal and/or Torres Strait Islander?") ~ 
+                                                                                                                                                                             "Aboriginal and/or Torres Strait Islander", startsWith(Description, 
+                                                                                                                                                                                                                                    "Case number") ~ "Unique identifier", startsWith(Description, 
+                                                                                                                                                                                                                                                                                     "12-14 platform") ~ "Platform assignment (age-based)", 
+                                                                                                                                                                           startsWith(Description, "Date of birth for YP") ~ "Date of birth", 
+                                                                                                                                                                           startsWith(Description, "Sign-up date") ~ "Sign-up date", 
+                                                                                                                                                                           startsWith(Description, "Date of onboarding") ~ "Date of onboarding", 
+                                                                                                                                                                           startsWith(Description, "How do you describe your gender identity?") ~ 
+                                                                                                                                                                             "Gender identity", startsWith(Description, "Employment status") ~ 
+                                                                                                                                                                             "Employment status", startsWith(Description, "Classification of referring clinic") ~ 
+                                                                                                                                                                             "Clinic type", startsWith(Description, "Number of sessions") ~ 
+                                                                                                                                                                             "Number of sessions", startsWith(Description, "Cumulative total of session durations") ~ 
+                                                                                                                                                                             "Cumulative sessions duration", startsWith(Description, 
+                                                                                                                                                                                                                        "YP are encouraged to re-visit therapy items") ~ 
+                                                                                                                                                                             "Number of therapy items viewed", Variable == "therapy_views" ~ 
+                                                                                                                                                                             "Number of views of therapy items", startsWith(Description, 
+                                                                                                                                                                                                                            "Number of posts/comment/reactions made") ~ "Number of posts made", 
+                                                                                                                                                                           Variable == "comments_made" ~ "Number of comments made", 
+                                                                                                                                                                           Variable == "reactions_made" ~ "Number of reactions made", 
+                                                                                                                                                                           startsWith(Description, "YP's current stage of treatment") ~ 
+                                                                                                                                                                             "Current stage of treatment", startsWith(Description, 
+                                                                                                                                                                                                                      "Role of the internal team member") ~ "Role", startsWith(Description, 
+                                                                                                                                                                                                                                                                               "Moving or speaking") ~ "Moving or speaking (slow / more than usual)", 
+                                                                                                                                                                           startsWith(Description, "Feeling bad about yourself") ~ 
+                                                                                                                                                                             "Feeling bad about yourself", startsWith(Description, 
+                                                                                                                                                                                                                      "Trouble concentrating") ~ "Trouble concentrating", 
+                                                                                                                                                                           startsWith(Description, paste0("Would you recommend ", platform_1L_chr)) ~ "Satisfaction - would recommend", 
+                                                                                                                                                                           T ~ Description)) %>% dplyr::mutate(Description = stringr::str_replace_all(Description, 
+                                                                                                                                                                                                                                                      "Number of DM", "Number of direct messages") %>% stringr::str_replace_all("About how often did you feel ", 
+                                                                                                                                                                                                                                                                                                                                "") %>% stringr::str_replace_all("How satisfied are you with ", 
+                                                                                                                                                                                                                                                                                                                                                                 "Satistfaction - ") %>% stringr::str_replace_all(paste0(platform_1L_chr, 
+                                                                                                                                                                                                                                                                                                                                                                                                                         " overall"), "overall") %>% stringr::str_replace_all(paste0("the therapy content on ", 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     platform_1L_chr, " (e.g., Journey and Explore)?"), "therapy content") %>% 
+                                                                                                                                                                                                                 stringr::str_replace_all(paste0("the peer community on ", 
+                                                                                                                                                                                                                                                 platform_1L_chr, " (e.g., Newsfeed and Talk it Out)?"), 
+                                                                                                                                                                                                                                          "peer community") %>% stringr::str_replace_all(paste0("the human support you received on ", 
+                                                                                                                                                                                                                                                                                                platform_1L_chr, " (e.g., a Clinician, Peer Worker, or Career Consultant)?"), 
+                                                                                                                                                                                                                                                                                         "human support") %>% stringr::str_replace_all(paste0("Has ", 
+                                                                                                                                                                                                                                                                                                                                              platform_1L_chr, " helped you feel better?"), "Satisfaction - feel better") %>% 
+                                                                                                                                                                                                                 stringr::str_replace_all(paste0("Have you felt safe using ", 
+                                                                                                                                                                                                                                                 platform_1L_chr, "?"), "Satisfaction - felt safe") %>% 
+                                                                                                                                                                                                                 stringr::str_replace_all(" (things like eating, having a bath/shower, getting dressed)", 
+                                                                                                                                                                                                                                          "") %>% stringr::str_replace_all(" (things like going out with your friends, doing sports, joining in things)", 
+                                                                                                                                                                                                                                                                           "") %>% stringr::str_replace_all("\\?", "")) %>% dplyr::mutate(Description = dplyr::case_when(startsWith(Description, 
+                                                                                                                                                                                                                                                                                                                                                                                    "Satistfaction - therapy content") ~ "Satistfaction - therapy content", 
+                                                                                                                                                                                                                                                                                                                                                                         startsWith(Description, "Satistfaction - peer community") ~ 
+                                                                                                                                                                                                                                                                                                                                                                           "Satistfaction - peer community", startsWith(Description, 
+                                                                                                                                                                                                                                                                                                                                                                                                                        "Satistfaction - human support") ~ "Satistfaction - human support", 
+                                                                                                                                                                                                                                                                                                                                                                         T ~ Description)) %>% dplyr::mutate(Variable = dplyr::case_when(startsWith(Variable, 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    "GAD7-") ~ Variable %>% stringr::str_replace_all("GAD7-", 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "gad7_"), startsWith(Variable, "GAD2-") ~ Variable %>% 
+                                                                                                                                                                                                                                                                                                                                                                                                                                           stringr::str_replace_all("GAD2-", "gad2_"), T ~ Variable)) %>% 
     dplyr::filter(!duplicated(Variable))
-  dictionary_tb <- dplyr::bind_rows(dictionary_tb,
-                                    dictionary_tb %>% dplyr::filter(Variable == "phq9_item8") %>%
-                                      dplyr::mutate(Variable = "phq9_item9",
-                                                    Description = "Thoughts - better off dead / hurting self"))  %>%
+  dictionary_tb <- dplyr::bind_rows(dictionary_tb, dictionary_tb %>% 
+                                      dplyr::filter(Variable == "phq9_item8") %>% dplyr::mutate(Variable = "phq9_item9", 
+                                                                                                Description = "Thoughts - better off dead / hurting self")) %>% 
     dplyr::mutate(Description = Hmisc::capitalize(Description))
-  dictionary_tb <- dictionary_tb %>% 
-    tibble::add_case(Section = c("Reporting", rep("Temporal",7)),
-                     Variable = c("Metric", "FY 2021", "FY 2022", "FY 2023", "FY 2024", "Total", "sign_up_date",  "MeasurementWeek"),
-                     Description = c("Reporting metric", "Financial Year 2020-2021", "Financial Year 2021-2022", "Financial Year 2022-2023", "Financial Year 2023-2024", "Financial Year 2020-2021 through to Financial Year 2023-2024", "Date of sign-up", "Week (baseline = 0) of data collection"),
-                     Value = NA_character_)  %>%
-    tibble::add_case(Section = c(rep("Temporal",4)),
-                     Variable = c("Category", "Item", "Description", "Note"),
-                     Description = c("Reporting category", "Reporting item", "Description of reporting item", "Note on reporting item"),
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Identifier",
-                     Variable = c("UID"),
-                     Description = c("Unique person identifier"),
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = c("Generalized Anxiety Disorder 2-item (GAD-2)",  "Patient Health Questionnaire 2 (PHQ-2)",   "Generalized Anxiety Disorder 7-item (GAD-7)",  "Patient Health Questionnaire 9 (PHQ-9)", "Kessler Psychological Distress Scale (K10)", "Quality of life (Child Health Utility 9D)", "Quality of life (Child Health Utility 9D)"),
-                     Variable = c("gad2",  "phq2",  "gad7",  "phq9", "k10", "chu9d_cml" , "chu9d_utl"),
-                     Description = c("Generalized Anxiety Disorder 2-item (GAD-2) total score",  "Patient Health Questionnaire 2 (PHQ-2) total score",   "Generalized Anxiety Disorder 7-item (GAD-7) total score",  "Patient Health Questionnaire 9 (PHQ-9) total score", "Kessler Psychological Distress Scale (K10) total score", "Quality of life (Child Health Utility 9D) unweighted total score" , "Quality of life (Child Health Utility 9D) health utility"),
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Cost",
-                     Variable = "Type",
-                     Description = "Type of cost - fixed or variable",
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Reporting",
-                     Variable = "Quantity",
-                     Description = "Quantity as measured by a specified unit",
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Reporting",
-                     Variable = "Unit",
-                     Description = "Unit of measurement",
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Cost",
-                     Variable = "TotalCost",
-                     Description = "Total cost",
-                     Value = NA_character_) %>%
-    tibble::add_case(Section = "Cost",
-                     Variable = "UnitCost",
-                     Description = "Unit cost",
-                     Value = NA_character_) %>%
+  dictionary_tb <- dictionary_tb %>% tibble::add_case(Section = c("Reporting", 
+                                                                  rep("Temporal", 7)), Variable = c("Metric", "FY 2021", 
+                                                                                                    "FY 2022", "FY 2023", "FY 2024", "Total", "sign_up_date", 
+                                                                                                    "MeasurementWeek"), Description = c("Reporting metric", 
+                                                                                                                                        "Financial Year 2020-2021", "Financial Year 2021-2022", 
+                                                                                                                                        "Financial Year 2022-2023", "Financial Year 2023-2024", 
+                                                                                                                                        "Financial Year 2020-2021 through to Financial Year 2023-2024", 
+                                                                                                                                        "Date of sign-up", "Week (baseline = 0) of data collection"), 
+                                                      Value = NA_character_) %>% tibble::add_case(Section = c(rep("Temporal", 
+                                                                                                                  4)), Variable = c("Category", "Item", "Description", 
+                                                                                                                                    "Note"), Description = c("Reporting category", "Reporting item", 
+                                                                                                                                                             "Description of reporting item", "Note on reporting item"), 
+                                                                                                  Value = NA_character_) %>% tibble::add_case(Section = "Identifier", 
+                                                                                                                                              Variable = c("UID"), Description = c("Unique person identifier"), 
+                                                                                                                                              Value = NA_character_) %>% tibble::add_case(Section = c("Generalized Anxiety Disorder 2-item (GAD-2)", 
+                                                                                                                                                                                                      "Patient Health Questionnaire 2 (PHQ-2)", "Generalized Anxiety Disorder 7-item (GAD-7)", 
+                                                                                                                                                                                                      "Patient Health Questionnaire 9 (PHQ-9)", "Kessler Psychological Distress Scale (K10)", 
+                                                                                                                                                                                                      "Quality of life (Child Health Utility 9D)", "Quality of life (Child Health Utility 9D)"), 
+                                                                                                                                                                                          Variable = c("gad2", "phq2", "gad7", "phq9", "k10", "chu9d_cml", 
+                                                                                                                                                                                                       "chu9d_utl"), Description = c("Generalized Anxiety Disorder 2-item (GAD-2) total score", 
+                                                                                                                                                                                                                                     "Patient Health Questionnaire 2 (PHQ-2) total score", 
+                                                                                                                                                                                                                                     "Generalized Anxiety Disorder 7-item (GAD-7) total score", 
+                                                                                                                                                                                                                                     "Patient Health Questionnaire 9 (PHQ-9) total score", 
+                                                                                                                                                                                                                                     "Kessler Psychological Distress Scale (K10) total score", 
+                                                                                                                                                                                                                                     "Quality of life (Child Health Utility 9D) unweighted total score", 
+                                                                                                                                                                                                                                     "Quality of life (Child Health Utility 9D) health utility"), 
+                                                                                                                                                                                          Value = NA_character_) %>% tibble::add_case(Section = "Cost", 
+                                                                                                                                                                                                                                      Variable = "Type", Description = "Type of cost - fixed or variable", 
+                                                                                                                                                                                                                                      Value = NA_character_) %>% tibble::add_case(Section = "Reporting", 
+                                                                                                                                                                                                                                                                                  Variable = "Quantity", Description = "Quantity as measured by a specified unit", 
+                                                                                                                                                                                                                                                                                  Value = NA_character_) %>% tibble::add_case(Section = "Reporting", 
+                                                                                                                                                                                                                                                                                                                              Variable = "Unit", Description = "Unit of measurement", 
+                                                                                                                                                                                                                                                                                                                              Value = NA_character_) %>% tibble::add_case(Section = "Cost", 
+                                                                                                                                                                                                                                                                                                                                                                          Variable = "TotalCost", Description = "Total cost", Value = NA_character_) %>% 
+    tibble::add_case(Section = "Cost", Variable = "UnitCost", 
+                     Description = "Unit cost", Value = NA_character_) %>% 
     dplyr::arrange(Section, Variable)
-  #
-  dictionary_tb <- dplyr::mutate(dictionary_tb, Section = dplyr::case_when(Section == "case_number" ~ "Identifier",# "case_number", "sign_up_date", "onboarding_date", "MeasurementWeek","date_contacted", date_of_birth_1L_chr,
-                                                                           Section %in% c("sign_up_date", "onboarding_date", "MeasurementWeek","date_contacted", "date_of_birth") ~ "Temporal",
-                                                                           Section == "Demographics" ~ "Demographic",
-                                                                           Section %in% c("clinic_type","platform","treatment_stage") ~ "Service",
-                                                                           Section %in% c(" clinic_state"," clinic_postcode") ~ "Spatial",
-                                                                           T ~ Section))
-  if(type_1L_chr == "all"){
+  dictionary_tb <- dplyr::mutate(dictionary_tb, Section = dplyr::case_when(Section == 
+                                                                             "case_number" ~ "Identifier", Section %in% c("sign_up_date", 
+                                                                                                                          "onboarding_date", "MeasurementWeek", "date_contacted", 
+                                                                                                                          "date_of_birth") ~ "Temporal", Section == "Demographics" ~ 
+                                                                             "Demographic", Section %in% c("clinic_type", "platform", 
+                                                                                                           "treatment_stage") ~ "Service", Section %in% c(" clinic_state", 
+                                                                                                                                                          " clinic_postcode") ~ "Spatial", T ~ Section))
+  if (type_1L_chr == "all") {
     dictionary_xx <- dictionary_tb
   }
-  if(type_1L_chr == "values"){
-    dictionary_xx <- dictionary_tb %>% dplyr::select(Variable, Value) %>% dplyr::filter(!is.na(Value))
+  if (type_1L_chr == "values") {
+    dictionary_xx <- dictionary_tb %>% dplyr::select(Variable, 
+                                                     Value) %>% dplyr::filter(!is.na(Value))
   }
-  if(type_1L_chr == "core"){
+  if (type_1L_chr == "core") {
     dictionary_xx <- dss_ls %>% purrr::map(~{
       ds_tb <- .x
-      new_dict_tb <- dictionary_tb %>% dplyr::filter(Variable %in% names(ds_tb))
-      ready4use::ready4use_dictionary() %>% ready4use::renew.ready4use_dictionary(var_nm_chr = new_dict_tb$Variable,
-                                                                                  var_ctg_chr = new_dict_tb$Section,
-                                                                                  var_desc_chr = new_dict_tb$Description,
-                                                                                  var_type_chr = new_dict_tb$Variable %>%
-                                                                                    purrr::map_chr(~ ds_tb %>% dplyr::pull(!!rlang::sym(.x)) %>% class() %>% purrr::pluck(1)))
-    }) 
-    if(length(dictionary_xx)==1){
+      new_dict_tb <- dictionary_tb %>% dplyr::filter(Variable %in% 
+                                                       names(ds_tb))
+      ready4use::ready4use_dictionary() %>% ready4use::renew.ready4use_dictionary(var_nm_chr = new_dict_tb$Variable, 
+                                                                                  var_ctg_chr = new_dict_tb$Section, var_desc_chr = new_dict_tb$Description, 
+                                                                                  var_type_chr = new_dict_tb$Variable %>% purrr::map_chr(~ds_tb %>% 
+                                                                                                                                           dplyr::pull(!!rlang::sym(.x)) %>% class() %>% 
+                                                                                                                                           purrr::pluck(1)))
+    })
+    if (length(dictionary_xx) == 1) {
       dictionary_xx <- dictionary_xx %>% purrr::pluck(1)
     }
   }
   return(dictionary_xx)
-}
-make_project_consolidated_ds <- function(X_Ready4useDyad,
-                                      Y_Ready4useDyad,
-                                      Z_Ready4useDyad = ready4use::Ready4useDyad,
-                                      type_1L_chr = c("outcomes", "tx_status")){
-  type_1L_chr <- match.arg(type_1L_chr)
-  if(type_1L_chr == "outcomes"){
-    A_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb",
-                                 rbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == "Week0"),
-                                       X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == "Week12") %>%
-                                         dplyr::filter(!UID %in% unique(Y_Ready4useDyad@ds_tb$UID)),
-                                       Y_Ready4useDyad@ds_tb) %>%
-                                   dplyr::group_by(UID) %>%
-                                   dplyr::mutate(`Data Collection Rounds` = as.character(dplyr::n())) %>%
-                                   dplyr::ungroup() %>%
-                                   dplyr::arrange(UID))
-  }
-  if(type_1L_chr == "tx_status"){
-    A_Ready4useDyad <- make_project_tx_mdlng_ds(X_Ready4useDyad = X_Ready4useDyad,
-                                             Y_Ready4useDyad = Y_Ready4useDyad,
-                                             Z_Ready4useDyad = Z_Ready4useDyad)
-  }
-  
-  return(A_Ready4useDyad)
-}
-make_project_contacts_ds <- function(raw_data_ls,
-                                  demographics_tb,
-                                  recode_lup_r3 = make_project_recode_lup()){
-  contacts_tb <- demographics_tb %>% dplyr::inner_join(raw_data_ls$contacts) 
-  contacts_tb <- contacts_tb %>%
-    dplyr::mutate(primary_purpose = recode_lup_r3 %>% 
-                    ready4show::manufacture.ready4show_correspondences(contacts_tb %>% dplyr::select(primary_purpose), flatten_1L_lgl = TRUE))
-  contacts_tb <- contacts_tb %>%
-    dplyr::mutate(Minutes = direct_mins + indirect_mins)
-  return(contacts_tb)
 }
 make_project_demographics_ds <- function(raw_data_ls,
                                       uid_1L_chr = "UID"){
@@ -670,119 +753,117 @@ make_project_demographics_ds <- function(raw_data_ls,
     serious::add_new_uid(uid_vars_chr = "case_number", recode_1L_lgl = T, new_uid_var_1L_chr = uid_1L_chr) ## add serious::
   return(demographics_tb)
 }
-make_project_ds <- function(raw_data_ls,
-                            platform_1L_chr,
-                         age_1L_chr = "Age",
-                         cleanse_1L_chr = c("itemdims", "all", "none", "dims", "items"),
-                         drop_1L_lgl = TRUE,
-                         date_of_birth_1L_chr = "date_of_birth",
-                         employment_1L_chr = "employment_status",
-                         financial_yrs_chr = c("FY 2021", "FY 2022", "FY 2023", "FY 2024"),
-                         gender_1L_chr = "gender",
-                         index_date_1L_chr = "onboarding_date",
-                         outcomes_chr = c("gad2",  "phq2",  "gad7",  "phq9",   "k10", "chu9d_utl"),
-                         price_indices_dbl = c(97.2,	100.0,	100.7796,	102.5514), 
-                         # price_ref_1L_int = 4L,
-                         recode_1L_lgl = T,
-                         recode_lup_r3 = make_project_recode_lup(),
-                         ref_1L_chr = "FY 2024",
-                         type_1L_chr = c("dyad", "tibble"),
-                         uid_1L_chr = "UID",
-                         what_1L_chr = c("all", "activity", "contacts", "costs_constant", "costs_current", "costs_adjusted", "costs_unit", "outcomes", "overview", "notes")){
+make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", cleanse_1L_chr = c("itemdims", 
+                                                                                                  "all", "none", "dims", "items"), drop_1L_lgl = TRUE, date_of_birth_1L_chr = "date_of_birth", 
+                             employment_1L_chr = "employment_status", financial_yrs_chr = c("FY 2021", 
+                                                                                            "FY 2022", "FY 2023", "FY 2024"), gender_1L_chr = "gender", 
+                             index_date_1L_chr = "onboarding_date", outcomes_chr = c("gad2", 
+                                                                                     "phq2", "gad7", "phq9", "k10", "chu9d_utl"), price_indices_dbl = c(97.2, 
+                                                                                                                                                        100, 100.7796, 102.5514), recode_1L_lgl = T, recode_lup_r3 = make_project_recode_lup(), 
+                             ref_1L_chr = "FY 2024", type_1L_chr = c("dyad", "tibble"), 
+                             uid_1L_chr = "UID", what_1L_chr = c("all", "activity", "contacts", 
+                                                                 "costs_constant", "costs_current", "costs_adjusted", 
+                                                                 "costs_unit", "outcomes", "overview", "notes")) 
+{
   cleanse_1L_chr <- match.arg(cleanse_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
-  demographics_tb <- make_project_demographics_ds(raw_data_ls, uid_1L_chr = uid_1L_chr)
-  outcomes_tb <- make_project_outcomes_ds(raw_data_ls, demographics_tb = demographics_tb, cleanse_1L_chr = cleanse_1L_chr, drop_1L_lgl = drop_1L_lgl, outcomes_chr = outcomes_chr, type_1L_chr = "initial", uid_1L_chr = uid_1L_chr)
-  current_costs_tb <- make_project_costs_ds(raw_data_ls, type_1L_chr = "current", what_1L_chr = "initial")
-  constant_costs_tb <- make_project_costs_ds(raw_data_ls, financial_yrs_chr = financial_yrs_chr, price_indices_dbl = price_indices_dbl, ref_1L_chr = ref_1L_chr, type_1L_chr = "constant", what_1L_chr = "initial")
-  contacts_tb <- make_project_contacts_ds(raw_data_ls, demographics_tb = demographics_tb, recode_lup_r3 = recode_lup_r3)
+  demographics_tb <- make_project_demographics_ds(raw_data_ls, 
+                                                  uid_1L_chr = uid_1L_chr)
+  outcomes_tb <- make_project_outcomes_ds(raw_data_ls, demographics_tb = demographics_tb, 
+                                          cleanse_1L_chr = cleanse_1L_chr, drop_1L_lgl = drop_1L_lgl, 
+                                          outcomes_chr = outcomes_chr, type_1L_chr = "initial", 
+                                          uid_1L_chr = uid_1L_chr)
+  current_costs_tb <- make_project_costs_ds(raw_data_ls, type_1L_chr = "current", 
+                                            what_1L_chr = "initial")
+  constant_costs_tb <- make_project_costs_ds(raw_data_ls, financial_yrs_chr = financial_yrs_chr, 
+                                             price_indices_dbl = price_indices_dbl, ref_1L_chr = ref_1L_chr, 
+                                             type_1L_chr = "constant", what_1L_chr = "initial")
+  contacts_tb <- make_project_contacts_ds(raw_data_ls, demographics_tb = demographics_tb, 
+                                          recode_lup_r3 = recode_lup_r3)
   overview_tb <- make_project_overview_ds(raw_data_ls, demographics_tb = demographics_tb)
   activity_tb <- make_project_activity_ds(raw_data_ls)
   notes_tb <- make_project_notes_ds(raw_data_ls, financial_yrs_chr = financial_yrs_chr)
-  dss_ls <- list(activity = activity_tb,
-                 contacts = contacts_tb,
-                 costs_adjusted = tibble::tibble(),
-                 costs_constant = constant_costs_tb,
-                 costs_current = current_costs_tb,
-                 costs_unit = tibble::tibble(),
-                 outcomes = outcomes_tb,
-                 overview = overview_tb,
-                 notes = notes_tb)
+  dss_ls <- list(activity = activity_tb, contacts = contacts_tb, 
+                 costs_adjusted = tibble::tibble(), costs_constant = constant_costs_tb, 
+                 costs_current = current_costs_tb, costs_unit = tibble::tibble(), 
+                 outcomes = outcomes_tb, overview = overview_tb, notes = notes_tb)
   dss_ls$costs_adjusted <- make_project_costs_ds(dss_ls, what_1L_chr = "all")
-  dss_ls$costs_unit <- make_project_costs_ds(dss_ls, what_1L_chr = "unit") ## pass args from parent fn
-  if(what_1L_chr != "all"){
+  dss_ls$costs_unit <- make_project_costs_ds(dss_ls, what_1L_chr = "unit")
+  if (what_1L_chr != "all") {
     dss_ls <- dss_ls %>% purrr::keep_at(what_1L_chr)
   }
-  if(type_1L_chr == "dyad"){
-    dictionaries_xx <- make_project_dictionary(raw_data_ls, dss_ls = dss_ls,
-                                            financial_yrs_chr = financial_yrs_chr,
-                                            gender_1L_chr = gender_1L_chr,
-                                            index_date_1L_chr = index_date_1L_chr,
-                                            outcomes_chr = outcomes_chr,
-                                            platform_1L_chr = platform_1L_chr,
-                                            price_indices_dbl = price_indices_dbl,
-                                            recode_1L_lgl = recode_1L_lgl,
-                                            recode_lup_r3 = recode_lup_r3,
-                                            ref_1L_chr = ref_1L_chr,
-                                            what_chr = names(dss_ls))
-    if(length(names(dss_ls))==1){
+  if (type_1L_chr == "dyad") {
+    dictionaries_xx <- make_project_dictionary(raw_data_ls, 
+                                               dss_ls = dss_ls, financial_yrs_chr = financial_yrs_chr, 
+                                               gender_1L_chr = gender_1L_chr, index_date_1L_chr = index_date_1L_chr, 
+                                               outcomes_chr = outcomes_chr, platform_1L_chr = platform_1L_chr, 
+                                               price_indices_dbl = price_indices_dbl, recode_1L_lgl = recode_1L_lgl, 
+                                               recode_lup_r3 = recode_lup_r3, ref_1L_chr = ref_1L_chr, 
+                                               what_chr = names(dss_ls))
+    if (length(names(dss_ls)) == 1) {
       dictionaries_ls <- list(dictionaries_xx) %>% stats::setNames(names(dss_ls))
-    }else{
-      dictionaries_ls <- dictionaries_xx 
+    }  else {
+      dictionaries_ls <- dictionaries_xx
     }
-    dss_ls <- 1:length(dss_ls) %>% purrr::map(~ready4use::Ready4useDyad(ds_tb = dss_ls[[.x]],
+    dss_ls <- 1:length(dss_ls) %>% purrr::map(~ready4use::Ready4useDyad(ds_tb = dss_ls[[.x]], 
                                                                         dictionary_r3 = dictionaries_ls[[.x]])) %>% stats::setNames(names(dss_ls))
   }
-  dss_ls <- dss_ls %>% add_age_to_project_dss(age_1L_chr = age_1L_chr, drop_1L_lgl = drop_1L_lgl, date_of_birth_1L_chr = date_of_birth_1L_chr, index_date_1L_chr = index_date_1L_chr, what_chr = c("contacts", "outcomes", "overview"))
-  # add gender and employment recoding
+  dss_ls <- dss_ls %>% add_age_to_project_dss(age_1L_chr = age_1L_chr, 
+                                              drop_1L_lgl = drop_1L_lgl, date_of_birth_1L_chr = date_of_birth_1L_chr, 
+                                              index_date_1L_chr = index_date_1L_chr, what_chr = c("contacts", 
+                                                                                                  "outcomes", "overview"))
   dss_ls <- dss_ls %>% purrr::map(~{
-    if(inherits(.x, "Ready4useDyad")){
+    if (inherits(.x, "Ready4useDyad")) {
       ds_tb <- .x@ds_tb
-    }else{
+    }  else {
       ds_tb <- .x
     }
-    if(recode_1L_lgl){
-      if(length(intersect(names(ds_tb), c(employment_1L_chr, "atsi_status"))) == 2)
-        ds_tb <- c(employment_1L_chr, "atsi_status") %>% #, "primary_purpose"
-          purrr::reduce(.init = ds_tb,
-                        ~ {
-                          if (!is.numeric(.x %>% dplyr::pull(!!rlang::sym(.y)))) {
-                            .x %>% dplyr::mutate(`:=`(!!rlang::sym(.y),
-                                                      recode_lup_r3 %>% 
-                                                        ready4show::manufacture.ready4show_correspondences(.x %>% dplyr::select(!!rlang::sym(.y)), flatten_1L_lgl = TRUE)))
-                          }
-                        })
-      if(gender_1L_chr %in% names(ds_tb)){
-        ds_tb <- ds_tb %>% dplyr::mutate(!!rlang::sym(gender_1L_chr) := dplyr::case_when(!(!!rlang::sym(gender_1L_chr) %in% c("Female", "Male", "Prefer not to say")) & !is.na(!!rlang::sym(gender_1L_chr)) ~ "Other",
-                                                                                         T ~ !!rlang::sym(gender_1L_chr)))
+    if (recode_1L_lgl) {
+      if (length(intersect(names(ds_tb), c(employment_1L_chr, 
+                                           "atsi_status"))) == 2) 
+        ds_tb <- c(employment_1L_chr, "atsi_status") %>% 
+          purrr::reduce(.init = ds_tb, ~{
+            if (!is.numeric(.x %>% dplyr::pull(!!rlang::sym(.y)))) {
+              .x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
+                                        recode_lup_r3 %>% ready4show::manufacture.ready4show_correspondences(.x %>% 
+                                                                                                               dplyr::select(!!rlang::sym(.y)), flatten_1L_lgl = TRUE)))
+            }
+          })
+      if (gender_1L_chr %in% names(ds_tb)) {
+        ds_tb <- ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(gender_1L_chr), 
+                                              dplyr::case_when(!(!!rlang::sym(gender_1L_chr) %in% 
+                                                                   c("Female", "Male", "Prefer not to say")) & 
+                                                                 !is.na(!!rlang::sym(gender_1L_chr)) ~ "Other", 
+                                                               T ~ !!rlang::sym(gender_1L_chr))))
       }
     }
-    ds_tb <- ds_tb  %>%
-      dplyr::select(tidyr::any_of(c(uid_1L_chr,"case_number", "sign_up_date", "onboarding_date", "MeasurementWeek", "date_contacted", "platform", "clinic_type", date_of_birth_1L_chr, age_1L_chr, gender_1L_chr, "atsi_status", employment_1L_chr,  "clinic_state", "clinic_postcode", "treatment_stage")),
-                    dplyr::everything())
-    if(inherits(.x, "Ready4useDyad")){
+    ds_tb <- ds_tb %>% dplyr::select(tidyr::any_of(c(uid_1L_chr, 
+                                                     "case_number", "sign_up_date", "onboarding_date", 
+                                                     "MeasurementWeek", "date_contacted", "platform", 
+                                                     "clinic_type", date_of_birth_1L_chr, age_1L_chr, 
+                                                     gender_1L_chr, "atsi_status", employment_1L_chr, 
+                                                     "clinic_state", "clinic_postcode", "treatment_stage")), 
+                                     dplyr::everything())
+    if (inherits(.x, "Ready4useDyad")) {
       X <- .x %>% renewSlot("ds_tb", ds_tb)
-      
-      if(drop_1L_lgl & "case_number" %in% names(X@ds_tb)){
+      if (drop_1L_lgl & "case_number" %in% names(X@ds_tb)) {
         X <- X %>% renew(type_1L_chr = "drop", names_chr = "case_number")
       }
       X
-    }else{
-      if(drop_1L_lgl & "case_number" %in% names(ds_tb)){
-        ds_tb <- ds_tb %>%
-          dplyr::select(-tidyselect::all_of("case_number"))
+    }  else {
+      if (drop_1L_lgl & "case_number" %in% names(ds_tb)) {
+        ds_tb <- ds_tb %>% dplyr::select(-tidyselect::all_of("case_number"))
       }
       ds_tb
     }
   })
-  if(length(dss_ls) != 1){
+  if (length(dss_ls) != 1) {
     project_xx <- dss_ls
-  }else{
+  }
+  else {
     project_xx <- dss_ls %>% purrr::pluck(what_1L_chr)
   }
-  # current_costs_tb$Total %>% sum() / (contacts_tb$indirect_mins %>% sum() + contacts_tb$direct_mins %>% sum()) * 60
-  # current_costs_tb$Total %>% sum() / (overview_tb$total_session_time_sec/(60*60)) %>% sum()
   return(project_xx)
 }
 make_project_joiners_ds <- function(processed_ls, 
@@ -903,44 +984,152 @@ make_project_minutes_cmprsn <- function(X_Ready4useDyad,
                            }) ) 
   return(comparison_tb)
 }
-make_project_minutes_mdls <- function(X_Ready4useDyad,
-                                      family_2_1L_chr = "Gamma(link = 'inverse')",
-                                   link_1_1L_chr = "logit",
-                                   x_part_1_ls = NULL,
-                                   x_part_2_ls = NULL,
-                                   y_1L_chr = "Minutes_change",
-                                   ...){
-  data_tb <- X_Ready4useDyad@ds_tb 
-  if(is.null(x_part_1_ls)){
-    x_part_1_ls <- list(c("Age", "employment_status", "gender", "clinic_type", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("Age", "employment_status", "gender", "clinic_type",  "Minutes_start",  "MeasurementWeek"),
-                        c("Age", "employment_status", "gender", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("Age", "employment_status", "gender",  "clinic_type", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("Age", "employment_status", "clinic_type", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("Age",  "gender", "clinic_type", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("employment_status", "gender", "clinic_type", "treatment_status", "Minutes_start", "MeasurementWeek"),
-                        c("Age", "Minutes_start", "MeasurementWeek"),
-                        c("Age", "employment_status", "gender"),
-                        c("Age", "employment_status", "treatment_status"),
-                        c("Age", "Minutes_start",  "MeasurementWeek"),
-                        # c("Age", "Minutes_start"),
+make_project_minutes_ds <- function(processed_ls,
+                                    cut_weeks_int = c(14, 53),
+                                    drop_1L_lgl = TRUE,
+                                    model_data_ls = NULL,
+                                    period_dtm = lubridate::years(1) - lubridate::days(1),
+                                    type_1L_chr = c("imputed", "unimputed"),
+                                    what_1L_chr = c("wide", "long")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  what_1L_chr <- match.arg(what_1L_chr)
+  start_dtm <- processed_ls$contacts@ds_tb %>% dplyr::pull(date_contacted) %>% min()
+  end_dtm <- processed_ls$contacts@ds_tb %>% dplyr::pull(date_contacted) %>% max()
+  if(!is.null(period_dtm)){
+    end_dtm <- min((start_dtm+period_dtm), end_dtm)
+  }
+  overview_tb <- processed_ls$overview@ds_tb %>% 
+    dplyr::select(UID, onboarding_date
+                  # , total_sessions, total_session_time_sec
+    ) %>%
+    dplyr::filter(onboarding_date <= end_dtm)
+  minutes_tb <- processed_ls$contacts@ds_tb %>% 
+    dplyr::filter(date_contacted <= end_dtm) %>%
+    dplyr::group_by(UID) %>% 
+    dplyr::summarise(direct_mins = sum(direct_mins, na.rm = T), 
+                     indirect_mins = sum(indirect_mins, na.rm = T), 
+                     Minutes = sum(Minutes, na.rm = T), 
+                     # Minutes = sum(Minutes), 
+                     onboarding_date = dplyr::first(onboarding_date), 
+                     first_contact = min(date_contacted), last_contact = max(date_contacted)) %>%
+    dplyr::mutate(days_to_start = lubridate::interval(onboarding_date, start_dtm)/lubridate::days(1),
+                  days_to_first = lubridate::interval(onboarding_date, first_contact)/lubridate::days(1),
+                  days_to_last = lubridate::interval(onboarding_date, last_contact)/lubridate::days(1))
+  new_tb <- minutes_tb %>% dplyr::filter(days_to_start <= 0) 
+  #  %>% dplyr::left_join(overview_tb)
+  new_chr <- unique(new_tb$UID) 
+  legacy_tb <- minutes_tb %>% dplyr::filter(days_to_start > 0)
+  legacy_chr <- unique(legacy_tb$UID)
+  # censored_chr <- processed_ls$contacts@ds_tb %>% dplyr::filter(!UID %in% c(new_chr, legacy_chr)) %>% dplyr::pull(UID) %>% unique()
+  zeros_tb <- overview_tb %>% dplyr::filter(!UID %in% c(new_chr, legacy_chr)) %>%
+    dplyr::mutate(days_to_start = lubridate::interval(onboarding_date, start_dtm)/lubridate::days(1),
+                  direct_mins = 0,
+                  indirect_mins = 0,
+                  Minutes = 0)
+  new_tb <- dplyr::bind_rows(new_tb,
+                             zeros_tb %>% dplyr::filter(days_to_start <= 0)) %>% dplyr::arrange(onboarding_date) 
+  legacy_tb <- dplyr::bind_rows(legacy_tb,
+                                zeros_tb %>% dplyr::filter(days_to_start > 0)) %>% dplyr::arrange(onboarding_date)
+  minutes_tb <- dplyr::bind_rows(new_tb %>% dplyr::mutate(Presentation = "New"),
+                                 legacy_tb %>% dplyr::mutate(Presentation = "Prior"))%>%
+    dplyr::mutate(days_to_end = lubridate::interval(onboarding_date, end_dtm)/lubridate::days(1)) %>%
+    dplyr::relocate(days_to_end, .after = days_to_start)  %>%
+    dplyr::relocate(direct_mins, indirect_mins, Minutes, .after = days_to_last) %>%
+    dplyr::relocate(Presentation, .after = UID)
+  if(what_1L_chr == "long"){
+    minutes_tb <- 1:length(cut_weeks_int) %>%
+      purrr::map_dfr(#.init = minutes_tb,
+        ~ {
+          period_int <- c(0,cut_weeks_int)[c(.x, .x+1)]
+          minutes_tb %>% dplyr::mutate(MeasurementWeek = paste0("Week",period_int[2]),
+                                       CutStart = onboarding_date + lubridate::weeks(period_int[1]),
+                                       CutEnd = onboarding_date + lubridate::weeks(period_int[2])) %>%
+            dplyr::mutate(CutStart = dplyr::case_when(CutStart < start_dtm ~ lubridate::NA_Date_,
+                                                      T ~ CutStart)) %>%
+            dplyr::mutate(CutEnd = dplyr::case_when(CutEnd > end_dtm ~ lubridate::NA_Date_,
+                                                    T ~ CutEnd)) 
+        }) %>%
+      dplyr::arrange(UID, MeasurementWeek) %>%
+      # dplyr::mutate(MeasurementWeek = as.factor(MeasurementWeek)) %>%
+      dplyr::select(-c(direct_mins, indirect_mins, Minutes))
+    if(drop_1L_lgl){
+      minutes_tb <- minutes_tb %>%
+        dplyr::filter(!is.na(CutStart) & !is.na(CutEnd))
+    }
+    Y_Ready4useDyad <- get_project_model_data(model_data_ls, what_1L_chr = "MicroLong", type_1L_chr = type_1L_chr)
+    minutes_tb <- minutes_tb$MeasurementWeek %>% unique() %>%
+      purrr::map_dfr(~{
+        filtered_tb <- minutes_tb %>% dplyr::filter(MeasurementWeek == .x) %>% dplyr::select(UID, Presentation, MeasurementWeek, CutStart, CutEnd, days_to_start, days_to_end, days_to_first, days_to_last)
+        Y_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% filtered_tb$UID) %>%
+          # dplyr::select(c(UID, Date, direct_mins, indirect_mins, Minutes)) %>%
+          dplyr::left_join(filtered_tb) %>%
+          dplyr::group_by(UID) %>%
+          dplyr::filter(Date >= CutStart) %>%
+          dplyr::filter(Date < CutEnd) %>%
+          dplyr::summarise(dplyr::across(c("direct_mins", "indirect_mins", "Minutes"), ~sum(.))) %>%
+          dplyr::mutate(MeasurementWeek = .x) %>%
+          dplyr::left_join(filtered_tb)
+      }) %>% dplyr::arrange(UID, MeasurementWeek) %>%
+      dplyr::left_join(Y_Ready4useDyad@ds_tb %>% dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(c("platform", "clinic_type", "clinic_state", "Age", "gender", "employment_status"),~dplyr::first(.))))
+    minutes_tb <- minutes_tb %>%
+      dplyr::select(tidyselect::any_of(c("UID", "MeasurementWeek", "CutStart","CutEnd", "days_to_start", "days_to_end", "days_to_first", "days_to_last", "Presentation")), dplyr::everything())
+    minutes_tb <- minutes_tb %>% dplyr::mutate(dplyr::across(c(direct_mins, 
+                                                               indirect_mins, Minutes), .names = "{.col}_change", 
+                                                             ~.x))
+    # minutes_tb <- minutes_tb %>% dplyr::mutate(Date = as.Date(CutStart)) %>% dplyr::left_join(Y_Ready4useDyad@ds_tb %>% dplyr::select(UID, Date, treatment_status) %>% dplyr::group_by(UID, Date) %>% dplyr::summarise(treatment_status=dplyr::first(treatment_status)))
+    
+  }
+  X_Ready4useDyad <- renewSlot(processed_ls$overview, "ds_tb", minutes_tb) 
+  X_Ready4useDyad <- X_Ready4useDyad %>%
+    renewSlot("dictionary_r3", .@dictionary_r3 %>% dplyr::filter(var_nm_chr %in% names(X_Ready4useDyad@ds_tb))) %>%
+    ready4use::add_dictionary() 
+  X_Ready4useDyad <- X_Ready4useDyad %>%
+    renewSlot("dictionary_r3", .@dictionary_r3 %>% 
+                dplyr::filter(!duplicated(var_nm_chr)) %>%
+                dplyr::mutate(var_desc_chr = stringr::str_replace_all(var_desc_chr, "_", " ") %>% Hmisc::capitalize()) %>%
+                dplyr::mutate(var_ctg_chr = dplyr::case_when(var_nm_chr %in% c("Presentation","Minutes") ~ "Engagement",
+                                                             var_ctg_chr == "Uncategorised" ~ "Temporal",
+                                                             T ~ var_ctg_chr))) 
+  return(X_Ready4useDyad)
+}
+
+make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma(link = 'inverse')", 
+                                       link_1_1L_chr = "logit", x_part_1_ls = NULL, x_part_2_ls = NULL, 
+                                       y_1L_chr = "Minutes_change", ...) 
+{
+  data_tb <- X_Ready4useDyad@ds_tb
+  if (is.null(x_part_1_ls)) {
+    x_part_1_ls <- list(c("Age", "employment_status", "gender", "clinic_type", # "treatment_status",  "Minutes_start", 
+                          "MeasurementWeek"), 
+                        # c("Age", "employment_status", "gender", "clinic_type",  # "Minutes_start", 
+                        #   "MeasurementWeek"), 
+                        # c("Age", "employment_status", "gender", # "treatment_status", # "Minutes_start", 
+                        #   "MeasurementWeek"), 
+                        # c("Age", "employment_status", "gender", "clinic_type", # "treatment_status",  "Minutes_start",
+                        #   "MeasurementWeek"), 
+                        c("Age", "employment_status", "clinic_type",  # "treatment_status", "Minutes_start", 
+                          "MeasurementWeek"), 
+                        c("Age", "gender", "clinic_type", # "treatment_status",  "Minutes_start", 
+                          "MeasurementWeek"), 
+                        c("employment_status",  "gender", "clinic_type", # "treatment_status", "Minutes_start", 
+                          "MeasurementWeek"), 
+                        c("Age", # "Minutes_start", 
+                          "MeasurementWeek"), 
+                        c("Age", "employment_status", "gender"), 
+                        c("Age", "employment_status"# , "treatment_status"
+                        ), 
+                        # c("Age", # "Minutes_start", 
+                        #   "MeasurementWeek"), 
                         "Age")
   }
-  if(is.null(x_part_2_ls)){
+  if (is.null(x_part_2_ls)) {
     x_part_2_ls <- x_part_1_ls
   }
-  tpm_mdls_ls <- purrr::map2(x_part_1_ls, 
-                             x_part_2_ls,
-                             ~ 
-                               make_two_part_mdl(data_tb = data_tb,
-                                                 family_2_1L_chr = family_2_1L_chr,
-                                                 link_1_1L_chr = link_1_1L_chr,
-                                                 x_part_1_chr = .x,
-                                                 x_part_2_chr = .y,
-                                                 y_1L_chr = y_1L_chr)
-  ) %>% 
-    stats::setNames(paste0("TPM_",1:length(x_part_1_ls), "_mdl"))
-  
+  tpm_mdls_ls <- purrr::map2(x_part_1_ls, x_part_2_ls, ~make_two_part_mdl(data_tb = data_tb, 
+                                                                          family_2_1L_chr = family_2_1L_chr, link_1_1L_chr = link_1_1L_chr, 
+                                                                          x_part_1_chr = .x, x_part_2_chr = .y, y_1L_chr = y_1L_chr)) %>% 
+    stats::setNames(paste0("TPM_", 1:length(x_part_1_ls), 
+                           "_mdl"))
   return(tpm_mdls_ls)
 }
 make_project_notes_ds <- function(raw_data_ls,
@@ -1236,6 +1425,89 @@ make_project_results <- function(X_Ready4useDyad,
                          total_ls = total_ls)
   return(sim_results_ls)
   
+}
+make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POSIXct("2024-10-25")) {
+  X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
+  Y_Ready4useDyad <- processed_ls$contacts
+  contacters_tb <- Y_Ready4useDyad@ds_tb
+  contacters_tb <- contacters_tb %>% dplyr::rename(Date = date_contacted)
+  contacters_tb <- contacters_tb %>% dplyr::mutate(Date = Date %>% format() %>%
+                                                     stringr::str_sub(end = 10) %>% lubridate::ymd())
+  contacters_tb <- contacters_tb %>% dplyr::mutate(Date = dplyr::case_when(Date > data_extract_dtm ~ Date - lubridate::years(1),
+                                                                           T ~ Date))
+  scenarios_chr <- get_unit_cost_detail(processed_ls$costs_unit@ds_tb,
+                                        what_1L_chr = "scenarios")
+  cost_names_chr <- get_unit_cost_detail(processed_ls$costs_unit@ds_tb,
+                                         what_1L_chr = "names")
+  contacters_tb <- add_cost_calculations(contacters_tb, inputs_ls = list(unit_costs_tb = processed_ls$costs_unit@ds_tb))
+  contacters_tb <- contacters_tb %>% dplyr::select(-c(sign_up_date, onboarding_date))
+  contacter_joiners_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% contacters_tb$UID) %>% add_activity()
+  passive_joiners_tb <- purrr::reduce(c("direct_mins", "indirect_mins", "Minutes", cost_names_chr),
+                                      .init = X_Ready4useDyad@ds_tb %>% dplyr::filter(!UID %in% contacters_tb$UID) %>% add_activity(),
+                                      ~ .x %>%
+                                        dplyr::mutate(!!rlang::sym(.y) :=0)) %>%
+    dplyr::mutate(role_type = "Enroll", primary_mode = "Enroll", primary_participant = "Enroll", primary_purpose = "Enroll")
+  contacter_joiners_tb <- contacters_tb %>% dplyr::filter(F) %>% dplyr::full_join(contacter_joiners_tb) %>%
+    dplyr::mutate(dplyr::across(tidyselect::all_of(c("direct_mins", "indirect_mins", "Minutes", cost_names_chr)), ~0), 
+                  role_type = "Enroll", primary_mode = "Enroll", primary_participant = "Enroll", primary_purpose = "Enroll")
+  contacters_tb <- contacters_tb %>% dplyr::left_join(contacter_joiners_tb %>% dplyr::select(UID, treatment_status) %>% dplyr::distinct()) %>% 
+    dplyr::mutate(SignedUp = 0, Onboarded = 0, Activity = "Contact")
+  contacters_tb <- dplyr::bind_rows(contacter_joiners_tb, contacters_tb)  %>% 
+    dplyr::select(intersect(names(X_Ready4useDyad@ds_tb),  names(contacters_tb)), dplyr::everything())
+  combined_tb <- dplyr::bind_rows(contacters_tb, passive_joiners_tb) %>% dplyr::arrange(UID, Date)
+  combined_tb <- combined_tb %>% serious::add_temporal_vars()
+  Y_Ready4useDyad@ds_tb <- combined_tb
+  Y_Ready4useDyad@dictionary_r3 <- Y_Ready4useDyad@dictionary_r3 %>%
+    dplyr::filter(var_nm_chr != "Date")
+  Y_Ready4useDyad@dictionary_r3 <- Y_Ready4useDyad@dictionary_r3 %>%
+    ready4use::renew.ready4use_dictionary(new_cases_r3 = X_Ready4useDyad@dictionary_r3 %>%
+                                            dplyr::filter(!var_nm_chr %in% Y_Ready4useDyad@dictionary_r3$var_nm_chr)) %>%
+    dplyr::filter(var_nm_chr %in% names(combined_tb))
+  Y_Ready4useDyad@dictionary_r3 <- Y_Ready4useDyad@dictionary_r3 %>%
+    ready4use::renew.ready4use_dictionary(var_nm_chr = c("Minutes",
+                                                         cost_names_chr, "treatment_stage", "Activity", serious::make_temporal_vars()),
+                                          var_ctg_chr = c("Contact", cost_names_chr, rep("Service",
+                                                                                         2), rep("Temporal", length(serious::make_temporal_vars()))),
+                                          var_desc_chr = c("Total number of direct and indirect contact minutes",
+                                                           paste0("Contact related costs", c("", paste0(" (",
+                                                                                                        scenarios_chr[-1], ")"))), "Treatment stage",
+                                                           "Type of service activity", serious::make_temporal_vars()),
+                                          var_type_chr = c(rep("numeric", length(c("Minutes",
+                                                                                   cost_names_chr))), c("treatment_stage", "Activity",
+                                                                                                        serious::make_temporal_vars()) %>% purrr::map_chr(~(Y_Ready4useDyad@ds_tb %>%
+                                                                                                                                                              dplyr::pull(!!rlang::sym(.x)) %>% class())[1])))
+  Y_Ready4useDyad <- Y_Ready4useDyad %>% serious::add_tenure(date_var_1L_chr = "Date", uid_var_1L_chr = "UID", unit_1L_chr = "year") %>%
+    serious::add_cumulatives(metrics_chr = c("SignedUp", "Onboarded", "direct_mins", "indirect_mins", "Minutes", cost_names_chr), arrange_by_1L_chr = "Date", group_by_1L_chr = "UID")
+  Y_Ready4useDyad@dictionary_r3 <- Y_Ready4useDyad@dictionary_r3 %>%
+    ready4use::renew.ready4use_dictionary(var_nm_chr = "Tenure", var_ctg_chr = "Temporal",
+                                          var_desc_chr = "Length of service tenure in years",
+                                          var_type_chr = "numeric")
+  Z_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% unique(passive_joiners_tb$UID)))
+  Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::filter(!UID %in% unique(passive_joiners_tb$UID)))
+  Y_Ready4useDyad <- Y_Ready4useDyad %>% serious::add_episodes(separation_after_dbl = 3,
+                                                               active_var_1L_chr = "Active", activity_var_1L_chr = "Activity",
+                                                               exclude_chr = "Duration", fiscal_start_1L_int = 7L, 
+                                                               metrics_chr = c("SignedUp", "Onboarded", "direct_mins", "indirect_mins", "Minutes", cost_names_chr), prefix_1L_chr = "Cumulative", separations_var_1L_chr = "Separations",
+                                                               temporal_vars_chr = make_temporal_vars(), uid_1L_chr = "UID",
+                                                               unit_1L_chr = "month")
+  Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(role_type = dplyr::case_when(Activity == "Separation" ~ "EpisodeEnd", T ~ role_type), 
+                                                                   primary_mode = dplyr::case_when(Activity == "Separation" ~ "EpisodeEnd", T ~ primary_mode), 
+                                                                   primary_participant = dplyr::case_when(Activity == "Separation" ~ "EpisodeEnd", T ~ primary_participant),
+                                                                   primary_purpose = dplyr::case_when(Activity == "Separation" ~ "EpisodeEnd", T ~ primary_purpose))
+  Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", dplyr::bind_rows(Y_Ready4useDyad@ds_tb, Z_Ready4useDyad@ds_tb) %>% dplyr::arrange(UID, Date))
+  year_end_dtm <- (Y_Ready4useDyad@ds_tb %>% dplyr::filter(Cost > 0) %>% dplyr::pull(Date) %>% min()) + lubridate::years(1)
+  Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::group_by(UID) %>%
+    dplyr::mutate(IncludedDays = as.numeric((year_end_dtm - Date))) %>% dplyr::mutate(IncludedDays = dplyr::case_when(IncludedDays > 366 ~ 0, IncludedDays < 0 ~ 0, TRUE ~ IncludedDays)) %>%
+    dplyr::mutate(IncludedDays = dplyr::case_when(IncludedDays >
+                                                    0 ~ max(IncludedDays), TRUE ~ IncludedDays)) %>%
+    dplyr::ungroup()
+  Y_Ready4useDyad <- Y_Ready4useDyad %>% add_treatment_status(type_1L_int = 1)
+  Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>%
+                                 dplyr::select(UID, Date, IncludedDays, Tenure, treatment_stage,
+                                               treatment_status, dplyr::everything()))
+  Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary",
+                                               type_1L_chr = "update")
+  return(Y_Ready4useDyad)
 }
 make_project_sim_summary <- function(sim_results_ls,
                                      element_1L_chr = "Z",
@@ -1901,6 +2173,13 @@ make_results_synthesis <- function(X_Ready4useDyad,
                                                                                                      T ~ NA_character_)))
   }
   return(A_Ready4useDyad)
+}
+make_sensitivities_ls <- function(){
+  sensitivities_ls <- list(costs_ls = list(),
+                           outcomes_ls = list(YR1 = add_projected_maintenance,
+                                              YR1_S1 = add_projected_decay,
+                                              YR1_S2 = add_projected_growth))
+  return(sensitivities_ls)
 }
 make_simulated_draws <- function(model_mdl,
                                  new_data_tb,
