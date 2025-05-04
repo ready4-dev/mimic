@@ -1,3 +1,50 @@
+#' Make actives tibble
+#' @description make_actives_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make actives tibble. The function returns Actives (an output object of multiple potential types).
+#' @param model_data_ls Model data (a list)
+#' @param as_tsibble_1L_lgl As tsibble (a logical vector of length one), Default: FALSE
+#' @param date_end_dtm Date end (a date vector), Default: NULL
+#' @param date_start_dtm Date start (a date vector), Default: NULL
+#' @param date_var_1L_chr Date variable (a character vector of length one), Default: make_temporal_vars()
+#' @return Actives (an output object of multiple potential types)
+#' @rdname make_actives_tb
+#' @export 
+#' @importFrom dplyr group_by filter summarise left_join select mutate across where
+#' @importFrom rlang sym
+#' @importFrom purrr map2 map_int
+#' @importFrom tsibble as_tsibble
+#' @keywords internal
+make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_dtm = NULL, 
+    date_start_dtm = NULL, date_var_1L_chr = make_temporal_vars()) 
+{
+    date_var_1L_chr <- match.arg(date_var_1L_chr)
+    actives_tb <- model_data_ls$imputed_ls$MicroLong_r4@ds_tb %>% 
+        dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% dplyr::filter(Activity == 
+        "Contact") %>% dplyr::summarise(Contacters = list(unique(UID))) %>% 
+        dplyr::left_join(processed_ls$overview@ds_tb %>% dplyr::select(UID, 
+            onboarding_date) %>% add_temporal_vars(date_var_1L_chr = "onboarding_date", 
+            temporal_vars_chr = c(date_var_1L_chr)) %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
+            dplyr::summarise(Onboarded = list(unique(UID)))) %>% 
+        dplyr::filter(!is.null(Onboarded) | !is.null(Contacters))
+    if (!is.null(date_start_dtm)) {
+        actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= 
+            date_start_dtm)
+    }
+    if (!is.null(date_end_dtm)) {
+        actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) <= 
+            date_end_dtm)
+    }
+    actives_tb <- actives_tb %>% dplyr::mutate(Retained = purrr::map2(Contacters, 
+        Onboarded, ~setdiff(.x, .y)), Inactive = purrr::map2(Contacters, 
+        Onboarded, ~setdiff(.y, .x))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.list), 
+        ~.x %>% purrr::map_int(~length(.x))))
+    if (as_tsibble_1L_lgl) {
+        actives_xx <- actives_tb %>% tsibble::as_tsibble(index = date_var_1L_chr)
+    }
+    else {
+        actives_xx <- actives_tb
+    }
+    return(actives_xx)
+}
 #' Make annual overview
 #' @description make_annual_overview() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make annual overview. The function returns Annual (a tibble).
 #' @param processed_ls Processed (a list)
@@ -248,6 +295,7 @@ make_contacters_series <- function (model_data_ls)
 #' Make contacters summary
 #' @description make_contacters_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make contacters summary. The function returns Contacters (a tibble).
 #' @param processed_ls Processed (a list)
+#' @param as_tsibble_1L_lgl As tsibble (a logical vector of length one), Default: FALSE
 #' @param type_1L_chr Type (a character vector of length one), Default: serious::make_temporal_vars()
 #' @return Contacters (a tibble)
 #' @rdname make_contacters_summary
@@ -255,13 +303,17 @@ make_contacters_series <- function (model_data_ls)
 #' @importFrom serious make_temporal_vars add_temporal_vars
 #' @importFrom dplyr group_by summarise mutate
 #' @importFrom rlang sym
+#' @importFrom tsibble as_tsibble
 #' @keywords internal
-make_contacters_summary <- function (processed_ls, type_1L_chr = serious::make_temporal_vars()) 
+make_contacters_summary <- function (processed_ls, as_tsibble_1L_lgl = FALSE, type_1L_chr = serious::make_temporal_vars()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     contacters_tb <- processed_ls$contacts@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "date_contacted") %>% 
         dplyr::group_by(!!rlang::sym(type_1L_chr)) %>% dplyr::summarise(Minutes = sum(Minutes), 
         Clients = length(unique(UID))) %>% dplyr::mutate(`Minutes per Client` = Minutes/Clients)
+    if (as_tsibble_1L_lgl) {
+        contacters_tb <- contacters_tb %>% tsibble::as_tsibble(index = type_1L_chr)
+    }
     return(contacters_tb)
 }
 #' Make draws tibble

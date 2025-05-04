@@ -1,3 +1,33 @@
+make_actives_tb <- function(model_data_ls,
+                            as_tsibble_1L_lgl = FALSE,
+                            date_end_dtm = NULL, # Month < tsibble::yearmonth("2024 Jul")
+                            date_start_dtm = NULL,
+                            date_var_1L_chr = make_temporal_vars()){
+  date_var_1L_chr <- match.arg(date_var_1L_chr)
+  actives_tb <- model_data_ls$imputed_ls$MicroLong_r4@ds_tb %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
+    dplyr::filter(Activity == "Contact") %>% dplyr::summarise(Contacters = list(unique(UID))) %>%
+    dplyr::left_join(
+      processed_ls$overview@ds_tb %>% dplyr::select(UID, onboarding_date) %>% add_temporal_vars(date_var_1L_chr = "onboarding_date", temporal_vars_chr = c(date_var_1L_chr)) %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>%
+        dplyr::summarise(Onboarded = list(unique(UID)))) %>%
+    dplyr::filter(!is.null(Onboarded) | !is.null(Contacters)) 
+  
+  if (!is.null(date_start_dtm)) {
+    actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= date_start_dtm)
+  }
+  if (!is.null(date_end_dtm)) {
+    actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) <= date_end_dtm)
+  }
+  actives_tb <- actives_tb %>%
+    dplyr::mutate(`Retained` = purrr::map2(Contacters, Onboarded, ~ setdiff(.x,.y)),
+                  `Inactive` = purrr::map2(Contacters, Onboarded, ~ setdiff(.y,.x))) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.list), ~ .x %>% purrr::map_int(~length(.x))))
+  if(as_tsibble_1L_lgl){
+    actives_xx <- actives_tb %>% tsibble::as_tsibble(index = date_var_1L_chr)
+  }else{
+    actives_xx <- actives_tb
+  }
+  return(actives_xx)
+}
 make_annual_overview <- function(processed_ls){
   annual_tb <- processed_ls$overview@ds_tb %>% 
     serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
@@ -133,11 +163,17 @@ make_contacters_series <- function(model_data_ls){
                                                Date <= end_dtm))
   return(X_Ready4useDyad)
 }
-make_contacters_summary <- function(processed_ls,
-                                    type_1L_chr = serious::make_temporal_vars()){
+make_contacters_summary <- function (processed_ls,
+                                     as_tsibble_1L_lgl = FALSE,
+                                     type_1L_chr = serious::make_temporal_vars()) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
-  contacters_tb <- processed_ls$contacts@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "date_contacted") %>% dplyr::group_by(!!rlang::sym(type_1L_chr)) %>% 
-    dplyr::summarise(Minutes = sum(Minutes), Clients = length(unique(UID))) %>% dplyr::mutate(`Minutes per Client` = Minutes/Clients)
+  contacters_tb <- processed_ls$contacts@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "date_contacted") %>% 
+    dplyr::group_by(!!rlang::sym(type_1L_chr)) %>% dplyr::summarise(Minutes = sum(Minutes), 
+                                                                    Clients = length(unique(UID))) %>% dplyr::mutate(`Minutes per Client` = Minutes/Clients)
+  if(as_tsibble_1L_lgl){
+    contacters_tb <- contacters_tb %>%  tsibble::as_tsibble(index = type_1L_chr)
+  }
   return(contacters_tb)
 }
 make_draws_tb <- function(inputs_ls,

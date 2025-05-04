@@ -6,11 +6,14 @@
 \usage{
 make_contacters_summary(
   processed_ls,
+  as_tsibble_1L_lgl = FALSE,
   type_1L_chr = serious::make_temporal_vars()
 )
 }
 \arguments{
 \item{processed_ls}{Processed (a list)}
+
+\item{as_tsibble_1L_lgl}{As tsibble (a logical vector of length one), Default: FALSE}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: serious::make_temporal_vars()}
 }

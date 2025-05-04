@@ -257,6 +257,31 @@ update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjus
     }
     return(X_Ready4useDyad)
 }
+#' Update scenario names
+#' @description update_scenario_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update scenario names. The function returns Forecasts (a tibble).
+#' @param forecasts_tb Forecasts (a tibble)
+#' @param after_1L_chr After (a character vector of length one), Default: character(0)
+#' @param before_1L_chr Before (a character vector of length one), Default: character(0)
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'scenario_'
+#' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
+#' @param tfmn_1_fn Transformation 1 (a function), Default: as.numeric
+#' @param tfmn_2_fn Transformation 2 (a function), Default: scales::percent
+#' @return Forecasts (a tibble)
+#' @rdname update_scenario_names
+#' @export 
+#' @importFrom scales percent
+#' @importFrom dplyr mutate case_when
+#' @importFrom stringr str_remove_all
+#' @keywords internal
+update_scenario_names <- function (forecasts_tb, after_1L_chr = character(0), before_1L_chr = character(0), 
+    prefix_1L_chr = "scenario_", reference_1L_chr = "Status quo", 
+    tfmn_1_fn = as.numeric, tfmn_2_fn = scales::percent) 
+{
+    forecasts_tb <- forecasts_tb %>% dplyr::mutate(Scenario = dplyr::case_when(Scenario != 
+        reference_1L_chr ~ paste0(before_1L_chr, tfmn_2_fn(tfmn_1_fn(stringr::str_remove_all(Scenario, 
+        prefix_1L_chr))), after_1L_chr), T ~ Scenario))
+    return(forecasts_tb)
+}
 #' Update scheduled date
 #' @description update_scheduled_date() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update scheduled date. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION

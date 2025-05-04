@@ -51,6 +51,29 @@ add_activity <- function(data_tb,
                                               T ~ neither_1L_chr))
   return(data_tb)
 }
+add_clients_to_summary <- function(summaries_ls,
+                                   arrange_1L_chr = character(0),
+                                   reference_1L_chr = "Status quo",
+                                   weeks_1L_int = 26){
+  summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$retained_tb %>%
+    dplyr::select(dplyr::where(is.numeric)) %>% names() %>%
+    purrr::reduce(.init = dplyr::bind_rows(summaries_ls$scenarios_ls$onboarders_tb,
+                                           summaries_ls$scenarios_ls$onboarders_tb %>%
+                                             dplyr::filter(Scenario != reference_1L_chr) %>%
+                                             dplyr::mutate(Scenario = paste0(Scenario, ", 100% of onboarder growth"))) %>% 
+                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~.x/weeks_1L_int)),
+                  ~ {
+                    name_1L_chr <- .y
+                    .x %>%
+                      dplyr::mutate(!!rlang::sym(name_1L_chr) := !!rlang::sym(name_1L_chr) + summaries_ls$scenarios_ls$retained_tb %>%
+                                      dplyr::pull(!!rlang::sym(name_1L_chr)))
+                  })
+  if(!identical(arrange_1L_chr, character(0))){
+    summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$clients_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+  }
+  return(summaries_ls)
+}
+
 add_cost_calculations <- function(data_tb,
                                   inputs_ls,
                                   add_fixed_1L_lgl = FALSE,
@@ -254,6 +277,89 @@ add_costs_event <- function(X_Ready4useDyad,
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, add_fixed_1L_lgl = (type_1L_chr %in% c("fixed","both")), add_variable_1L_lgl = (type_1L_chr %in% c("variable","both")), add_offsets_1L_lgl = add_offsets_1L_lgl, base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr))
   }
   return(X_Ready4useDyad)
+}
+add_costs_to_summary <- function(summaries_ls,
+                                 processed_ls,
+                                 periods_1L_int = 26,
+                                 arrange_1L_chr = character(0),
+                                 reference_1L_chr = "Status quo",
+                                 tfmn_fn = identity,
+                                 type_1L_chr = c("change_scenario", "change_sq", "scenario", "sq")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr == "sq"){
+    summaries_ls$scenarios_ls$costs_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% unique() %>%
+      purrr::map_dfr(~{
+        cost_scenario_1L_chr <- .x
+        make_forecast_growth(summaries_ls$scenarios_ls$clients_tb %>%
+                               dplyr::filter(Scenario == reference_1L_chr), 
+                             reference_1L_dbl = summaries_ls$empirical_ls$onboarded_1L_dbl/periods_1L_int + summaries_ls$empirical_ls$retained_1L_dbl,
+                             tfmn_fn = identity) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                      ~  processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == cost_scenario_1L_chr) %>%
+                                        ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type",
+                                                                 match_value_xx = "Variable",
+                                                                 target_var_nm_1L_chr = "TotalCost") * .x)) %>%
+          dplyr::mutate(Scenario = paste0(Scenario, ", ", cost_scenario_1L_chr))
+      })
+    if(!identical(arrange_1L_chr, character(0))){
+      summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+    }
+    summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~  tfmn_fn(.x)))
+  }
+  if(type_1L_chr == "change_sq"){
+    unformatted_ls <- add_costs_to_summary(summaries_ls, processed_ls = processed_ls, periods_1L_int = periods_1L_int, reference_1L_chr = reference_1L_chr, type_1L_chr = "sq")
+    summaries_ls$scenarios_ls$costs_change_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% unique() %>%
+      purrr::map_dfr(~{
+        cost_scenario_1L_chr <- .x
+        total_cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+          dplyr::filter(Scenario == cost_scenario_1L_chr) %>%
+          dplyr::pull(TotalCost) %>% sum()
+        unformatted_ls$scenarios_ls$costs_sq_tb %>% 
+          dplyr::filter(endsWith(Scenario, paste0(", ", cost_scenario_1L_chr))) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
+                                      ~ .x / total_cost_1L_dbl)) 
+      })
+    if(!identical(arrange_1L_chr, character(0))){
+      summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+    }
+    summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~  tfmn_fn(.x)))
+  }
+  if(type_1L_chr == "scenario"){
+    summaries_ls$scenarios_ls$costs_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% unique() %>%
+      purrr::map_dfr(~{
+        cost_scenario_1L_chr <- .x
+        make_forecast_growth(summaries_ls$scenarios_ls$clients_tb, reference_1L_chr = reference_1L_chr,
+                             tfmn_fn = identity) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                      ~  processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == cost_scenario_1L_chr) %>%
+                                        ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type",
+                                                                 match_value_xx = "Variable",
+                                                                 target_var_nm_1L_chr = "TotalCost") * .x )) %>%
+          dplyr::mutate(Scenario = paste0(Scenario, ", ", cost_scenario_1L_chr))
+      })
+    if(!identical(arrange_1L_chr, character(0))){
+      summaries_ls$scenarios_ls$costs_scenarios_tb <- summaries_ls$scenarios_ls$costs_scenarios_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+    }
+    summaries_ls$scenarios_ls$costs_scenarios_tb <-summaries_ls$scenarios_ls$costs_scenarios_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~  tfmn_fn(.x)))
+  }
+  if(type_1L_chr == "change_scenario"){
+    unformatted_ls <- add_costs_to_summary(summaries_ls, processed_ls = processed_ls, periods_1L_int = periods_1L_int, reference_1L_chr = reference_1L_chr, type_1L_chr = "scenario")
+    summaries_ls$scenarios_ls$costs_change_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% unique() %>%
+      purrr::map_dfr(~{
+        cost_scenario_1L_chr <- .x
+        total_cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+          dplyr::filter(Scenario == cost_scenario_1L_chr) %>%
+          dplyr::pull(TotalCost) %>% sum()
+        unformatted_ls$scenarios_ls$costs_scenarios_tb %>% 
+          dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
+                                      ~ .x / total_cost_1L_dbl)) 
+      })
+    if(!identical(arrange_1L_chr, character(0))){
+      summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+    }
+    summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~  tfmn_fn(.x)))
+  }
+  return(summaries_ls)
 }
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
                                    iterations_int = 1:100L, modifiable_chr = character(0), start_dtm = Sys.Date(), 

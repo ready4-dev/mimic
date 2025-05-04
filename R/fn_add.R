@@ -75,6 +75,40 @@ add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_
         })
     return(project_dss_ls)
 }
+#' Add clients to summary
+#' @description add_clients_to_summary() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add clients to summary. The function returns Summaries (a list).
+#' @param summaries_ls Summaries (a list)
+#' @param arrange_1L_chr Arrange (a character vector of length one), Default: character(0)
+#' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
+#' @param weeks_1L_int Weeks (an integer vector of length one), Default: 26
+#' @return Summaries (a list)
+#' @rdname add_clients_to_summary
+#' @export 
+#' @importFrom dplyr select where bind_rows filter mutate across pull arrange
+#' @importFrom purrr reduce
+#' @importFrom rlang sym
+#' @keywords internal
+add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0), reference_1L_chr = "Status quo", 
+    weeks_1L_int = 26) 
+{
+    summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$retained_tb %>% 
+        dplyr::select(dplyr::where(is.numeric)) %>% names() %>% 
+        purrr::reduce(.init = dplyr::bind_rows(summaries_ls$scenarios_ls$onboarders_tb, 
+            summaries_ls$scenarios_ls$onboarders_tb %>% dplyr::filter(Scenario != 
+                reference_1L_chr) %>% dplyr::mutate(Scenario = paste0(Scenario, 
+                ", 100% of onboarder growth"))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+            ~.x/weeks_1L_int)), ~{
+            name_1L_chr <- .y
+            .x %>% dplyr::mutate(`:=`(!!rlang::sym(name_1L_chr), 
+                !!rlang::sym(name_1L_chr) + summaries_ls$scenarios_ls$retained_tb %>% 
+                  dplyr::pull(!!rlang::sym(name_1L_chr))))
+        })
+    if (!identical(arrange_1L_chr, character(0))) {
+        summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$clients_tb %>% 
+            dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+    }
+    return(summaries_ls)
+}
 #' Add cost calculations
 #' @description add_cost_calculations() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost calculations. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)
@@ -302,6 +336,118 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FA
                 base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr))
     }
     return(X_Ready4useDyad)
+}
+#' Add costs to summary
+#' @description add_costs_to_summary() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add costs to summary. The function returns Summaries (a list).
+#' @param summaries_ls Summaries (a list)
+#' @param processed_ls Processed (a list)
+#' @param periods_1L_int Periods (an integer vector of length one), Default: 26
+#' @param arrange_1L_chr Arrange (a character vector of length one), Default: character(0)
+#' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
+#' @param tfmn_fn Transformation (a function), Default: identity
+#' @param type_1L_chr Type (a character vector of length one), Default: c("change_scenario", "change_sq", "scenario", "sq")
+#' @return Summaries (a list)
+#' @rdname add_costs_to_summary
+#' @export 
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr filter mutate across where arrange pull
+#' @importFrom ready4 get_from_lup_obj
+#' @importFrom rlang sym
+#' @keywords internal
+add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 26, arrange_1L_chr = character(0), 
+    reference_1L_chr = "Status quo", tfmn_fn = identity, type_1L_chr = c("change_scenario", 
+        "change_sq", "scenario", "sq")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (type_1L_chr == "sq") {
+        summaries_ls$scenarios_ls$costs_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            unique() %>% purrr::map_dfr(~{
+            cost_scenario_1L_chr <- .x
+            make_forecast_growth(summaries_ls$scenarios_ls$clients_tb %>% 
+                dplyr::filter(Scenario == reference_1L_chr), 
+                reference_1L_dbl = summaries_ls$empirical_ls$onboarded_1L_dbl/periods_1L_int + 
+                  summaries_ls$empirical_ls$retained_1L_dbl, 
+                tfmn_fn = identity) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == 
+                  cost_scenario_1L_chr) %>% ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type", 
+                  match_value_xx = "Variable", target_var_nm_1L_chr = "TotalCost") * 
+                  .x)) %>% dplyr::mutate(Scenario = paste0(Scenario, 
+                ", ", cost_scenario_1L_chr))
+        })
+        if (!identical(arrange_1L_chr, character(0))) {
+            summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% 
+                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+        }
+        summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% 
+            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~tfmn_fn(.x)))
+    }
+    if (type_1L_chr == "change_sq") {
+        unformatted_ls <- add_costs_to_summary(summaries_ls, 
+            processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
+            reference_1L_chr = reference_1L_chr, type_1L_chr = "sq")
+        summaries_ls$scenarios_ls$costs_change_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            unique() %>% purrr::map_dfr(~{
+            cost_scenario_1L_chr <- .x
+            total_cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == cost_scenario_1L_chr) %>% 
+                dplyr::pull(TotalCost) %>% sum()
+            unformatted_ls$scenarios_ls$costs_sq_tb %>% dplyr::filter(endsWith(Scenario, 
+                paste0(", ", cost_scenario_1L_chr))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~.x/total_cost_1L_dbl))
+        })
+        if (!identical(arrange_1L_chr, character(0))) {
+            summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% 
+                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+        }
+        summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% 
+            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~tfmn_fn(.x)))
+    }
+    if (type_1L_chr == "scenario") {
+        summaries_ls$scenarios_ls$costs_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            unique() %>% purrr::map_dfr(~{
+            cost_scenario_1L_chr <- .x
+            make_forecast_growth(summaries_ls$scenarios_ls$clients_tb, 
+                reference_1L_chr = reference_1L_chr, tfmn_fn = identity) %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == 
+                    cost_scenario_1L_chr) %>% ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type", 
+                    match_value_xx = "Variable", target_var_nm_1L_chr = "TotalCost") * 
+                    .x)) %>% dplyr::mutate(Scenario = paste0(Scenario, 
+                ", ", cost_scenario_1L_chr))
+        })
+        if (!identical(arrange_1L_chr, character(0))) {
+            summaries_ls$scenarios_ls$costs_scenarios_tb <- summaries_ls$scenarios_ls$costs_scenarios_tb %>% 
+                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+        }
+        summaries_ls$scenarios_ls$costs_scenarios_tb <- summaries_ls$scenarios_ls$costs_scenarios_tb %>% 
+            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~tfmn_fn(.x)))
+    }
+    if (type_1L_chr == "change_scenario") {
+        unformatted_ls <- add_costs_to_summary(summaries_ls, 
+            processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
+            reference_1L_chr = reference_1L_chr, type_1L_chr = "scenario")
+        summaries_ls$scenarios_ls$costs_change_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            unique() %>% purrr::map_dfr(~{
+            cost_scenario_1L_chr <- .x
+            total_cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == cost_scenario_1L_chr) %>% 
+                dplyr::pull(TotalCost) %>% sum()
+            unformatted_ls$scenarios_ls$costs_scenarios_tb %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~.x/total_cost_1L_dbl))
+        })
+        if (!identical(arrange_1L_chr, character(0))) {
+            summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% 
+                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+        }
+        summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% 
+            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~tfmn_fn(.x)))
+    }
+    return(summaries_ls)
 }
 #' Add enter model event
 #' @description add_enter_model_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add enter model event. The function is called for its side effects and does not return a value.

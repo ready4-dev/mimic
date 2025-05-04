@@ -128,6 +128,19 @@ update_scheduled_date <-  function(X_Ready4useDyad,
   }
   return(X_Ready4useDyad)
 }
+update_scenario_names <- function(forecasts_tb,
+                                  after_1L_chr = character(0),#" of July 2024 clinics"
+                                  before_1L_chr = character(0),
+                                  prefix_1L_chr = "scenario_",
+                                  reference_1L_chr = "Status quo",
+                                  tfmn_1_fn = as.numeric,
+                                  tfmn_2_fn = scales::percent){
+  forecasts_tb <- forecasts_tb  %>%
+    dplyr::mutate(Scenario = dplyr::case_when(Scenario != reference_1L_chr ~ paste0(before_1L_chr,
+                                                                                    tfmn_2_fn(tfmn_1_fn(stringr::str_remove_all(Scenario, prefix_1L_chr))),
+                                                                                    after_1L_chr), T ~ Scenario))
+  return(forecasts_tb)
+}
 update_tx_start_end <- function(X_Ready4useDyad,
                                 tx_duration_dtm = lubridate::weeks(12)){
   if(!"treatment_change" %in% names(X_Ready4useDyad@ds_tb)){
