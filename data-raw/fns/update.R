@@ -66,7 +66,9 @@ update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0,
     start_var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, type_1L_chr = "start")
   }
   if (4 %in% do_int) {
-    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, end_var_1L_chr = end_var_1L_chr, start_var_1L_chr = start_var_1L_chr, suffixes_chr = suffixes_chr, utility_1L_chr = utility_1L_chr, type_1L_chr = "legacy")
+    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, end_var_1L_chr = end_var_1L_chr, start_var_1L_chr = start_var_1L_chr, 
+                                               # suffixes_chr = suffixes_chr, 
+                                               utility_1L_chr = utility_1L_chr, type_1L_chr = "legacy")
     do_int <- c(do_int,8) %>% unique()
   }
   if (5 %in% do_int) {
