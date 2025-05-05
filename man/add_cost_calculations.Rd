@@ -11,7 +11,8 @@ add_cost_calculations(
   add_offsets_1L_lgl = FALSE,
   add_variable_1L_lgl = TRUE,
   base_for_rates_int = 1L,
-  offsets_chr = character(0)
+  offsets_chr = character(0),
+  variable_unit_1L_chr = "Minutes"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ add_cost_calculations(
 \item{base_for_rates_int}{Base for rates (an integer vector), Default: 1}
 
 \item{offsets_chr}{Offsets (a character vector), Default: character(0)}
+
+\item{variable_unit_1L_chr}{Variable unit (a character vector of length one), Default: 'Minutes'}
 }
 \value{
 Data (a tibble)

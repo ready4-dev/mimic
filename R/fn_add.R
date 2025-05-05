@@ -118,6 +118,7 @@ add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0),
 #' @param add_variable_1L_lgl Add variable (a logical vector of length one), Default: TRUE
 #' @param base_for_rates_int Base for rates (an integer vector), Default: 1
 #' @param offsets_chr Offsets (a character vector), Default: character(0)
+#' @param variable_unit_1L_chr Variable unit (a character vector of length one), Default: 'Minutes'
 #' @return Data (a tibble)
 #' @rdname add_cost_calculations
 #' @export 
@@ -129,7 +130,8 @@ add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0),
 #' @importFrom tidyselect all_of
 #' @keywords internal
 add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE, add_offsets_1L_lgl = FALSE, 
-    add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, offsets_chr = character(0)) 
+    add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, offsets_chr = character(0), 
+    variable_unit_1L_chr = "Minutes") 
 {
     scenarios_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, 
         what_1L_chr = "scenarios")
@@ -153,7 +155,7 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
     if (add_variable_1L_lgl) {
         data_tb <- 1:length(scenarios_chr) %>% purrr::reduce(.init = data_tb, 
             ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(cost_names_chr[.y]), 
-                !!rlang::sym(cost_names_chr[.y]) + Minutes * 
+                !!rlang::sym(cost_names_chr[.y]) + !!rlang::sym(variable_unit_1L_chr) * 
                   variable_costs_dbl[.y])))
     }
     if (add_fixed_1L_lgl) {
@@ -311,13 +313,14 @@ add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000)
 #' @param base_for_rates_int Base for rates (an integer vector), Default: 1
 #' @param offsets_chr Offsets (a character vector), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("variable", "fixed", "both", "zero")
+#' @param variable_unit_1L_chr Variable unit (a character vector of length one), Default: 'Minutes'
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_costs_event
 #' @export 
 #' @keywords internal
 add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FALSE, 
     base_for_rates_int = 1L, offsets_chr = character(0), type_1L_chr = c("variable", 
-        "fixed", "both", "zero")) 
+        "fixed", "both", "zero"), variable_unit_1L_chr = "Minutes") 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "zero") {
@@ -325,7 +328,7 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FA
             X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, 
                 add_fixed_1L_lgl = F, add_offsets_1L_lgl = add_offsets_1L_lgl, 
                 add_variable_1L_lgl = F, base_for_rates_int = base_for_rates_int, 
-                offsets_chr = offsets_chr))
+                offsets_chr = offsets_chr, variable_unit_1L_chr = variable_unit_1L_chr))
     }
     else {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -333,7 +336,8 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FA
                 add_fixed_1L_lgl = (type_1L_chr %in% c("fixed", 
                   "both")), add_variable_1L_lgl = (type_1L_chr %in% 
                   c("variable", "both")), add_offsets_1L_lgl = add_offsets_1L_lgl, 
-                base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr))
+                base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr, 
+                variable_unit_1L_chr = variable_unit_1L_chr))
     }
     return(X_Ready4useDyad)
 }

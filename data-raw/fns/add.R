@@ -73,18 +73,18 @@ add_clients_to_summary <- function(summaries_ls,
   }
   return(summaries_ls)
 }
-
 add_cost_calculations <- function(data_tb,
                                   inputs_ls,
                                   add_fixed_1L_lgl = FALSE,
                                   add_offsets_1L_lgl = FALSE,
                                   add_variable_1L_lgl = TRUE,
                                   base_for_rates_int = 1L,
-                                  offsets_chr = character(0)){
+                                  offsets_chr = character(0),
+                                  variable_unit_1L_chr = "Minutes"){
   scenarios_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, what_1L_chr = "scenarios")
   variable_costs_dbl <- get_unit_cost_detail(inputs_ls$unit_costs_tb, what_1L_chr = "variable")
   cost_names_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, what_1L_chr = "names")
-   
+  
   if(!identical(offsets_chr, character(0))){
     offset_counts_chr <- (paste0("OffsetCount", offsets_chr))
     offset_costs_chr <- (paste0("OffsetCosts", offsets_chr))
@@ -98,7 +98,7 @@ add_cost_calculations <- function(data_tb,
   }
   if(add_variable_1L_lgl){
     data_tb <- 1:length(scenarios_chr) %>% purrr::reduce(.init = data_tb,
-                                                         ~ .x %>% dplyr::mutate(!!rlang::sym(cost_names_chr[.y]) := !!rlang::sym(cost_names_chr[.y]) + Minutes*variable_costs_dbl[.y])) 
+                                                         ~ .x %>% dplyr::mutate(!!rlang::sym(cost_names_chr[.y]) := !!rlang::sym(cost_names_chr[.y]) + !!rlang::sym(variable_unit_1L_chr)*variable_costs_dbl[.y])) 
   }
   if(add_fixed_1L_lgl){
     fixed_costs_dbl <- get_unit_cost_detail(inputs_ls$unit_costs_tb, what_1L_chr = "fixed")
@@ -128,18 +128,18 @@ add_cost_calculations <- function(data_tb,
                                                          cost_1L_chr <- offset_costs_chr[.y]
                                                          iterations_int <- .x$Iteration %>% unique()
                                                          join_tb <- purrr::map_dfr(1:nrow(rates_tb),
-                                                                     ~ tibble::tibble(Iteration = iterations_int[.x],
-                                                                                      UID = data_tb$UID %>% unique(),
-                                                                                      !!rlang::sym(paste0(count_1L_chr,"_new")) := rpois(n=rates_tb$NumberOfAgents[.x], lambda = rates_tb[[.x, paste0(rate_1L_chr, "Rate")]]) * rates_tb[[.x, paste0(rate_1L_chr, "Multiplier")]]) %>% 
-                                                                       dplyr::mutate(!!rlang::sym(paste0(cost_1L_chr,"_new")) := !!rlang::sym(paste0(count_1L_chr,"_new")) * rates_tb[[.x, unit_1L_chr]])
-                                                                      ) 
+                                                                                   ~ tibble::tibble(Iteration = iterations_int[.x],
+                                                                                                    UID = data_tb$UID %>% unique(),
+                                                                                                    !!rlang::sym(paste0(count_1L_chr,"_new")) := rpois(n=rates_tb$NumberOfAgents[.x], lambda = rates_tb[[.x, paste0(rate_1L_chr, "Rate")]]) * rates_tb[[.x, paste0(rate_1L_chr, "Multiplier")]]) %>% 
+                                                                                     dplyr::mutate(!!rlang::sym(paste0(cost_1L_chr,"_new")) := !!rlang::sym(paste0(count_1L_chr,"_new")) * rates_tb[[.x, unit_1L_chr]])
+                                                         ) 
                                                          joined_tb <- .x %>% dplyr::left_join(join_tb) %>%
                                                            dplyr::mutate(!!rlang::sym(count_1L_chr) := !!rlang::sym(count_1L_chr) + !!rlang::sym(paste0(count_1L_chr,"_new")),
                                                                          !!rlang::sym(cost_1L_chr) := !!rlang::sym(cost_1L_chr) + !!rlang::sym(paste0(cost_1L_chr,"_new"))) %>%
                                                            dplyr::select(-tidyselect::all_of(c(paste0(count_1L_chr,"_new"), paste0(cost_1L_chr,"_new"))))
                                                          1:length(scenarios_chr) %>% purrr::reduce(.init = joined_tb,
                                                                                                    ~ .x %>% dplyr::mutate(!!rlang::sym(cost_names_chr[.y]) := !!rlang::sym(cost_names_chr[.y]) + !!rlang::sym(cost_1L_chr))) 
-                                                         })
+                                                       })
   }
   return(data_tb)
 }
@@ -264,17 +264,25 @@ add_cost_effectiveness_stats <- function(data_tb,
     )
   return(data_tb)
 }
-add_costs_event <- function(X_Ready4useDyad,
-                            inputs_ls,
-                            add_offsets_1L_lgl = FALSE,
-                            base_for_rates_int = 1L,
-                            offsets_chr = character(0),
-                            type_1L_chr = c("variable", "fixed","both", "zero")){
+add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FALSE, 
+                             base_for_rates_int = 1L, offsets_chr = character(0), type_1L_chr = c("variable", 
+                                                                                                  "fixed", "both", "zero"),
+                             variable_unit_1L_chr = "Minutes") {
   type_1L_chr <- match.arg(type_1L_chr)
-  if(type_1L_chr == "zero"){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, add_fixed_1L_lgl = F, add_offsets_1L_lgl = add_offsets_1L_lgl, add_variable_1L_lgl = F, base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr))
-  }else{
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, add_fixed_1L_lgl = (type_1L_chr %in% c("fixed","both")), add_variable_1L_lgl = (type_1L_chr %in% c("variable","both")), add_offsets_1L_lgl = add_offsets_1L_lgl, base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr))
+  if (type_1L_chr == "zero") {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, 
+                                                                                 add_fixed_1L_lgl = F, add_offsets_1L_lgl = add_offsets_1L_lgl, 
+                                                                                 add_variable_1L_lgl = F, base_for_rates_int = base_for_rates_int, 
+                                                                                 offsets_chr = offsets_chr, variable_unit_1L_chr = variable_unit_1L_chr))
+  }
+  else {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, 
+                                                                                 add_fixed_1L_lgl = (type_1L_chr %in% c("fixed", 
+                                                                                                                        "both")), add_variable_1L_lgl = (type_1L_chr %in% 
+                                                                                                                                                           c("variable", "both")), add_offsets_1L_lgl = add_offsets_1L_lgl, 
+                                                                                 base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr, variable_unit_1L_chr = variable_unit_1L_chr))
   }
   return(X_Ready4useDyad)
 }

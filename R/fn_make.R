@@ -359,7 +359,8 @@ make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L,
                   adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
                   distributions_chr = args_ls$distributions_chr, 
                   n_1L_int = iterations_1L_int * scale_1L_int, 
-                  seed_1L_int = 2001L, resample_1L_lgl = T, what_1L_chr = name_1L_chr)
+                  seed_1L_int = seed_1L_int, resample_1L_lgl = T, 
+                  what_1L_chr = name_1L_chr)
                 .x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ParamPool", 
                   name_1L_chr)), sample(predictions_dbl, size = iterations_1L_int)))
             })

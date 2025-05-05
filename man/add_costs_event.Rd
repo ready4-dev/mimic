@@ -10,7 +10,8 @@ add_costs_event(
   add_offsets_1L_lgl = FALSE,
   base_for_rates_int = 1L,
   offsets_chr = character(0),
-  type_1L_chr = c("variable", "fixed", "both", "zero")
+  type_1L_chr = c("variable", "fixed", "both", "zero"),
+  variable_unit_1L_chr = "Minutes"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ add_costs_event(
 \item{offsets_chr}{Offsets (a character vector), Default: character(0)}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("variable", "fixed", "both", "zero")}
+
+\item{variable_unit_1L_chr}{Variable unit (a character vector of length one), Default: 'Minutes'}
 }
 \value{
 X (A dataset and data dictionary pair.)

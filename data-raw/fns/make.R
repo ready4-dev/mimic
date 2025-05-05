@@ -176,39 +176,40 @@ make_contacters_summary <- function (processed_ls,
   }
   return(contacters_tb)
 }
-make_draws_tb <- function(inputs_ls,
-                          iterations_int = 1:100,
-                          # iterations_1L_int = 100L,
-                          scale_1L_int = 1L,
-                          seed_1L_int = integer(0)){
-  if(!identical(seed_1L_int, integer(0))){
+make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L, 
+                           seed_1L_int = integer(0)) 
+{
+  if (!identical(seed_1L_int, integer(0))) {
     set.seed(seed_1L_int)
   }
   iterations_1L_int <- length(unique(iterations_int))
   params_tb <- inputs_ls$params_tb
-  reshaped_tb <- params_tb %>% as.data.frame() %>% t() %>% janitor::row_to_names(1) %>% as.data.frame() %>%
-    dplyr::mutate(dplyr::across(dplyr::everything(), ~as.numeric(.x))) %>%
-    tibble::rownames_to_column("Statistic") %>% tibble::as_tibble() %>%
-    dplyr::rename_with(.fn = ~paste0("Param",.x), .cols = dplyr::where(is.numeric))
-  draws_tb <- reshaped_tb %>% dplyr::reframe(Iteration = iterations_int,
-                                             dplyr::across(dplyr::where(is.numeric), list(mean = ~ rnorm(iterations_1L_int, mean = dplyr::first(.x), sd = dplyr::nth(.x,2)),
-                                                                                          sd = ~ dplyr::last(.x)))) 
-  if(!is.null(inputs_ls$pooled_ls)){
-    draws_tb <- 1:length(inputs_ls$pooled_ls) %>% purrr::reduce(.init = draws_tb,
-                                                    ~ {
-                                                      pooled_mdl <- inputs_ls$pooled_ls[[.y]]$model_ls
-                                                      args_ls <- inputs_ls$pooled_ls[[.y]]$arguments_ls
-                                                      name_1L_chr <- names(inputs_ls$pooled_ls)[.y]
-                                                      predictions_dbl <- predict_from_pool(pooled_mdl, adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
-                                                                                           distributions_chr = args_ls$distributions_chr, 
-                                                                                           n_1L_int = iterations_1L_int*scale_1L_int, seed_1L_int = 2001L, 
-                                                                                           resample_1L_lgl = T, what_1L_chr = name_1L_chr)
-                                                      # sample(predictions_dbl, size = iterations_1L_int)
-                                                      .x %>% dplyr::mutate(!!rlang::sym(paste0("ParamPool",name_1L_chr)) := sample(predictions_dbl, size = iterations_1L_int))
-                                                      })
+  reshaped_tb <- params_tb %>% as.data.frame() %>% t() %>% 
+    janitor::row_to_names(1) %>% as.data.frame() %>% dplyr::mutate(dplyr::across(dplyr::everything(), 
+                                                                                 ~as.numeric(.x))) %>% tibble::rownames_to_column("Statistic") %>% 
+    tibble::as_tibble() %>% dplyr::rename_with(.fn = ~paste0("Param", 
+                                                             .x), .cols = dplyr::where(is.numeric))
+  draws_tb <- reshaped_tb %>% dplyr::reframe(Iteration = iterations_int, 
+                                             dplyr::across(dplyr::where(is.numeric), list(mean = ~rnorm(iterations_1L_int, 
+                                                                                                        mean = dplyr::first(.x), sd = dplyr::nth(.x, 2)), 
+                                                                                          sd = ~dplyr::last(.x))))
+  if (!is.null(inputs_ls$pooled_ls)) {
+    draws_tb <- 1:length(inputs_ls$pooled_ls) %>% purrr::reduce(.init = draws_tb, 
+                                                                ~{
+                                                                  pooled_mdl <- inputs_ls$pooled_ls[[.y]]$model_ls
+                                                                  args_ls <- inputs_ls$pooled_ls[[.y]]$arguments_ls
+                                                                  name_1L_chr <- names(inputs_ls$pooled_ls)[.y]
+                                                                  predictions_dbl <- predict_from_pool(pooled_mdl, 
+                                                                                                       adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
+                                                                                                       distributions_chr = args_ls$distributions_chr, 
+                                                                                                       n_1L_int = iterations_1L_int * scale_1L_int, 
+                                                                                                       seed_1L_int = seed_1L_int, resample_1L_lgl = T, what_1L_chr = name_1L_chr)
+                                                                  .x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ParamPool", 
+                                                                                                                name_1L_chr)), sample(predictions_dbl, size = iterations_1L_int)))
+                                                                })
   }
-  draws_tb <- draws_tb %>%
-    dplyr::select(-tidyselect::any_of(c("Iteration_mean", "Iteration_sd")))
+  draws_tb <- draws_tb %>% dplyr::select(-tidyselect::any_of(c("Iteration_mean", 
+                                                               "Iteration_sd")))
   return(draws_tb)
 }
 make_economic_summary <- function(sim_results_ls,
