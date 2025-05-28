@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9001</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,11 +41,13 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">import_project_data</span><span class="op">(</span></span>
 <span>  <span class="va">path_to_private_1L_chr</span>,</span>
 <span>  <span class="va">dir_1L_chr</span>,</span>
+<span>  custom_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  r_dir_1L_chr <span class="op">=</span> <span class="st">"R"</span>,</span>
 <span>  divider_1L_chr <span class="op">=</span> <span class="st">"\\"</span>,</span>
 <span>  names_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raw"</span>, <span class="st">"experts"</span>, <span class="st">"forecasts"</span>, <span class="st">"processed"</span>, <span class="st">"modelling"</span>, <span class="st">"pooled"</span>,</span>
-<span>    <span class="st">"population"</span>, <span class="st">"regressions"</span>, <span class="st">"results"</span>, <span class="st">"simulation"</span><span class="op">)</span></span>
+<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raw"</span>, <span class="st">"experts"</span>, <span class="st">"custom"</span>, <span class="st">"forecasts"</span>, <span class="st">"processed"</span>, <span class="st">"modelling"</span>,</span>
+<span>    <span class="st">"pooled"</span>, <span class="st">"population"</span>, <span class="st">"regressions"</span>, <span class="st">"results"</span>, <span class="st">"simulation"</span>, <span class="st">"summaries"</span>,</span>
+<span>    <span class="st">"validation"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -61,6 +63,10 @@
 <dd><p>Directory (a character vector of length one)</p></dd>
 
 
+<dt id="arg-custom-l-chr">custom_1L_chr<a class="anchor" aria-label="anchor" href="#arg-custom-l-chr"></a></dt>
+<dd><p>Custom (a character vector of length one), Default: character(0)</p></dd>
+
+
 <dt id="arg-r-dir-l-chr">r_dir_1L_chr<a class="anchor" aria-label="anchor" href="#arg-r-dir-l-chr"></a></dt>
 <dd><p>R directory (a character vector of length one), Default: 'R'</p></dd>
 
@@ -74,8 +80,9 @@
 
 
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
-<dd><p>Type (a character vector of length one), Default: c("raw", "experts", "forecasts", "processed", "modelling", "pooled",
-"population", "regressions", "results", "simulation")</p></dd>
+<dd><p>Type (a character vector of length one), Default: c("raw", "experts", "custom", "forecasts", "processed", "modelling",
+"pooled", "population", "regressions", "results", "simulation",
+"summaries", "validation")</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -92,7 +99,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

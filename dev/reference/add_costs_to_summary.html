@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9001</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,9 +43,13 @@
 <span>  <span class="va">processed_ls</span>,</span>
 <span>  periods_1L_int <span class="op">=</span> <span class="fl">26</span>,</span>
 <span>  arrange_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  bind_to_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cost_tfmn_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  reference_1L_chr <span class="op">=</span> <span class="st">"Status quo"</span>,</span>
 <span>  tfmn_fn <span class="op">=</span> <span class="va">identity</span>,</span>
-<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"change_scenario"</span>, <span class="st">"change_sq"</span>, <span class="st">"scenario"</span>, <span class="st">"sq"</span><span class="op">)</span></span>
+<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"change_scenario"</span>, <span class="st">"change_scen_sq"</span>, <span class="st">"change_sq"</span>, <span class="st">"scenario"</span>,</span>
+<span>    <span class="st">"scen_sq"</span>, <span class="st">"sq"</span>, <span class="st">"summary_scenario"</span><span class="op">)</span>,</span>
+<span>  unit_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minutes"</span>, <span class="st">"clients"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -69,6 +73,14 @@
 <dd><p>Arrange (a character vector of length one), Default: character(0)</p></dd>
 
 
+<dt id="arg-bind-to-tb">bind_to_tb<a class="anchor" aria-label="anchor" href="#arg-bind-to-tb"></a></dt>
+<dd><p>Bind to (a tibble), Default: NULL</p></dd>
+
+
+<dt id="arg-cost-tfmn-fn">cost_tfmn_fn<a class="anchor" aria-label="anchor" href="#arg-cost-tfmn-fn"></a></dt>
+<dd><p>Cost transformation (a function), Default: identity</p></dd>
+
+
 <dt id="arg-reference-l-chr">reference_1L_chr<a class="anchor" aria-label="anchor" href="#arg-reference-l-chr"></a></dt>
 <dd><p>Reference (a character vector of length one), Default: 'Status quo'</p></dd>
 
@@ -78,7 +90,12 @@
 
 
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
-<dd><p>Type (a character vector of length one), Default: c("change_scenario", "change_sq", "scenario", "sq")</p></dd>
+<dd><p>Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario",
+"scen_sq", "sq", "summary_scenario")</p></dd>
+
+
+<dt id="arg-unit-l-chr">unit_1L_chr<a class="anchor" aria-label="anchor" href="#arg-unit-l-chr"></a></dt>
+<dd><p>Unit (a character vector of length one), Default: c("minutes", "clients")</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -95,7 +112,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

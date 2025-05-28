@@ -8,10 +8,14 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_age_to_project_dss.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_clients_to_summary.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_cost_calculations.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_cost_effectiveness.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_cost_effectiveness_stats.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_cost_offsets.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_costs_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_costs_to_summary.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_dominated.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_enter_model_event.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_icer.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_imputed_data.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_joiners_outcomes_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_k10_event.html</loc></url>
@@ -26,6 +30,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_outcomes_event_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_assessments.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_model_data.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_offset_logic.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_outcomes_data.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_treatment_change.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_projected_decay.html</loc></url>
@@ -38,6 +43,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_time_to_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_treatment_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_treatment_status.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_unset_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_utility_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/deprecated.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/dotdata.html</loc></url>
@@ -66,6 +72,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_joiners_series.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_k10_change_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_k10_severity_cuts.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_model_dyad_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_outcomes_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_parsnip_mdl.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_pooled_fit.html</loc></url>
@@ -93,9 +100,11 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_params_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_recode_lup.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_results.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_results_synthesis.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_service_use_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_sim_summary.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_sunk_tb.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_test_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_ts_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_tx_mdlng_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_tx_mdls.html</loc></url>
@@ -110,6 +119,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_structural_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_synthetic_data.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_synthetic_tests.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_test_comparisons.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_two_part_mdl.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_tx_mdl_confusion.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_utility_predictions_ds.html</loc></url>
@@ -134,13 +144,16 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_current_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_gender.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_k10_event_schedule.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_mismatched_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_order.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_population_classes.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_predictions_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_previous.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_project_test_cmprsns.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_qalys.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_scenario_names.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_scheduled_date.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_test_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_tx_start_end.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_with_imputed.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/write_project_RDS.html</loc></url>

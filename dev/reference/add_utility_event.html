@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9001</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
 <span>  iterations_int <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100L</span>,</span>
 <span>  maintain_for_1L_int <span class="op">=</span> <span class="fl">0L</span>,</span>
 <span>  models_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rewind_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  sensitivities_ls <span class="op">=</span> <span class="fu"><a href="make_sensitivities_ls.html">make_sensitivities_ls</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  simulate_1L_lgl <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  tfmn_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -93,6 +94,10 @@
 <dd><p>Models (a list), Default: NULL</p></dd>
 
 
+<dt id="arg-rewind-chr">rewind_chr<a class="anchor" aria-label="anchor" href="#arg-rewind-chr"></a></dt>
+<dd><p>Rewind (a character vector), Default: character(0)</p></dd>
+
+
 <dt id="arg-sensitivities-ls">sensitivities_ls<a class="anchor" aria-label="anchor" href="#arg-sensitivities-ls"></a></dt>
 <dd><p>Sensitivities (a list), Default: make_sensitivities_ls()</p></dd>
 
@@ -135,7 +140,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
