@@ -6,19 +6,32 @@
 \usage{
 make_report_data(
   model_data_ls = NULL,
+  date_end_dtm = as.POSIXct("2023-07-01"),
+  date_start_dtm = as.POSIXct("2023-06-01"),
+  period_dtm = lubridate::years(1),
   platform_1L_chr = "Intervention",
   processed_ls = NULL,
   regressions_ls = NULL,
   sim_results_ls = NULL,
+  timepoint_1L_chr = character(0),
   transformations_chr = character(0),
-  what_1L_chr = c("descriptives", "costadj", "costitem", "costsum", "costunit",
-    "minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", "outcomeslong",
+  type_1L_chr = "full_combos",
+  ungroup_1L_lgl = FALSE,
+  weeks_int = integer(0),
+  what_1L_chr = c("descriptives", "composite", "costadj", "costitem", "costsum",
+    "costunit", "minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", "outcomeslong",
     "paramscost", "paramsk10", "resultsaqol", "resultschu", "resultsoutcomes",
     "resultseconomic", "serviceuse", "serviceusecost")
 )
 }
 \arguments{
 \item{model_data_ls}{Model data (a list), Default: NULL}
+
+\item{date_end_dtm}{Date end (a date vector), Default: as.POSIXct("2023-07-01")}
+
+\item{date_start_dtm}{Date start (a date vector), Default: as.POSIXct("2023-06-01")}
+
+\item{period_dtm}{Period (a date vector), Default: lubridate::years(1)}
 
 \item{platform_1L_chr}{Platform (a character vector of length one), Default: 'Intervention'}
 
@@ -28,11 +41,19 @@ make_report_data(
 
 \item{sim_results_ls}{Sim results (a list), Default: NULL}
 
+\item{timepoint_1L_chr}{Timepoint (a character vector of length one), Default: character(0)}
+
 \item{transformations_chr}{Transformations (a character vector), Default: character(0)}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("descriptives", "costadj", "costitem", "costsum", "costunit",
-"minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes",
-"outcomeslong", "paramscost", "paramsk10", "resultsaqol",
+\item{type_1L_chr}{Type (a character vector of length one), Default: 'full_combos'}
+
+\item{ungroup_1L_lgl}{Ungroup (a logical vector of length one), Default: FALSE}
+
+\item{weeks_int}{Weeks (an integer vector), Default: integer(0)}
+
+\item{what_1L_chr}{What (a character vector of length one), Default: c("descriptives", "composite", "costadj", "costitem", "costsum",
+"costunit", "minutes", "mnl-wait", "mnl-tx", "mnl-disc",
+"outcomes", "outcomeslong", "paramscost", "paramsk10", "resultsaqol",
 "resultschu", "resultsoutcomes", "resultseconomic", "serviceuse",
 "serviceusecost")}
 }

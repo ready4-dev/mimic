@@ -10,14 +10,16 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimul
                                  urls_chr = c("https://ready4-dev.github.io/mimic/",
                                               "https://github.com/ready4-dev/mimic",
                                               "https://ready4-dev.github.io/mimic/")) %>%
-  ready4fun::make_manifest(addl_pkgs_ls = ready4fun::make_addl_pkgs_ls(suggests_chr = c("knitr","knitrBootstrap","rmarkdown")#,
+  ready4fun::make_manifest(addl_pkgs_ls = ready4fun::make_addl_pkgs_ls(suggests_chr = c("knitr","knitrBootstrap","rmarkdown"),
                                                                        #imports_chr = c(),
-                                                                       #depends_chr = c()
+                                                                       depends_chr = c("ready4")
   ),
   build_ignore_ls = ready4fun::make_build_ignore_ls(file_nms_chr = c("initial_setup.R")),
   check_type_1L_chr = "ready4",
   copyright_holders_chr = "Matthew Hamilton", # If no copyright holder is to be specified, leave as is. Otherwise update these details.
-  custom_dmt_ls = ready4fun::make_custom_dmt_ls(user_manual_fns_chr = c("predict_from_pool",
+  custom_dmt_ls = ready4fun::make_custom_dmt_ls(user_manual_fns_chr = c("predict_comparator_pathway",
+                                                                        "predict_digital_pathway",
+                                                                        "predict_from_pool",
                                                                         "predict_with_sim"
                                                                         #,
                                                                         # all other functions that you plan to include in the main manual are named here.

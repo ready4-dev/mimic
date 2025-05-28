@@ -6,8 +6,6 @@
 \usage{
 make_results_synthesis(
   X_Ready4useDyad,
-  Y_Ready4useDyad,
-  Z_Ready4useDyad,
   add_severity_1L_lgl = TRUE,
   exclude_chr = c("Adult", "Period", "MeasurementWeek", "treatment_fraction",
     "treatment_measurement", "treatment_start"),
@@ -15,15 +13,14 @@ make_results_synthesis(
   keep_chr = c("platform", "clinic_state", "clinic_type", "Age", "gender",
     "employment_status"),
   modifiable_chr = character(0),
-  type_1L_chr = c("D", "AB", "C")
+  results_ls = NULL,
+  type_1L_chr = c("D", "AB", "C"),
+  Y_Ready4useDyad = ready4use::Ready4useDyad(),
+  Z_Ready4useDyad = ready4use::Ready4useDyad()
 )
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
-
-\item{Y_Ready4useDyad}{PARAM_DESCRIPTION}
-
-\item{Z_Ready4useDyad}{PARAM_DESCRIPTION}
 
 \item{add_severity_1L_lgl}{Add severity (a logical vector of length one), Default: TRUE}
 
@@ -37,7 +34,13 @@ make_results_synthesis(
 
 \item{modifiable_chr}{Modifiable (a character vector), Default: character(0)}
 
+\item{results_ls}{Results (a list), Default: NULL}
+
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
+
+\item{Y_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
+
+\item{Z_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
 }
 \value{
 A (A dataset and data dictionary pair.)

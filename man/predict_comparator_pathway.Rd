@@ -6,6 +6,7 @@
 \usage{
 predict_comparator_pathway(
   inputs_ls,
+  add_logic_fn = add_project_offset_logic,
   arm_1L_chr = "Comparator",
   base_for_rates_int = c(1000L, 1, 1),
   draws_tb = NULL,
@@ -23,6 +24,8 @@ predict_comparator_pathway(
 }
 \arguments{
 \item{inputs_ls}{Inputs (a list)}
+
+\item{add_logic_fn}{Add logic (a function), Default: add_project_offset_logic}
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: 'Comparator'}
 
@@ -56,4 +59,3 @@ X (A dataset and data dictionary pair.)
 \description{
 predict_comparator_pathway() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict comparator pathway. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

@@ -17,5 +17,7 @@ development:
 reference:
 - title: "Functions"
 - contents:
+  - predict_comparator_pathway
+  - predict_digital_pathway
   - predict_from_pool
   - predict_with_sim

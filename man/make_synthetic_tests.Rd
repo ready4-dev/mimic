@@ -8,7 +8,8 @@ make_synthetic_tests(
   population_ls,
   model_data_ls = NULL,
   comparison_1L_chr = c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners",
-    "Outcomes")
+    "Outcomes"),
+  ...
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ make_synthetic_tests(
 \item{model_data_ls}{Model data (a list), Default: NULL}
 
 \item{comparison_1L_chr}{Comparison (a character vector of length one), Default: c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners", "Outcomes")}
+
+\item{...}{Additional arguments}
 }
 \value{
 Synthetic tests (a list)

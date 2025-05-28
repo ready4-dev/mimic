@@ -4,12 +4,18 @@
 \alias{add_cost_effectiveness_stats}
 \title{Add cost effectiveness statistics}
 \usage{
-add_cost_effectiveness_stats(data_tb, threshold_1L_dbl = 96000)
+add_cost_effectiveness_stats(
+  data_tb,
+  threshold_1L_dbl = 96000,
+  utilities_chr = c("AQoL6D", "CHU9D")
+)
 }
 \arguments{
 \item{data_tb}{Data (a tibble)}
 
 \item{threshold_1L_dbl}{Threshold (a double vector of length one), Default: 96000}
+
+\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 }
 \value{
 Data (a tibble)

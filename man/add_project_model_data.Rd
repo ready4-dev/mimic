@@ -9,8 +9,8 @@ add_project_model_data(
   mdls_lup = NULL,
   processed_ls = NULL,
   type_1L_chr = c("unimputed", "imputed"),
-  what_1L_chr = c("CostWide", "Joiners", "MicroLong", "MicroWide", "MicroWide1Year",
-    "MinutesLong", "Outcomes", "OutcomesJoiners", "Series")
+  what_1L_chr = c("CostWide", "Joiners", "JulyJoiners", "MicroLong", "MicroWide",
+    "MicroWide1Year", "MinutesLong", "Outcomes", "OutcomesJoiners", "Series")
 )
 }
 \arguments{
@@ -22,8 +22,9 @@ add_project_model_data(
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("unimputed", "imputed")}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("CostWide", "Joiners", "MicroLong", "MicroWide", "MicroWide1Year",
-"MinutesLong", "Outcomes", "OutcomesJoiners", "Series")}
+\item{what_1L_chr}{What (a character vector of length one), Default: c("CostWide", "Joiners", "JulyJoiners", "MicroLong", "MicroWide",
+"MicroWide1Year", "MinutesLong", "Outcomes", "OutcomesJoiners",
+"Series")}
 }
 \value{
 Model data (a list)

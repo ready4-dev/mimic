@@ -6,7 +6,10 @@
 \usage{
 predict_with_sim(
   inputs_ls,
+  add_logic_fn = add_project_offset_logic,
   base_for_rates_int = c(1000L, 1L, 1L),
+  comparator_fn = predict_comparator_pathway,
+  intervention_fn = predict_digital_pathway,
   iterations_ls = list(1:100L),
   horizon_dtm = lubridate::years(1),
   modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
@@ -17,7 +20,7 @@ predict_with_sim(
   start_dtm = Sys.Date(),
   tfmn_ls = make_class_tfmns(),
   tx_duration_dtm = lubridate::weeks(12),
-  type_1L_chr = c("D", "AB", "C"),
+  type_1L_chr = c("D", "AB", "C", "NULL"),
   utilities_chr = c("AQoL6D", "CHU9D"),
   write_to_1L_chr = character(0)
 )
@@ -25,7 +28,13 @@ predict_with_sim(
 \arguments{
 \item{inputs_ls}{Inputs (a list)}
 
+\item{add_logic_fn}{Add logic (a function), Default: add_project_offset_logic}
+
 \item{base_for_rates_int}{Base for rates (an integer vector), Default: c(1000L, 1L, 1L)}
+
+\item{comparator_fn}{Comparator (a function), Default: predict_comparator_pathway}
+
+\item{intervention_fn}{Intervention (a function), Default: predict_digital_pathway}
 
 \item{iterations_ls}{Iterations (a list), Default: list(1:100L)}
 
@@ -47,7 +56,7 @@ predict_with_sim(
 
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C", "NULL")}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 

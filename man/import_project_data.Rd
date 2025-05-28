@@ -7,11 +7,13 @@
 import_project_data(
   path_to_private_1L_chr,
   dir_1L_chr,
+  custom_1L_chr = character(0),
   r_dir_1L_chr = "R",
   divider_1L_chr = "\\\\",
   names_ls = NULL,
-  type_1L_chr = c("raw", "experts", "forecasts", "processed", "modelling", "pooled",
-    "population", "regressions", "results", "simulation")
+  type_1L_chr = c("raw", "experts", "custom", "forecasts", "processed", "modelling",
+    "pooled", "population", "regressions", "results", "simulation", "summaries",
+    "validation")
 )
 }
 \arguments{
@@ -19,14 +21,17 @@ import_project_data(
 
 \item{dir_1L_chr}{Directory (a character vector of length one)}
 
+\item{custom_1L_chr}{Custom (a character vector of length one), Default: character(0)}
+
 \item{r_dir_1L_chr}{R directory (a character vector of length one), Default: 'R'}
 
 \item{divider_1L_chr}{Divider (a character vector of length one), Default: '\'}
 
 \item{names_ls}{Names (a list), Default: NULL}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("raw", "experts", "forecasts", "processed", "modelling", "pooled",
-"population", "regressions", "results", "simulation")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("raw", "experts", "custom", "forecasts", "processed", "modelling",
+"pooled", "population", "regressions", "results", "simulation",
+"summaries", "validation")}
 }
 \value{
 Data (a list)

@@ -10,6 +10,7 @@ update_scenario_names(
   before_1L_chr = character(0),
   prefix_1L_chr = "scenario_",
   reference_1L_chr = "Status quo",
+  others_chr = character(0),
   tfmn_1_fn = as.numeric,
   tfmn_2_fn = scales::percent
 )
@@ -24,6 +25,8 @@ update_scenario_names(
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: 'scenario_'}
 
 \item{reference_1L_chr}{Reference (a character vector of length one), Default: 'Status quo'}
+
+\item{others_chr}{Others (a character vector), Default: character(0)}
 
 \item{tfmn_1_fn}{Transformation 1 (a function), Default: as.numeric}
 

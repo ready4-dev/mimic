@@ -9,7 +9,8 @@ make_actives_tb(
   as_tsibble_1L_lgl = FALSE,
   date_end_dtm = NULL,
   date_start_dtm = NULL,
-  date_var_1L_chr = make_temporal_vars()
+  date_var_1L_chr = make_temporal_vars(),
+  periods_1L_int = integer(0)
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ make_actives_tb(
 \item{date_start_dtm}{Date start (a date vector), Default: NULL}
 
 \item{date_var_1L_chr}{Date variable (a character vector of length one), Default: make_temporal_vars()}
+
+\item{periods_1L_int}{Periods (an integer vector of length one), Default: integer(0)}
 }
 \value{
 Actives (an output object of multiple potential types)

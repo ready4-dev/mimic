@@ -7,6 +7,7 @@
 add_costs_event(
   X_Ready4useDyad,
   inputs_ls,
+  add_logic_fn = identity,
   add_offsets_1L_lgl = FALSE,
   base_for_rates_int = 1L,
   offsets_chr = character(0),
@@ -18,6 +19,8 @@ add_costs_event(
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
 \item{inputs_ls}{Inputs (a list)}
+
+\item{add_logic_fn}{Add logic (a function), Default: identity}
 
 \item{add_offsets_1L_lgl}{Add offsets (a logical vector of length one), Default: FALSE}
 

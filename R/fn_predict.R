@@ -1,6 +1,7 @@
 #' Predict comparator pathway
 #' @description predict_comparator_pathway() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict comparator pathway. The function is called for its side effects and does not return a value.
 #' @param inputs_ls Inputs (a list)
+#' @param add_logic_fn Add logic (a function), Default: add_project_offset_logic
 #' @param arm_1L_chr Arm (a character vector of length one), Default: 'Comparator'
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1, 1)
 #' @param draws_tb Draws (a tibble), Default: NULL
@@ -18,9 +19,9 @@
 #' @rdname predict_comparator_pathway
 #' @export 
 #' @importFrom lubridate years weeks days
-#' @keywords internal
-predict_comparator_pathway <- function (inputs_ls, arm_1L_chr = "Comparator", base_for_rates_int = c(1000L, 
-    1, 1), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
+    arm_1L_chr = "Comparator", base_for_rates_int = c(1000L, 
+        1, 1), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
@@ -81,10 +82,10 @@ predict_comparator_pathway <- function (inputs_ls, arm_1L_chr = "Comparator", ba
         step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
-    X_Ready4useDyad <- add_costs_event(X_Ready4useDyad, add_offsets_1L_lgl = F, 
-        base_for_rates_int = base_for_rates_int, inputs_ls = inputs_ls, 
-        offsets_chr = names(inputs_ls$pooled_ls), type_1L_chr = "zero", 
-        variable_unit_1L_chr = variable_unit_1L_chr)
+    X_Ready4useDyad <- add_costs_event(X_Ready4useDyad, add_logic_fn = add_logic_fn, 
+        add_offsets_1L_lgl = F, base_for_rates_int = base_for_rates_int, 
+        inputs_ls = inputs_ls, offsets_chr = names(inputs_ls$pooled_ls), 
+        type_1L_chr = "zero", variable_unit_1L_chr = variable_unit_1L_chr)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "LeaveModel", 
         step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -95,6 +96,7 @@ predict_comparator_pathway <- function (inputs_ls, arm_1L_chr = "Comparator", ba
 #' Predict digital pathway
 #' @description predict_digital_pathway() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict digital pathway. The function is called for its side effects and does not return a value.
 #' @param inputs_ls Inputs (a list)
+#' @param add_logic_fn Add logic (a function), Default: add_project_offset_logic
 #' @param arm_1L_chr Arm (a character vector of length one), Default: 'Intervention'
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1L, 1L)
 #' @param draws_tb Draws (a tibble), Default: NULL
@@ -112,9 +114,9 @@ predict_comparator_pathway <- function (inputs_ls, arm_1L_chr = "Comparator", ba
 #' @rdname predict_digital_pathway
 #' @export 
 #' @importFrom lubridate years weeks days
-#' @keywords internal
-predict_digital_pathway <- function (inputs_ls, arm_1L_chr = "Intervention", base_for_rates_int = c(1000L, 
-    1L, 1L), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
+    arm_1L_chr = "Intervention", base_for_rates_int = c(1000L, 
+        1L, 1L), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
@@ -158,11 +160,18 @@ predict_digital_pathway <- function (inputs_ls, arm_1L_chr = "Intervention", bas
         bl_week_1L_dbl = 0, iterations_int = iterations_int, 
         tx_duration_dtm = tx_duration_dtm, tx_models_ls = inputs_ls$models_ls$Treatments_ls)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateMinutes", 
-        schedule_fn = update_scheduled_date)
+        schedule_fn = update_scheduled_date, schedule_args_ls = list(target_1L_int = 336, 
+            type_1L_chr = "Day"))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_minutes_event(X_Ready4useDyad, iterations_int = iterations_int, 
         minutes_mdl = inputs_ls$models_ls$Minutes_mdl)
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateMinutes", 
+        schedule_fn = update_scheduled_date)
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+    X_Ready4useDyad <- add_minutes_event(X_Ready4useDyad, iterations_int = iterations_int, 
+        fraction_1L_dbl = 4/38)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateOutcomes", 
         step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -177,9 +186,9 @@ predict_digital_pathway <- function (inputs_ls, arm_1L_chr = "Intervention", bas
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_costs_event(X_Ready4useDyad, add_offsets_1L_lgl = T, 
-        base_for_rates_int = base_for_rates_int, inputs_ls = inputs_ls, 
-        offsets_chr = names(inputs_ls$pooled_ls), type_1L_chr = "both", 
-        variable_unit_1L_chr = variable_unit_1L_chr)
+        add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
+        inputs_ls = inputs_ls, offsets_chr = names(inputs_ls$pooled_ls), 
+        type_1L_chr = "both", variable_unit_1L_chr = variable_unit_1L_chr)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "LeaveModel", 
         step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -277,7 +286,10 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' Predict with sim
 #' @description predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function is called for its side effects and does not return a value.
 #' @param inputs_ls Inputs (a list)
+#' @param add_logic_fn Add logic (a function), Default: add_project_offset_logic
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1L, 1L)
+#' @param comparator_fn Comparator (a function), Default: predict_comparator_pathway
+#' @param intervention_fn Intervention (a function), Default: predict_digital_pathway
 #' @param iterations_ls Iterations (a list), Default: list(1:100L)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
@@ -288,7 +300,7 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
-#' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C", "NULL")
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @param write_to_1L_chr Write to (a character vector of length one), Default: character(0)
 #' @return X (A dataset and data dictionary pair.)
@@ -296,12 +308,15 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @export 
 #' @importFrom lubridate years weeks
 #' @importFrom purrr walk
-predict_with_sim <- function (inputs_ls, base_for_rates_int = c(1000L, 1L, 1L), iterations_ls = list(1:100L), 
+#' @importFrom ready4use Ready4useDyad
+predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
+    base_for_rates_int = c(1000L, 1L, 1L), comparator_fn = predict_comparator_pathway, 
+    intervention_fn = predict_digital_pathway, iterations_ls = list(1:100L), 
     horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
         "Minutes", "k10", "AQoL6D", "CHU9D"), purge_1L_lgl = TRUE, 
     scale_1L_int = 10L, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-    type_1L_chr = c("D", "AB", "C"), utilities_chr = c("AQoL6D", 
+    type_1L_chr = c("D", "AB", "C", "NULL"), utilities_chr = c("AQoL6D", 
         "CHU9D"), write_to_1L_chr = character(0)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -316,38 +331,49 @@ predict_with_sim <- function (inputs_ls, base_for_rates_int = c(1000L, 1L, 1L), 
         draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
             scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
                 .x)
-        Y_Ready4useDyad <- predict_digital_pathway(inputs_ls, 
-            arm_1L_chr = "Intervention", base_for_rates_int = base_for_rates_int, 
-            draws_tb = draws_tb, iterations_int = iterations_int, 
-            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-            tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
-                .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
-            variable_unit_1L_chr = "Minutes")
-        Z_Ready4useDyad <- predict_comparator_pathway(inputs_ls, 
-            arm_1L_chr = "Comparator", base_for_rates_int = base_for_rates_int, 
-            draws_tb = draws_tb, iterations_int = iterations_int, 
-            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-            tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
-                .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
-            variable_unit_1L_chr = "Minutes")
+        if (!is.null(intervention_fn)) {
+            Y_Ready4useDyad <- intervention_fn(inputs_ls, add_logic_fn = add_logic_fn, 
+                arm_1L_chr = "Intervention", base_for_rates_int = base_for_rates_int, 
+                draws_tb = draws_tb, iterations_int = iterations_int, 
+                horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
+                sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+                tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
+                  .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
+                variable_unit_1L_chr = "Minutes")
+        }
+        else {
+            Y_Ready4useDyad <- ready4use::Ready4useDyad()
+        }
+        if (!is.null(comparator_fn)) {
+            Z_Ready4useDyad <- comparator_fn(inputs_ls, arm_1L_chr = "Comparator", 
+                add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
+                draws_tb = draws_tb, iterations_int = iterations_int, 
+                horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
+                sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+                tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
+                  .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
+                variable_unit_1L_chr = "Minutes")
+        }
+        else {
+            Z_Ready4useDyad <- ready4use::Ready4useDyad()
+        }
         saveRDS(list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad), 
             paste0(write_to_1L_chr, "/SimBatch", .x, ".RDS"))
     })
-    results_ls <- import_results_batches(length(iterations_ls), 
-        dir_1L_chr = write_to_1L_chr)
+    if (type_1L_chr != "NULL") {
+        results_ls <- import_results_batches(length(iterations_ls), 
+            dir_1L_chr = write_to_1L_chr)
+    }
     if (purge_1L_lgl) {
         1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
             "/SimBatch", .x, ".RDS")))
     }
-    X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
-        Y_Ready4useDyad = results_ls$Y_Ready4useDyad, Z_Ready4useDyad = results_ls$Z_Ready4useDyad, 
-        add_severity_1L_lgl = T, exclude_chr = c("Adult", "Period", 
-            "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
-            "treatment_start"), exclude_suffixes_chr = c("_change", 
-            "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
-            "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
-        modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+    if (type_1L_chr != "NULL") {
+        X_Ready4useDyad <- make_project_results_synthesis(inputs_ls, 
+            results_ls, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+    }
+    else {
+        X_Ready4useDyad <- NULL
+    }
     return(X_Ready4useDyad)
 }

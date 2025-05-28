@@ -6,19 +6,19 @@
 \usage{
 add_clients_to_summary(
   summaries_ls,
+  onboarded_tb,
   arrange_1L_chr = character(0),
-  reference_1L_chr = "Status quo",
-  weeks_1L_int = 26
+  reference_1L_chr = "Status quo"
 )
 }
 \arguments{
 \item{summaries_ls}{Summaries (a list)}
 
+\item{onboarded_tb}{Onboarded (a tibble)}
+
 \item{arrange_1L_chr}{Arrange (a character vector of length one), Default: character(0)}
 
 \item{reference_1L_chr}{Reference (a character vector of length one), Default: 'Status quo'}
-
-\item{weeks_1L_int}{Weeks (an integer vector of length one), Default: 26}
 }
 \value{
 Summaries (a list)

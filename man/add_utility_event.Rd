@@ -13,6 +13,7 @@ add_utility_event(
   iterations_int = 1:100L,
   maintain_for_1L_int = 0L,
   models_ls = NULL,
+  rewind_chr = character(0),
   sensitivities_ls = make_sensitivities_ls(),
   simulate_1L_lgl = TRUE,
   tfmn_ls = NULL,
@@ -38,6 +39,8 @@ add_utility_event(
 \item{maintain_for_1L_int}{Maintain for (an integer vector of length one), Default: 0}
 
 \item{models_ls}{Models (a list), Default: NULL}
+
+\item{rewind_chr}{Rewind (a character vector), Default: character(0)}
 
 \item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
 

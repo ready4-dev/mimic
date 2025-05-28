@@ -10,6 +10,7 @@ add_simulated_data(
   Y_Ready4useDyad,
   iterations_int = 1:100L,
   join_with_chr = character(0),
+  rewind_chr = character(0),
   tfmn_1L_chr = "NTF",
   type_1L_chr = c("first", "second", "third", "fourth"),
   what_1L_chr = c("old", "new")
@@ -25,6 +26,8 @@ add_simulated_data(
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
 \item{join_with_chr}{Join with (a character vector), Default: character(0)}
+
+\item{rewind_chr}{Rewind (a character vector), Default: character(0)}
 
 \item{tfmn_1L_chr}{Transformation (a character vector of length one), Default: 'NTF'}
 

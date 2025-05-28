@@ -4,12 +4,21 @@
 \alias{update_scheduled_date}
 \title{Update scheduled date}
 \usage{
-update_scheduled_date(X_Ready4useDyad, type_1L_chr = c("End"))
+update_scheduled_date(
+  X_Ready4useDyad,
+  increment_1L_int = integer(0),
+  target_1L_int = integer(0),
+  type_1L_chr = c("End", "Day")
+)
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("End")}
+\item{increment_1L_int}{Increment (an integer vector of length one), Default: integer(0)}
+
+\item{target_1L_int}{Target (an integer vector of length one), Default: integer(0)}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("End", "Day")}
 }
 \value{
 X (A dataset and data dictionary pair.)

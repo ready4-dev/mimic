@@ -1,29 +1,44 @@
-make_actives_tb <- function(model_data_ls,
-                            as_tsibble_1L_lgl = FALSE,
-                            date_end_dtm = NULL, # Month < tsibble::yearmonth("2024 Jul")
-                            date_start_dtm = NULL,
-                            date_var_1L_chr = make_temporal_vars()){
+make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_dtm = NULL, 
+                             date_start_dtm = NULL, date_var_1L_chr = make_temporal_vars(), 
+                             periods_1L_int = integer(0)) 
+{
   date_var_1L_chr <- match.arg(date_var_1L_chr)
-  actives_tb <- model_data_ls$imputed_ls$MicroLong_r4@ds_tb %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
-    dplyr::filter(Activity == "Contact") %>% dplyr::summarise(Contacters = list(unique(UID))) %>%
-    dplyr::left_join(
-      processed_ls$overview@ds_tb %>% dplyr::select(UID, onboarding_date) %>% add_temporal_vars(date_var_1L_chr = "onboarding_date", temporal_vars_chr = c(date_var_1L_chr)) %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>%
-        dplyr::summarise(Onboarded = list(unique(UID)))) %>%
-    dplyr::filter(!is.null(Onboarded) | !is.null(Contacters)) 
-  
+  onboarded_tb <- processed_ls$overview@ds_tb %>% dplyr::select(UID, onboarding_date) %>% 
+    add_temporal_vars(date_var_1L_chr = "onboarding_date", temporal_vars_chr = c(date_var_1L_chr)) %>% 
+    dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
+    dplyr::summarise(Onboarded = list(unique(UID)))
+  actives_tb <- model_data_ls$imputed_ls$MicroLong_r4@ds_tb %>% 
+    dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% dplyr::filter(Activity == 
+                                                                       "Contact") %>% dplyr::summarise(Contacters = list(unique(UID))) %>% 
+    dplyr::left_join(onboarded_tb) %>% 
+    dplyr::filter(!is.null(Onboarded) | !is.null(Contacters))
+  if(!identical(periods_1L_int, integer(0))){
+    date_fn <- get_temporal_fn(date_var_1L_chr)
+    period_tb <- onboarded_tb %>% dplyr::mutate(Period_Starts = dplyr::lag(!!rlang::sym(date_var_1L_chr),n = periods_1L_int, default = date_fn(lubridate::NA_Date_))) 
+    period_tb <- period_tb %>% na.omit() %>% dplyr::pull(!!rlang::sym(date_var_1L_chr)) %>%
+      purrr::map_dfr(~{
+        filtered_tb <- period_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) == .x)
+        period_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= filtered_tb$Period_Starts & !!rlang::sym(date_var_1L_chr) <= .x) %>% 
+          dplyr::summarise(!!rlang::sym(date_var_1L_chr) := .x, Onboarded_Same_Period = list(purrr::flatten_chr(Onboarded)), Period_Starts = filtered_tb$Period_Starts)
+        
+      })
+    actives_tb <-  dplyr::left_join(actives_tb, period_tb)
+    use_1L_chr <- "Onboarded_Same_Period"
+  }else{
+    use_1L_chr <- "Onboarded"
+  }
   if (!is.null(date_start_dtm)) {
     actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= date_start_dtm)
   }
   if (!is.null(date_end_dtm)) {
     actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) <= date_end_dtm)
   }
-  actives_tb <- actives_tb %>%
-    dplyr::mutate(`Retained` = purrr::map2(Contacters, Onboarded, ~ setdiff(.x,.y)),
-                  `Inactive` = purrr::map2(Contacters, Onboarded, ~ setdiff(.y,.x))) %>%
-    dplyr::mutate(dplyr::across(dplyr::where(is.list), ~ .x %>% purrr::map_int(~length(.x))))
-  if(as_tsibble_1L_lgl){
+  actives_tb <- actives_tb %>% dplyr::mutate(Retained = purrr::map2(Contacters, !!rlang::sym(use_1L_chr), ~setdiff(.x, .y)), 
+                                             Inactive = purrr::map2(Contacters, Onboarded, ~setdiff(.y, .x))) %>% 
+    dplyr::mutate(dplyr::across(dplyr::where(is.list), ~.x %>% purrr::map_int(~length(.x))))
+  if (as_tsibble_1L_lgl) {
     actives_xx <- actives_tb %>% tsibble::as_tsibble(index = date_var_1L_chr)
-  }else{
+  }  else {
     actives_xx <- actives_tb
   }
   return(actives_xx)
@@ -290,6 +305,11 @@ make_k10_change_tb <- function(population_k10_tb){
 make_k10_severity_cuts <- function(mild_int = c(10,15), moderate_int = c(16,21), high_int = c(22,29), very_high_int = c(30,50)){
   severity_cuts_ls <- list(Low = mild_int, Moderate = moderate_int, High = high_int, VeryHigh = very_high_int)
   return(severity_cuts_ls)
+}
+make_model_dyad_ls <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
+                               Y_Ready4useDyad = ready4use::Ready4useDyad()){
+  model_dyad_ls <- list(X_Ready4useDyad = X_Ready4useDyad, Y_Ready4useDyad = Y_Ready4useDyad)
+  return(model_dyad_ls)
 }
 make_outcomes_vars <- function(X_Ready4useDyad,
                                Y_Ready4useDyad,
@@ -970,55 +990,65 @@ make_project_metrics <- function(unit_costs_tb){
   metrics_chr <- c("Active", "Episodes", "Separations", "direct_mins", "indirect_mins", "Minutes", cost_names_chr)
   return(metrics_chr)
 }
-make_project_minutes_cmprsn <- function(X_Ready4useDyad,
-                                     Y_Ready4useDyad,
-                                     names_chr = character(0),
-                                     type_1L_chr = c("dataset", "prediction"),
-                                     var_1L_chr = character(0)){
+make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names_chr = character(0), 
+                                         type_1L_chr = c("dataset", "prediction"), var_1L_chr = character(0), weeks_chr = c("Week14", "Week53")) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
-  # X_Ready4useDyad <- model_data_ls$imputed_ls$MinutesLong_r4@ds_tb
-  # Y_Ready4useDyad <- model_data_ls$unimputed_ls$OutcomesAllWide_r4
-  if(type_1L_chr == "dataset"){
-    Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                 X_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% unique(Y_Ready4useDyad@ds_tb$UID)))
-    if(identical(names_chr, character(0))){
+  if (type_1L_chr == "dataset") {
+    Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::filter(UID %in% 
+                                                                           unique(Y_Ready4useDyad@ds_tb$UID)))
+    if (identical(names_chr, character(0))) {
       names_chr <- c("All Contacts", "Outcomes Dataset")
     }
-    if(identical(var_1L_chr, character(0))){
+    if (identical(var_1L_chr, character(0))) {
       var_1L_chr <- "Minutes"
     }
-  }else{
+  }
+  else {
     Z_Ready4useDyad <- Y_Ready4useDyad
-    if(identical(names_chr, character(0))){
+    if (identical(names_chr, character(0))) {
       names_chr <- c("Observed", "Simulated")
     }
-    if(identical(var_1L_chr, character(0))){
+    if (identical(var_1L_chr, character(0))) {
       var_1L_chr <- "Minutes_change"
     }
   }
-  comparison_tb <- rbind(c("Week14", "Week53") %>%
-                           purrr::map_dfr(~{
-                             cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x)  %>% dplyr::summarise(!!rlang::sym(names_chr[1]) := mean(!!rlang::sym(var_1L_chr))),
-                                   Z_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x)  %>% dplyr::summarise(!!rlang::sym(names_chr[2]) := mean(!!rlang::sym(var_1L_chr)))) %>% dplyr::mutate(Timepoint = .x) %>% 
-                               dplyr::mutate(Measure = "Average minutes per client") %>%
-                               dplyr::select(Measure, Timepoint, dplyr::everything())
-                           }) %>%
-                           dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~round(.x,2) %>% as.character())),
-                         c("Week14", "Week53") %>%
-                           purrr::map_dfr(~{
-                             cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x, !!rlang::sym(var_1L_chr)>0)  %>% dplyr::summarise(!!rlang::sym(names_chr[1]) := mean(!!rlang::sym(var_1L_chr))),
-                                   Z_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x, !!rlang::sym(var_1L_chr)>0) %>% 
-                                     dplyr::summarise(!!rlang::sym(names_chr[2]) := mean(!!rlang::sym(var_1L_chr)))) %>% dplyr::mutate(Timepoint = .x) %>% dplyr::mutate(Measure = "Average minutes for clients with >0 minutes") %>%
-                               dplyr::select(Measure, Timepoint, dplyr::everything())
-                           }) %>%
-                           dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~round(.x,2) %>% as.character())),
-                         c("Week14", "Week53") %>%
-                           purrr::map_dfr(~{
-                             cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr)>0) %>% dplyr::summarise(!!rlang::sym(names_chr[1]) := paste0(round(mean(NonZero)*100,2)," %")),
-                                   Z_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek==.x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr)>0)  %>% 
-                                     dplyr::summarise(!!rlang::sym(names_chr[2]) := paste0(round(mean(NonZero)*100,2), " %"))) %>% dplyr::mutate(Timepoint = .x) %>% dplyr::mutate(Measure = "% of clients with non-zero minutes") %>%
-                               dplyr::select(Measure, Timepoint, dplyr::everything())
-                           }) ) 
+  comparison_tb <- rbind(weeks_chr %>% purrr::map_dfr(~{
+    cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+                                                    .x) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
+                                                                                  mean(!!rlang::sym(var_1L_chr)))), Z_Ready4useDyad@ds_tb %>% 
+            dplyr::filter(MeasurementWeek == .x) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
+                                                                           mean(!!rlang::sym(var_1L_chr))))) %>% dplyr::mutate(Timepoint = .x) %>% 
+      dplyr::mutate(Measure = "Average minutes") %>% 
+      dplyr::select(Measure, Timepoint, dplyr::everything())
+  }) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                     ~round(.x, 2) %>% as.character())), 
+  weeks_chr %>% 
+    purrr::map_dfr(~{
+      cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+                                                      .x, !!rlang::sym(var_1L_chr) > 0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
+                                                                                                                  mean(!!rlang::sym(var_1L_chr)))), Z_Ready4useDyad@ds_tb %>% 
+              dplyr::filter(MeasurementWeek == .x, !!rlang::sym(var_1L_chr) > 
+                              0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
+                                                           mean(!!rlang::sym(var_1L_chr))))) %>% dplyr::mutate(Timepoint = .x) %>% 
+        dplyr::mutate(Measure = "Average minutes, clients with >0 minutes") %>% 
+        dplyr::select(Measure, Timepoint, dplyr::everything())
+    }) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                       ~round(.x, 2) %>% as.character())), 
+  weeks_chr %>% 
+    purrr::map_dfr(~{
+      cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+                                                      .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
+                                                                              0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
+                                                                                                           paste0(round(mean(NonZero) * 100, 2), " %"))), 
+            Z_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+                                                      .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
+                                                                              0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
+                                                                                                           paste0(round(mean(NonZero) * 100, 2), " %")))) %>% 
+        dplyr::mutate(Timepoint = .x) %>% dplyr::mutate(Measure = "% with non-zero minutes") %>% 
+        dplyr::select(Measure, Timepoint, dplyr::everything())
+    }))
   return(comparison_tb)
 }
 make_project_minutes_ds <- function(processed_ls,
@@ -1138,26 +1168,30 @@ make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma
   if (is.null(x_part_1_ls)) {
     x_part_1_ls <- list(c("Age", "employment_status", "gender", "clinic_type", # "treatment_status",  "Minutes_start", 
                           "MeasurementWeek"), 
-                        # c("Age", "employment_status", "gender", "clinic_type",  # "Minutes_start", 
-                        #   "MeasurementWeek"), 
-                        # c("Age", "employment_status", "gender", # "treatment_status", # "Minutes_start", 
-                        #   "MeasurementWeek"), 
-                        # c("Age", "employment_status", "gender", "clinic_type", # "treatment_status",  "Minutes_start",
-                        #   "MeasurementWeek"), 
-                        c("Age", "employment_status", "clinic_type",  # "treatment_status", "Minutes_start", 
+                        c("Age", "employment_status", "gender", "clinic_type",  "Minutes",
+                          "MeasurementWeek"),
+                        c("Age", "employment_status", "gender", "Minutes",
+                          "MeasurementWeek"),
+                        c("Age", "employment_status", "gender", "clinic_type", "Minutes",
+                          "MeasurementWeek"),
+                        c("Age", "employment_status", "clinic_type",  "Minutes", 
                           "MeasurementWeek"), 
-                        c("Age", "gender", "clinic_type", # "treatment_status",  "Minutes_start", 
+                        c("Age", "gender", "clinic_type", "Minutes", 
                           "MeasurementWeek"), 
-                        c("employment_status",  "gender", "clinic_type", # "treatment_status", "Minutes_start", 
+                        c("employment_status",  "gender", "clinic_type", "Minutes", 
                           "MeasurementWeek"), 
-                        c("Age", # "Minutes_start", 
+                        c("Age", "Minutes", 
                           "MeasurementWeek"), 
-                        c("Age", "employment_status", "gender"), 
-                        c("Age", "employment_status"# , "treatment_status"
+                        c("Age", "employment_status", "gender", 
+                          "MeasurementWeek"), 
+                        c("Age", "employment_status", "Minutes", 
+                          "MeasurementWeek"# , "treatment_status"
                         ), 
-                        # c("Age", # "Minutes_start", 
-                        #   "MeasurementWeek"), 
-                        "Age")
+                        c("Age", "gender", "Minutes", 
+                          "MeasurementWeek"# , "treatment_status"
+                        ),
+                        c("Age", "Minutes", 
+                          "MeasurementWeek"))
   }
   if (is.null(x_part_2_ls)) {
     x_part_2_ls <- x_part_1_ls
@@ -1463,6 +1497,21 @@ make_project_results <- function(X_Ready4useDyad,
   return(sim_results_ls)
   
 }
+make_project_results_synthesis <- function(inputs_ls,
+                                           results_ls,
+                                           modifiable_chr = c("treatment_status", 
+                                                              "Minutes", "k10", "AQoL6D", "CHU9D"),
+                                           type_1L_chr = c("D", "AB", "C")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
+                                            results_ls = results_ls,
+                                            add_severity_1L_lgl = T, 
+                                            exclude_chr = c("Adult", "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", "treatment_start"), 
+                                            exclude_suffixes_chr = c("_change",  "_date", "_previous", "52_Weeks"), 
+                                            keep_chr = c("platform", "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+                                            modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+  return(X_Ready4useDyad)
+}
 make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POSIXct("2024-10-25")) {
   X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
   Y_Ready4useDyad <- processed_ls$contacts
@@ -1546,144 +1595,135 @@ make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POS
                                                type_1L_chr = "update")
   return(Y_Ready4useDyad)
 }
-make_project_sim_summary <- function(sim_results_ls,
-                                     element_1L_chr = "Z",
-                                     groupings_chr = c("clinic_type", "treatment_status_start", "Distress"),
-                                     order_1L_lgl = TRUE,
-                                     convert_1L_lgl = TRUE,
-                                     platform_1L_chr = "Intervention",
-                                     select_1L_chr = c("both", "AQoL-6D", "CHU-9D"),
-                                     type_1L_chr = c("outcomes", "economic"),
-                                     what_1L_chr = c("total","clinic", "clinic_stage","distress","full_combos", "stage")){
+make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", groupings_chr = c("clinic_type", 
+                                                                                              "treatment_status_start", "Distress"), order_1L_lgl = TRUE, 
+                                      convert_1L_lgl = TRUE, platform_1L_chr = "Intervention", 
+                                      select_1L_chr = c("both", "AQoL-6D", "CHU-9D"), type_1L_chr = c("outcomes", 
+                                                                                                      "economic"), what_1L_chr = c("total", "clinic", "clinic_stage", 
+                                                                                                                                   "distress", "full_combos", "stage")) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
-  pick_1L_chr <- paste0(what_1L_chr,"_ls")
+  pick_1L_chr <- paste0(what_1L_chr, "_ls")
   select_1L_chr <- match.arg(select_1L_chr)
-  X_Ready4useDyad <- sim_results_ls %>% purrr::pluck(pick_1L_chr) %>% purrr::pluck(element_1L_chr) 
+  X_Ready4useDyad <- sim_results_ls %>% purrr::pluck(pick_1L_chr) %>% 
+    purrr::pluck(element_1L_chr)
   groupings_chr <- intersect(groupings_chr, names(X_Ready4useDyad@ds_tb))
-  if(!identical(groupings_chr, character(0))){
-    X_Ready4useDyad@ds_tb <- purrr::reduce(groupings_chr,
-                                           .init = X_Ready4useDyad@ds_tb %>%
-                                             dplyr::mutate(Group = "") %>%
-                                             dplyr::mutate(dplyr::across(groupings_chr, ~ dplyr::case_when(.x %in% c("Low", "Moderate", "High") ~ paste0(.x, " Distress"),
-                                                                                                           .x ==  "VeryHigh" ~ "Very High Distress",
-                                                                                                           TRUE ~ .x))), #"High"     "Low"     "Moderate" "VeryHigh"
-                                           ~ dplyr::mutate(.x, Group = paste0(Group, !!rlang::sym(.y)," - "))) %>%
-      dplyr::mutate(Group = stringr::str_sub(Group, end=-4)) %>%
-      dplyr::select(Group, dplyr::everything()) %>%
+  if (!identical(groupings_chr, character(0))) {
+    X_Ready4useDyad@ds_tb <- purrr::reduce(groupings_chr, 
+                                           .init = X_Ready4useDyad@ds_tb %>% dplyr::mutate(Group = "") %>% 
+                                             dplyr::mutate(dplyr::across(groupings_chr,
+                                                                         ~dplyr::case_when(.x %in% c("Low", "Moderate", "High") ~ paste0(.x, " Distress"), 
+                                                                                           .x == "VeryHigh" ~ "Very High Distress", 
+                                                                                           TRUE ~ .x))), 
+                                           ~dplyr::mutate(.x, Group = paste0(Group, !!rlang::sym(.y), " - "))) %>% 
+      dplyr::mutate(Group = stringr::str_sub(Group, end = -4)) %>% dplyr::select(Group, dplyr::everything()) %>% 
       dplyr::group_by(Group)
   }
-  if(!identical(groupings_chr, character(0))){
-    x_tb <- X_Ready4useDyad@ds_tb %>% 
-      # dplyr::filter(Data == "Intervention") %>%
-      dplyr::group_by(Group, Data)
-  }else{
-    x_tb <- X_Ready4useDyad@ds_tb %>% 
-      # dplyr::filter(Data == "Intervention") %>%
-      dplyr::group_by(Data) 
+  if (!identical(groupings_chr, character(0))) {
+    x_tb <- X_Ready4useDyad@ds_tb %>% dplyr::group_by(Group, 
+                                                      Data)
+  }  else {
+    x_tb <- X_Ready4useDyad@ds_tb %>% dplyr::group_by(Data)
   }
-  x_tb <- x_tb %>%
-    dplyr::select(dplyr::where(is.numeric)) %>%
-    # dplyr::select(dplyr::starts_with("A_")) %>% 
-    tidyr::pivot_longer(dplyr::where(is.numeric), names_to = "Parameter", values_to = "Value") %>%
-    dplyr::ungroup() %>%
-    tidyr::pivot_wider(names_from = Data, values_from = Value) 
-  if(!identical(groupings_chr, character(0))){
-    x_tb <- x_tb %>%
-    dplyr::select(Group, Parameter, Intervention, Comparator, Difference) %>%
-      dplyr::group_by(Group)
-  }else{
-    x_tb <- x_tb %>%
-      dplyr::select(Parameter, Intervention, Comparator, Difference) 
+  x_tb <- x_tb %>% dplyr::select(dplyr::where(is.numeric)) %>% 
+    tidyr::pivot_longer(dplyr::where(is.numeric), names_to = "Parameter", 
+                        values_to = "Value") %>% dplyr::ungroup() %>% tidyr::pivot_wider(names_from = Data, 
+                                                                                         values_from = Value)
+  if (!identical(groupings_chr, character(0))) {
+    x_tb <- x_tb %>% dplyr::select(Group, Parameter, Intervention, 
+                                   Comparator, Difference) %>% dplyr::group_by(Group)
   }
-  x_tb <- x_tb %>%
-    dplyr::rename(!!rlang::sym(platform_1L_chr) := Intervention)  %>% 
-    dplyr::mutate(Parameter = Parameter %>% stringr::str_replace_all("_YR1","") %>% 
-                    stringr::str_replace_all("QALYs_S1", "QALYs (Utility sensitivity 1)") %>%
-                    stringr::str_replace_all("QALYs_S2", "QALYs (Utility sensitivity 2)") %>%
-                    stringr::str_replace_all("Cost_S1", "Cost (Cost sensitivity 1)")) %>%
-    dplyr::distinct()
-  
-  if(type_1L_chr == "outcomes"){
-    summary_tb <- x_tb %>% 
-      dplyr::filter(!startsWith(Parameter, "CE_") & !startsWith(Parameter, "ICER_") & !startsWith(Parameter, "Param") & !startsWith(Parameter, "PROB ")) %>%
-            dplyr::mutate(Parameter = dplyr::case_when(startsWith(Parameter, "Offset") ~ gsub("([A-Z]){1}", " \\1",Parameter) %>%
-                                                         stringr::str_replace_all("E D", "Emergency Department ") %>%
-                                                         stringr::str_squish()  %>%
-                                                         stringr::str_replace("Offset ", "Change in ") %>%
-                                                       stringr::str_replace_all("Count ", "OOS - "),
-                                                       T ~ Parameter %>%
-                                                         stringr::str_replace_all("_start", " at model entry") %>%
-                                                           stringr::str_replace_all("_", " ") %>%
-                                                           stringr::str_replace_all("Minutes 12 Weeks", "Contact minutes at 14 weeks") %>%
-                                                           stringr::str_replace_all("Minutes", "Contact minutes at 1 year") %>%
-                                                           stringr::str_replace_all("12 Weeks", "at last K10 change")  %>%
-                                                         stringr::str_replace_all("treatment count", "New clinic treatment episodes")
-                                                       )) %>%
-      dplyr::rename(Outcome = Parameter)  %>%
-      dplyr::filter(Outcome != "N") 
+  else {
+    x_tb <- x_tb %>% dplyr::select(Parameter, Intervention, 
+                                   Comparator, Difference)
   }
-  if(type_1L_chr == "economic"){
-    a_tb <- x_tb %>% dplyr::select(Parameter, Difference) %>%
-      dplyr::filter(startsWith(Parameter,"ICER_")) %>%
-      dplyr::rename(Scenario = Parameter,
-                    ICER = Difference) %>%
-      dplyr::mutate(Scenario = Scenario  %>% stringr::str_replace_all("ICER_",""))
-    b_tb <- x_tb %>% dplyr::select(Parameter, Difference) %>%
-      dplyr::filter(startsWith(Parameter,"PROB ")) %>%
-      dplyr::rename(Scenario = Parameter,
-                    `P (Cost-Effective)` = Difference)  %>%
-      dplyr::mutate(`P (Cost-Effective)` = 100*`P (Cost-Effective)`) %>% 
-      dplyr::mutate(Scenario = Scenario  %>% stringr::str_replace_all("PROB CE_",""))
-    size_1L_int <- sim_results_ls$D_Ready4useDyad@ds_tb$UID %>% unique() %>% length()
-    c_tb <- X_Ready4useDyad@ds_tb %>% 
-      dplyr::filter(Data == "Difference") %>%
-      dplyr::select(N) %>%
-      dplyr::mutate(Share = 100*(N/size_1L_int)) %>%
-      dplyr::select(-N)
-    if(length(names(c_tb))==1){
-      c_tb <- tibble::tibble(Scenario = a_tb$Scenario, Share = c_tb$Share)
+  x_tb <- x_tb %>% dplyr::rename(`:=`(!!rlang::sym(platform_1L_chr), 
+                                      Intervention)) %>% dplyr::mutate(Parameter = Parameter %>% 
+                                                                         stringr::str_replace_all("_YR1", "") %>% stringr::str_replace_all("QALYs_S1", 
+                                                                                                                                           "QALYs (Utility sensitivity 1)") %>% stringr::str_replace_all("QALYs_S2", 
+                                                                                                                                                                                                         "QALYs (Utility sensitivity 2)") %>% stringr::str_replace_all("Cost_S1", 
+                                                                                                                                                                                                                                                                       "Cost (Cost sensitivity 1)")) %>% dplyr::distinct()
+  if (type_1L_chr == "outcomes") {
+    summary_tb <- x_tb %>% dplyr::filter(!startsWith(Parameter, "CE_") & !startsWith(Parameter, "ICER_") & !startsWith(Parameter, "Param") & !startsWith(Parameter, "PROB ")) %>%
+      dplyr::mutate(Parameter = dplyr::case_when(startsWith(Parameter, 
+                                                            "Offset") ~ gsub("([A-Z]){1}", " \\1", Parameter) %>% 
+                                                   stringr::str_replace_all("E D", "Emergency Department ") %>% 
+                                                   stringr::str_squish() %>% stringr::str_replace("Offset ", 
+                                                                                                  "Change in ") %>% 
+                                                   stringr::str_replace_all("Count ", 
+                                                                            "OOS - "), T ~ Parameter %>% 
+                                                   stringr::str_replace_all("_start", " at model entry") %>% 
+                                                   stringr::str_replace_all("_", " ") %>% 
+                                                   stringr::str_replace_all("Minutes 12 Weeks", 
+                                                                            "Contact minutes at 14 weeks") %>%
+                                                   stringr::str_replace_all("Minutes", 
+                                                                            "Contact minutes at 1 year") %>% 
+                                                   stringr::str_replace_all("12 Weeks", "at last K10 change") %>% 
+                                                   stringr::str_replace_all("treatment count", 
+                                                                            "New clinic treatment episodes"))) %>% 
+      dplyr::rename(Outcome = Parameter) %>% 
+      dplyr::filter(Outcome != "N")
+  }
+  if (type_1L_chr == "economic") {
+    a_tb <- x_tb %>% dplyr::select(Parameter, Difference) %>% 
+      dplyr::filter(startsWith(Parameter, "ICER_")) %>% 
+      dplyr::rename(Scenario = Parameter, ICER = Difference) %>% 
+      dplyr::mutate(Scenario = Scenario %>% stringr::str_replace_all("ICER_", 
+                                                                     ""))
+    b_tb <- x_tb %>% dplyr::select(Parameter, Difference) %>% 
+      dplyr::filter(startsWith(Parameter, "PROB ")) %>% 
+      dplyr::rename(Scenario = Parameter, `P (Cost-Effective)` = Difference) %>% 
+      dplyr::mutate(`P (Cost-Effective)` = 100 * `P (Cost-Effective)`) %>% 
+      dplyr::mutate(Scenario = Scenario %>% stringr::str_replace_all("PROB CE_", 
+                                                                     ""))
+    size_1L_int <- sim_results_ls$D_Ready4useDyad@ds_tb$UID %>% 
+      unique() %>% length()
+    c_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(Data == 
+                                                      "Difference") %>% dplyr::select(N) %>% dplyr::mutate(Share = 100 * 
+                                                                                                             (N/size_1L_int)) %>% dplyr::select(-N)
+    if (length(names(c_tb)) == 1) {
+      c_tb <- tibble::tibble(Scenario = a_tb$Scenario, 
+                             Share = c_tb$Share)
     }
-    summary_tb <- dplyr::left_join(a_tb, b_tb) %>%
-      dplyr::left_join(c_tb) %>%
-      dplyr::mutate(Scenario = Scenario  %>%
-                      stringr::str_replace_all("AQoL6D","AQoL-6D QALYS") %>%
-                      stringr::str_replace_all("CHU9D","CHU-9D QALYS") %>%
-                      stringr::str_replace_all("_S10"," - Cost 1") %>%
-                      stringr::str_replace_all("_S01"," - Utility 1") %>%
-                      stringr::str_replace_all("_S02"," - Utility 2") %>%
-                      stringr::str_replace_all("_S11"," - Cost 1 & Utility 1") %>%
-                      stringr::str_replace_all("_S12"," - Cost 1 & Utility 2"))
-    if(order_1L_lgl){
-      summary_tb <- summary_tb %>% 
-        dplyr::arrange(Scenario) %>%
-        dplyr::group_by(Scenario) %>%
-        dplyr::arrange(Scenario, dplyr::desc(`P (Cost-Effective)`)) %>%
-        dplyr::select(Scenario, dplyr::everything()) %>%
-        dplyr::ungroup()
-      if("Group" %in% names(summary_tb)){
-        summary_tb <- summary_tb %>%
-          dplyr::select(Scenario, Group, Share, dplyr::everything())
+    summary_tb <- dplyr::left_join(a_tb, b_tb) %>% dplyr::left_join(c_tb) %>% 
+      dplyr::mutate(Scenario = Scenario %>% stringr::str_replace_all("AQoL6D", 
+                                                                     "AQoL-6D QALYS") %>% stringr::str_replace_all("CHU9D", 
+                                                                                                                   "CHU-9D QALYS") %>% stringr::str_replace_all("_S10", 
+                                                                                                                                                                " - Cost 1") %>% stringr::str_replace_all("_S01", 
+                                                                                                                                                                                                          " - Utility 1") %>% stringr::str_replace_all("_S02", 
+                                                                                                                                                                                                                                                       " - Utility 2") %>% stringr::str_replace_all("_S11", 
+                                                                                                                                                                                                                                                                                                    " - Cost 1 & Utility 1") %>% stringr::str_replace_all("_S12", 
+                                                                                                                                                                                                                                                                                                                                                          " - Cost 1 & Utility 2"))
+    if (order_1L_lgl) {
+      summary_tb <- summary_tb %>% dplyr::arrange(Scenario) %>% 
+        dplyr::group_by(Scenario) %>% dplyr::arrange(Scenario, 
+                                                     dplyr::desc(`P (Cost-Effective)`)) %>% dplyr::select(Scenario, 
+                                                                                                          dplyr::everything()) %>% dplyr::ungroup()
+      if ("Group" %in% names(summary_tb)) {
+        summary_tb <- summary_tb %>% dplyr::select(Scenario, 
+                                                   Group, Share, dplyr::everything())
       }
     }
-    if((summary_tb$Share %>% unique() %>% length()) == 1 & unique(summary_tb$Share)[1] == 100){
+    if ((summary_tb$Share %>% unique() %>% length()) == 1 & 
+        unique(summary_tb$Share)[1] == 100) {
       summary_tb <- summary_tb %>% dplyr::select(-Share)
     }
-    if(convert_1L_lgl){
-      summary_tb <- summary_tb %>%
-        dplyr::mutate(dplyr::across(tidyr::all_of(intersect(c("Share"), names(summary_tb))), ~ round(.x,2) %>% paste0("%")),
-                      ICER = scales::dollar(ICER))
-      if("P (Cost-Effective)" %in% names(summary_tb)){
-        summary_tb$`P (Cost-Effective)` <- summary_tb$`P (Cost-Effective)` %>% round(2) %>% paste0("%")
+    if (convert_1L_lgl) {
+      summary_tb <- summary_tb %>% dplyr::mutate(dplyr::across(tidyr::all_of(intersect(c("Share"), 
+                                                                                       names(summary_tb))), ~round(.x, 2) %>% paste0("%")), 
+                                                 ICER = scales::dollar(ICER))
+      if ("P (Cost-Effective)" %in% names(summary_tb)) {
+        summary_tb$`P (Cost-Effective)` <- summary_tb$`P (Cost-Effective)` %>% 
+          round(2) %>% paste0("%")
       }
-      
     }
-    if(select_1L_chr != "both"){
-      summary_tb <- summary_tb %>%
-        dplyr::filter(startsWith(Scenario, select_1L_chr)) %>%
-        dplyr::mutate(Scenario = Scenario %>% stringr::str_replace_all(paste0(select_1L_chr, " QALYS - "), "Sensitivity - ") %>%
-                        stringr::str_replace_all(paste0(select_1L_chr, " QALYS"),"Base Case"))
-      
+    if (select_1L_chr != "both") {
+      summary_tb <- summary_tb %>% dplyr::filter(startsWith(Scenario, 
+                                                            select_1L_chr)) %>% dplyr::mutate(Scenario = Scenario %>% 
+                                                                                                stringr::str_replace_all(paste0(select_1L_chr, 
+                                                                                                                                " QALYS - "), "Sensitivity - ") %>% stringr::str_replace_all(paste0(select_1L_chr, 
+                                                                                                                                                                                                    " QALYS"), "Base Case"))
     }
   }
   return(summary_tb)
@@ -1795,6 +1835,33 @@ make_project_sunk_tb <- function(global_1L_dbl = numeric(0),
                              Sunk = sunk_dbl,
                              Kept = 1-Sunk)
   return(sunk_tb)
+}
+make_project_test_ds <- function(model_data_ls,
+                                 update_qalys_fn = identity){
+  X_Ready4useDyad <- renewSlot(model_data_ls$unimputed_ls$OutcomesAllWide_r4, "ds_tb", 
+                               model_data_ls$unimputed_ls$OutcomesAllWide_r4@ds_tb %>% 
+                                 dplyr::group_by(UID) %>%
+                                 dplyr::arrange(Period) %>%
+                                 dplyr::mutate(Minutes = dplyr::lag(Minutes_change, default = 0) + Minutes_change) %>%
+                                 dplyr::ungroup() %>%
+                                 dplyr::arrange(UID, Period) %>%
+                                 dplyr::filter(as.character(Period)=="0 to 12 Weeks") %>%
+                                 serious::add_new_uid("UID", recode_1L_lgl = T, recode_pfx_1L_chr = "")  %>%  
+                                 dplyr::mutate(gender = as.factor(gender),
+                                               dplyr::across(tidyselect::all_of(c("Age","gad7", "k10", "phq9", "AQoL6D", "CHU9D")), ~ as.double(.x))) %>%
+                                 dplyr::mutate(dplyr::across(c("AQoL6D_QALYs", "CHU9D_QALYs"), ~ update_qalys_fn(.x))) %>%
+                                 dplyr::group_by(Period) %>%
+                                 dplyr::ungroup() %>%
+                                 dplyr::arrange(UID) %>% 
+                                 dplyr::mutate(UID = as.character(as.numeric(UID)))) %>% 
+    update_previous(modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D", "AQoL6D_QALYs", "CHU9D_QALYs")) %>%
+    update_previous(modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D", "AQoL6D_QALYs", "CHU9D_QALYs"),
+                    pattern_1L_chr = "{col}_start") 
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>%
+                                 dplyr::mutate(dplyr::across(c("Minutes_previous","Minutes_start"), ~ 0)))
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>%
+                                 dplyr::mutate(dplyr::across(c("AQoL6D_QALYs", "CHU9D_QALYs"), ~ update_qalys_fn(.x))))
+  return(X_Ready4useDyad)
 }
 make_project_ts_ds <- function(X_Ready4useDyad,
                             processed_ls,
@@ -1978,152 +2045,228 @@ make_regressions_ls <- function(){
                          tests_ls = tests_ls )
   return(regressions_ls)
 }
-make_report_data <- function(model_data_ls = NULL,
-                             platform_1L_chr = "Intervention",
-                             processed_ls = NULL,
-                             regressions_ls = NULL,
-                             sim_results_ls = NULL,
-                             transformations_chr = character(0),
-                             what_1L_chr = c("descriptives", "costadj", "costitem", "costsum", "costunit", "minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", "outcomeslong", "paramscost", "paramsk10", "resultsaqol", "resultschu", "resultsoutcomes", "resultseconomic", "serviceuse", "serviceusecost")){
+make_report_data <- function (model_data_ls = NULL, 
+                              date_end_dtm = as.POSIXct("2023-07-01"),
+                              date_start_dtm = as.POSIXct("2023-06-01"),
+                              # imputed_1L_lgl = FALSE,
+                              period_dtm = lubridate::years(1),
+                              platform_1L_chr = "Intervention", 
+                              processed_ls = NULL, regressions_ls = NULL, sim_results_ls = NULL, timepoint_1L_chr = character(0),
+                              transformations_chr = character(0), 
+                              type_1L_chr = "full_combos",
+                              ungroup_1L_lgl = FALSE,
+                              
+                              weeks_int = integer(0), what_1L_chr = c("descriptives", "composite",
+                                                                      "costadj", "costitem", "costsum", "costunit", "minutes", 
+                                                                      "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", "outcomeslong", 
+                                                                      "paramscost", "paramsk10", "resultsaqol", "resultschu", 
+                                                                      "resultsoutcomes", "resultseconomic", "serviceuse", "serviceusecost")) 
+{
   what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "costadj"){
-    data_xx <- processed_ls$costs_adjusted@ds_tb %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x))) %>%
-      dplyr::select(Scenario, Type, Item, `FY 2024`) %>%
-      dplyr::arrange(Type, Item) %>%
-      tidyr::pivot_wider(names_from = "Scenario", values_from = "FY 2024") %>%
-      dplyr::rename(Adjusted = Base, Unadjusted = S1) 
+  if( what_1L_chr == "composite"){
+    OUTCOMES <- make_report_data(model_data_ls = model_data_ls, platform_1L_chr = platform_1L_chr, what_1L_chr = "outcomes")
+    # OUTCOMES <- renewSlot(OUTCOMES, "ds_tb", OUTCOMES@ds_tb %>% dplyr::left_join(OUTCOMES@ds_tb %>% dplyr::filter(MeasurementWeek == "Week12") %>% dplyr::mutate(`Zero Minutes` = dplyr::case_when(Minutes==0 ~ T, T ~ F)) %>% dplyr::select(UID, `Zero Minutes`)))
+    vars_chr <- c("UID","platform", "clinic_type", "clinic_state", "treatment_status", "Age", "gender", "employment_status")
+    data_xx <- renewSlot(OUTCOMES, "ds_tb",
+                         dplyr::bind_rows(OUTCOMES@ds_tb %>% dplyr::filter(MeasurementWeek == "Week0") %>% dplyr::select(tidyselect::all_of(vars_chr)) %>%
+                                            dplyr::mutate(dplyr::across(dplyr::where(is.factor), ~as.character(.x)),
+                                                          Dataset = "Outcomes"),
+                                          processed_ls$contacts@ds_tb %>% add_treatment_status(three_levels_1L_lgl = T, type_1L_int = 1) %>% 
+                                            dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(tidyselect::all_of(setdiff(vars_chr, "UID")), ~ dplyr::first(.x))) %>% dplyr::mutate(Dataset = "Contacts"),
+                                          processed_ls$overview@ds_tb %>% add_treatment_status(three_levels_1L_lgl = T, type_1L_int = 1) %>% 
+                                            dplyr::select(tidyselect::all_of(vars_chr))%>% dplyr::mutate(Dataset = "Complete")))
   }
-  if(what_1L_chr == "costitem"){
-    data_xx <- processed_ls$costs_constant@ds_tb %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x))) %>%
-      dplyr::select(-c(Description, Category)) %>%
-      dplyr::select(Type, dplyr::everything()) %>%
+  if (what_1L_chr == "costadj") {
+    data_xx <- processed_ls$costs_adjusted@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                                                                 ~scales::dollar(.x))) %>% dplyr::select(Scenario, 
+                                                                                                                         Type, Item, `FY 2024`) %>% dplyr::arrange(Type, Item) %>% 
+      tidyr::pivot_wider(names_from = "Scenario", values_from = "FY 2024") %>% 
+      dplyr::rename(Adjusted = Base, Unadjusted = S1)
+  }
+  if (what_1L_chr == "costitem") {
+    data_xx <- processed_ls$costs_constant@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                                                                 ~scales::dollar(.x))) %>% dplyr::select(-c(Description, 
+                                                                                                                            Category)) %>% dplyr::select(Type, dplyr::everything()) %>% 
       dplyr::arrange(Type, Item)
   }
-  if(what_1L_chr == "costsum"){
-    data_tb <- processed_ls$costs_constant@ds_tb %>%
-      dplyr::select(-c(Description, Category)) %>%
-      dplyr::select(Type, dplyr::everything()) %>%
-      dplyr::arrange(Type, Item) %>%
-      dplyr::group_by(Type) %>%
-      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~ sum(.x))) 
-    data_xx <- data_tb %>% rbind(data_tb %>% dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~ sum(.x))) %>%
-                                     dplyr::mutate(Type = "Total")) %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x)))
+  if (what_1L_chr == "costsum") {
+    data_tb <- processed_ls$costs_constant@ds_tb %>% dplyr::select(-c(Description, 
+                                                                      Category)) %>% dplyr::select(Type, dplyr::everything()) %>% 
+      dplyr::arrange(Type, Item) %>% dplyr::group_by(Type) %>% 
+      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), 
+                                     ~sum(.x)))
+    data_xx <- data_tb %>% rbind(data_tb %>% dplyr::summarise(dplyr::across(dplyr::where(is.numeric), 
+                                                                            ~sum(.x))) %>% dplyr::mutate(Type = "Total")) %>% 
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                  ~scales::dollar(.x)))
   }
-  if(what_1L_chr == "costunit"){
-    data_xx <- processed_ls$costs_unit@ds_tb %>%
-      dplyr::mutate(Quantity = formatC(Quantity, big.mark = ",", format = "fg"),
-                    dplyr::across(c("TotalCost", "UnitCost"),~ scales::dollar(.x))) %>%
-      dplyr::rename(`Total Cost` = TotalCost,
-                    `Unit Cost` = UnitCost)
+  if (what_1L_chr == "costunit") {
+    data_xx <- processed_ls$costs_unit@ds_tb %>% dplyr::mutate(Quantity = formatC(Quantity, 
+                                                                                  big.mark = ",", format = "fg"), dplyr::across(c("TotalCost", 
+                                                                                                                                  "UnitCost"), ~scales::dollar(.x))) %>% dplyr::rename(`Total Cost` = TotalCost, 
+                                                                                                                                                                                       `Unit Cost` = UnitCost)
   }
-  if(what_1L_chr == "descriptives"){
+  if (what_1L_chr == "descriptives") {
     data_xx <- youthvars::YouthvarsProfile(a_Ready4useDyad = model_data_ls$unimputed_ls$Outcomes0To12Wide_r4)
   }
-  if(what_1L_chr == "minutes"){
-    data_xx <- renewSlot(model_data_ls$unimputed_ls$Outcomes0To12Wide_r4,"ds_tb", model_data_ls$unimputed_ls$Outcomes0To12Wide_r4@ds_tb %>% 
-                      dplyr::inner_join(model_data_ls$imputed_ls$MinutesLong_r4@ds_tb %>% dplyr::filter(MeasurementWeek=="Week14") %>% dplyr::select(UID, Minutes, direct_mins, indirect_mins)) %>%
-                      dplyr::mutate(`Contact Minutes` = dplyr::case_when(Minutes == 0 ~ FALSE, is.na(Minutes) ~ NA, TRUE ~ TRUE))
-    )
+  if (what_1L_chr == "minutes") {
+    data_xx <- renewSlot(model_data_ls$unimputed_ls$Outcomes0To12Wide_r4, 
+                         "ds_tb", model_data_ls$unimputed_ls$Outcomes0To12Wide_r4@ds_tb %>% 
+                           dplyr::inner_join(model_data_ls$imputed_ls$MinutesLong_r4@ds_tb %>% 
+                                               dplyr::filter(MeasurementWeek == "Week14") %>% 
+                                               dplyr::select(UID, Minutes, direct_mins, indirect_mins)) %>% 
+                           dplyr::mutate(`Contact Minutes` = dplyr::case_when(Minutes == 
+                                                                                0 ~ FALSE, is.na(Minutes) ~ NA, TRUE ~ TRUE)))
   }
-  if(what_1L_chr %in% c("mnl-wait", "mnl-tx", "mnl-disc")){
-    data_xx <- get_regression(regressions_ls,report_1L_chr = "estimates", type_1L_chr = "assessments", what_1L_chr = ifelse(what_1L_chr == "mnl-wait", "Tx_Waitlist",
-                                                                                                                            ifelse(what_1L_chr == "mnl-tx", "Tx_Treatment",
-                                                                                                                                   "Tx_Discharged"))) %>%
-      dplyr::rename(Level = y.level, Characteristic = term, Beta = estimate, SE = std.error, `p-value` = p.value) %>%
+  if (what_1L_chr %in% c("mnl-wait", "mnl-tx", "mnl-disc")) {
+    data_xx <- get_regression(regressions_ls, report_1L_chr = "estimates", 
+                              type_1L_chr = "assessments", what_1L_chr = ifelse(what_1L_chr == 
+                                                                                  "mnl-wait", "Tx_Waitlist", ifelse(what_1L_chr == 
+                                                                                                                      "mnl-tx", "Tx_Treatment", "Tx_Discharged"))) %>% 
+      dplyr::rename(Level = y.level, Characteristic = term, 
+                    Beta = estimate, SE = std.error, `p-value` = p.value) %>% 
       dplyr::select(-statistic)
   }
-  if(what_1L_chr == "outcomes"){
+  if (what_1L_chr == "outcomes") {
     data_xx <- model_data_ls$unimputed_ls$Outcomes0To12Long_r4
-    if("age" %in% transformations_chr){
-      data_xx <- renewSlot(data_xx,"ds_tb",
-                           data_xx@ds_tb %>% dplyr::mutate(Age = dplyr::case_when(Age<18 ~ "Under 18",
-                                                                 Age>=18 ~ "18 or over")))
+    if ("age" %in% transformations_chr) {
+      data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% 
+                             dplyr::mutate(Age = dplyr::case_when(Age < 18 ~ 
+                                                                    "Under 18", Age >= 18 ~ "18 or over")))
     }
-    if("clinics" %in% transformations_chr){
-      data_xx <- renewSlot(data_xx,"ds_tb",
-                data_xx@ds_tb %>% dplyr::mutate(
-                  clinic_state = dplyr::case_when(clinic_state == "VIC" ~ "Victoria",
-                                                  T ~ "Other"),
-                  platform = dplyr::case_when(platform == "over_15" ~ "Platform 15+",
-                                              T ~ "Platform < 15")))
+    if ("clinics" %in% transformations_chr) {
+      data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% 
+                             dplyr::mutate(clinic_state = dplyr::case_when(clinic_state == 
+                                                                             "VIC" ~ "Victoria", T ~ "Other"), platform = dplyr::case_when(platform == 
+                                                                                                                                             "over_15" ~ "Platform 15+", T ~ "Platform < 15")))
     }
   }
-  if(what_1L_chr == "outcomeslong"){
-    data_xx <- renewSlot(model_data_ls$unimputed_ls$OutcomesAllLong_r4, "ds_tb", model_data_ls$unimputed_ls$OutcomesAllLong_r4@ds_tb %>% dplyr::group_by(UID) %>% dplyr::filter(dplyr::n()==3) %>% dplyr::ungroup())
+  if (what_1L_chr == "outcomeslong") {
+    data_xx <- renewSlot(model_data_ls$unimputed_ls$OutcomesAllLong_r4, 
+                         "ds_tb", model_data_ls$unimputed_ls$OutcomesAllLong_r4@ds_tb %>% 
+                           dplyr::group_by(UID) %>% dplyr::filter(dplyr::n() == 
+                                                                    3) %>% dplyr::ungroup())
   }
-  if(what_1L_chr == "paramscost"){
-    data_xx <- make_project_params_tb() %>%
-      dplyr::filter(!startsWith(Parameter, "K10") & !startsWith(Parameter, "RTM") ) %>%
-      dplyr::mutate(Parameter = gsub("([A-Z]){1}", " \\1",Parameter) %>%
-                      stringr::str_replace_all("E D ", "Emergency Department ") %>%
-                      stringr::str_replace_all("O O S ", "Occasion of Service ")) %>%
-      dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, "Low") | endsWith(Parameter, "Moderate") | endsWith(Parameter, "High") ~ paste0(Parameter, "Baseline Distress"),
-                                                 T ~ Parameter)) 
+  if (what_1L_chr == "paramscost") {
+    data_xx <- make_project_params_tb() %>% dplyr::filter(!startsWith(Parameter, 
+                                                                      "K10") & !startsWith(Parameter, "RTM")) %>% dplyr::mutate(Parameter = gsub("([A-Z]){1}", 
+                                                                                                                                                 " \\1", Parameter) %>% stringr::str_replace_all("E D ", 
+                                                                                                                                                                                                 "Emergency Department ") %>% stringr::str_replace_all("O O S ", 
+                                                                                                                                                                                                                                                       "Occasion of Service ")) %>% dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, 
+                                                                                                                                                                                                                                                                                                                                        "Low") | endsWith(Parameter, "Moderate") | endsWith(Parameter, 
+                                                                                                                                                                                                                                                                                                                                                                                            "High") ~ paste0(Parameter, "Baseline Distress"), 
+                                                                                                                                                                                                                                                                                                                               T ~ Parameter))
   }
-  if(what_1L_chr == "paramsk10"){
-    data_xx <- make_project_params_tb() %>%
-      dplyr::filter(startsWith(Parameter, "K10") | startsWith(Parameter, "RTM") ) %>%
-      dplyr::mutate(Parameter = gsub("([A-Z]){1}", " \\1",Parameter) %>%
-                      stringr::str_replace_all("Change", "Improvement") %>%
-                      stringr::str_replace_all("R T M_ Q", "Regression To Mean - Baseline Distress Quintile ") %>%
-                      stringr::str_replace_all("E D ", "Emergency Department") %>%
-                      stringr::str_replace_all("O O S  ", "Occasion of Service ")) %>%
-      dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, "Low") | endsWith(Parameter, "Moderate") | endsWith(Parameter, "High") ~ paste0(Parameter, "Baseline Distress"),
+  if (what_1L_chr == "paramsk10") {
+    data_xx <- make_project_params_tb() %>% dplyr::filter(startsWith(Parameter, 
+                                                                     "K10") | startsWith(Parameter, "RTM")) %>% dplyr::mutate(Parameter = gsub("([A-Z]){1}", 
+                                                                                                                                               " \\1", Parameter) %>% stringr::str_replace_all("Change", 
+                                                                                                                                                                                               "Improvement") %>% stringr::str_replace_all("R T M_ Q", 
+                                                                                                                                                                                                                                           "Regression To Mean - Baseline Distress Quintile ") %>% 
+                                                                                                                                stringr::str_replace_all("E D ", "Emergency Department") %>% 
+                                                                                                                                stringr::str_replace_all("O O S  ", "Occasion of Service ")) %>% 
+      dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, 
+                                                          "Low") | endsWith(Parameter, "Moderate") | endsWith(Parameter, 
+                                                                                                              "High") ~ paste0(Parameter, " Baseline Distress"), 
                                                  T ~ Parameter))
   }
-  if(what_1L_chr == "resultsaqol"){
-    data_xx <- sim_results_ls %>%
-      make_project_sim_summary(type_1L_chr = "economic",
-                               platform_1L_chr = platform_1L_chr,
-                               what_1L_chr = "full_combos",
-                               select_1L_chr = "AQoL-6D")
+  if (what_1L_chr == "resultsaqol") {
+    data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
+                                                           platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
+                                                           select_1L_chr = "AQoL-6D")
   }
-  if(what_1L_chr == "resultschu"){
-    data_xx <- sim_results_ls %>%
-      make_project_sim_summary(type_1L_chr = "economic",
-                               platform_1L_chr = platform_1L_chr,
-                               what_1L_chr = "full_combos",
-                               select_1L_chr = "CHU-9D")
+  if (what_1L_chr == "resultschu") {
+    data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
+                                                           platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
+                                                           select_1L_chr = "CHU-9D")
   }
-  if(what_1L_chr == "resultsoutcomes"){
-    data_xx <- sim_results_ls %>%
-      make_project_sim_summary(platform_1L_chr = platform_1L_chr) %>% 
-      dplyr::mutate(Outcome = Outcome %>% 
-                      stringr::str_replace_all("k10", "K10") %>% 
-                      stringr::str_replace_all("_change", " change from baseline") %>%
-                      stringr::str_replace_all("_"," ")) %>%
-      dplyr::arrange(Outcome) 
+  if (what_1L_chr == "resultsoutcomes") {
+    data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr) %>% 
+      dplyr::mutate(Outcome = Outcome %>% stringr::str_replace_all("k10", 
+                                                                   "K10") %>% stringr::str_replace_all("_change", 
+                                                                                                       " change from baseline") %>% stringr::str_replace_all("_", 
+                                                                                                                                                             " ")) %>% dplyr::arrange(Outcome)
   }
-  if(what_1L_chr == "resultseconomic"){
-    data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr, type_1L_chr = "economic") 
+  if (what_1L_chr == "resultseconomic") {
+    data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr, 
+                                                           type_1L_chr = "economic")
   }
-  if(what_1L_chr %in% c("serviceuse", "serviceusecost")){
-    data_xx <- renewSlot(processed_ls$contacts, "ds_tb",
-                    processed_ls$overview@ds_tb %>% dplyr::filter(onboarding_date>= as.POSIXct("2023-06-01") & onboarding_date < as.POSIXct("2023-07-01"))  %>%
-                      dplyr::select(tidyselect::any_of(c("UID", c("platform", "clinic_type", "Age", "gender", 
-                                                                  "employment_status", "clinic_state")))) %>%
-                      dplyr::group_by(UID) %>%
-                      dplyr::summarise(dplyr::across(dplyr::everything(), ~dplyr::first(.))) %>%
-                      dplyr::left_join(
-                        processed_ls$contacts@ds_tb %>% dplyr::filter(onboarding_date>= as.POSIXct("2023-06-01") & onboarding_date < as.POSIXct("2023-07-01"))  %>%
-                          dplyr::group_by(UID) %>%
-                          dplyr::mutate(cutoffdate = dplyr::first(onboarding_date) + lubridate::years(1)) %>%
-                          dplyr::filter(date_contacted<=cutoffdate) %>%
-                          dplyr::summarise(
-                            dplyr::across("onboarding_date", ~ dplyr::first(.)),
-                            dplyr::across(dplyr::where(is.numeric), ~ sum(.))) %>%
-                          dplyr::select(-Age)) %>%
-                      dplyr::mutate(dplyr::across(c("direct_mins", "indirect_mins", "Minutes"), ~ dplyr::case_when(is.na(.) ~ 0, T ~ .))))
+  if (what_1L_chr %in% c("serviceuse", "serviceusecost")) {
+    if(!is.null(model_data_ls)){
+      demographics_tb <- model_data_ls$imputed_ls$Joiners_r4@ds_tb %>% dplyr::filter(Onboarded==1) %>% dplyr::rename(onboarding_date = Date)
+    }else{
+      demographics_tb <- processed_ls$overview@ds_tb
+    }
+    if("gender" %in% transformations_chr){
+      demographics_tb <- update_gender(demographics_tb)
+    }
+    # dplyr::select(tidyselect::any_of(c("UID", c("Date","platform", "clinic_type", "Age", "gender", "employment_status", "clinic_state"))))
+    if(!identical(weeks_int, integer(0))){
+      data_xx <- purrr::reduce(weeks_int, 
+                               .init = make_report_data(model_data_ls = model_data_ls,
+                                                        processed_ls = processed_ls, 
+                                                        date_end_dtm = date_end_dtm,
+                                                        date_start_dtm = date_start_dtm,
+                                                        period_dtm = lubridate::weeks(0),
+                                                        platform_1L_chr = platform_1L_chr, 
+                                                        timepoint_1L_chr = "Week0",
+                                                        transformations_chr = transformations_chr,
+                                                        what_1L_chr = what_1L_chr) %>%
+                                 renewSlot("ds_tb", .@ds_tb %>% # dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ 0)) %>% 
+                                             dplyr::filter(F)),
+                               ~ renewSlot(.x, "ds_tb", dplyr::bind_rows(.x@ds_tb,
+                                                                         make_report_data(model_data_ls = model_data_ls,
+                                                                                          processed_ls = processed_ls, 
+                                                                                          date_end_dtm = date_end_dtm,
+                                                                                          date_start_dtm = date_start_dtm,
+                                                                                          period_dtm = lubridate::weeks(.y),
+                                                                                          platform_1L_chr = platform_1L_chr, 
+                                                                                          timepoint_1L_chr = paste0("Week",.y),
+                                                                                          transformations_chr = transformations_chr,
+                                                                                          what_1L_chr = what_1L_chr) %>%
+                                                                           procureSlot("ds_tb")))) 
+      data_xx <- renewSlot(data_xx, "ds_tb",
+                           setdiff(data_xx@ds_tb %>% dplyr::ungroup() %>% dplyr::select(dplyr::where(is.numeric)) %>% names(), "Age") %>%
+                             purrr::reduce(.init = data_xx@ds_tb %>% dplyr::arrange(UID, onboarding_date) %>% 
+                                             dplyr::group_by(UID),
+                                           ~ .x %>%
+                                             dplyr::mutate(!!rlang::sym(paste0(.y, "_change")) := !!rlang::sym(.y)  - dplyr::lag(!!rlang::sym(.y), default = 0),
+                                                           !!rlang::sym(.y) := !!rlang::sym(.y) - !!rlang::sym(paste0(.y, "_change")))) %>%
+                             dplyr::ungroup())
+    }else{
+      data_xx <- renewSlot(processed_ls$contacts, "ds_tb", 
+                           demographics_tb %>%
+                             dplyr::filter(onboarding_date >= date_start_dtm & onboarding_date < date_end_dtm) %>%
+                             dplyr::select(tidyselect::any_of(c("UID", c("onboarding_date","platform", "clinic_type", "Age", "gender", "employment_status", "clinic_state")))) %>%
+                             dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(dplyr::everything(), 
+                                                                                     ~dplyr::first(.))) %>% 
+                             dplyr::left_join(processed_ls$contacts@ds_tb %>% 
+                                                dplyr::filter(onboarding_date >= date_start_dtm & onboarding_date < date_end_dtm) %>% 
+                                                dplyr::group_by(UID) %>% 
+                                                dplyr::mutate(cutoffdate = dplyr::first(onboarding_date) + period_dtm) %>% 
+                                                dplyr::filter(date_contacted <= cutoffdate) %>% 
+                                                dplyr::summarise(
+                                                  # dplyr::across("onboarding_date", ~dplyr::first(.)), 
+                                                  dplyr::across(dplyr::where(is.numeric), ~sum(.))) %>% 
+                                                dplyr::select(-Age)) %>% 
+                             dplyr::mutate(dplyr::across(c("direct_mins", "indirect_mins", "Minutes"), 
+                                                         ~dplyr::case_when(is.na(.) ~ 0, T ~ .))) %>%
+                             dplyr::ungroup())
+    }
+    if (what_1L_chr == "serviceusecost") {
+      data_xx <- renewSlot(data_xx, "ds_tb", add_cost_calculations(data_xx@ds_tb, 
+                                                                   inputs_ls = list(unit_costs_tb = processed_ls$costs_unit@ds_tb), 
+                                                                   add_fixed_1L_lgl = T) %>% dplyr::mutate(Contact = dplyr::case_when(Minutes > 
+                                                                                                                                        0 ~ TRUE, TRUE ~ FALSE)))
+    }
+    if(!identical(timepoint_1L_chr, character(0))){
+      data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% dplyr::mutate(MeasurementWeek = timepoint_1L_chr))
+    }
   }
-  if(what_1L_chr == "serviceusecost"){
-    data_xx <- renewSlot(data_xx, "ds_tb",
-              add_cost_calculations(data_xx@ds_tb, inputs_ls = list(unit_costs_tb = processed_ls$costs_unit@ds_tb), add_fixed_1L_lgl = T) %>%
-                dplyr::mutate(Contact = dplyr::case_when(Minutes > 0 ~ TRUE, TRUE ~ FALSE)))
+  if(ungroup_1L_lgl){
+    data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% dplyr::ungroup())
   }
-
+  
   return(data_xx)
 }
 make_results_matrix <- function(data_tb,
@@ -2183,31 +2326,39 @@ make_results_summary <- function(X_Ready4useDyad,
   results_summary_ls <- list(X = E, Y = E1, Z = E2)
   return(results_summary_ls)
 }
-make_results_synthesis <- function(X_Ready4useDyad,
-                                   Y_Ready4useDyad,
-                                   Z_Ready4useDyad,
-                                   add_severity_1L_lgl = TRUE,
-                                   exclude_chr =c("Adult", "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", "treatment_start"),
-                                   exclude_suffixes_chr = c( "_change","_date", "_previous","52_Weeks"),
-                                   keep_chr = c("platform", "clinic_state", "clinic_type", "Age", "gender", "employment_status"),
-                                   modifiable_chr = character(0),
-                                   type_1L_chr = c("D","AB", "C")
-                                   ){
+make_results_synthesis <- function (X_Ready4useDyad,
+                                    add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", "Period", 
+                                                                                "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
+                                                                                "treatment_start"), exclude_suffixes_chr = c("_change", 
+                                                                                                                             "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
+                                                                                                                                                                             "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+                                    modifiable_chr = character(0), 
+                                    results_ls = NULL, 
+                                    type_1L_chr = c("D", "AB", "C"),
+                                    Y_Ready4useDyad = ready4use::Ready4useDyad(), Z_Ready4useDyad = ready4use::Ready4useDyad()) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
-  A_Ready4useDyad <- make_composite_results(X_Ready4useDyad, Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad,
-                                            exclude_chr = exclude_chr,
-                                            exclude_suffixes_chr = exclude_suffixes_chr,
-                                            keep_chr = keep_chr, 
-                                            modifiable_chr = modifiable_chr,
+  if(!is.null(results_ls)){
+    Y_Ready4useDyad = results_ls$Y_Ready4useDyad
+    Z_Ready4useDyad = results_ls$Z_Ready4useDyad
+  }
+  A_Ready4useDyad <- make_composite_results(X_Ready4useDyad, 
+                                            Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad, 
+                                            exclude_chr = exclude_chr, exclude_suffixes_chr = exclude_suffixes_chr, 
+                                            keep_chr = keep_chr, modifiable_chr = modifiable_chr, 
                                             type_1L_chr = type_1L_chr)
-  if(add_severity_1L_lgl){
+  if (add_severity_1L_lgl) {
     severity_ls <- make_k10_severity_cuts()
-    A_Ready4useDyad <- renewSlot(A_Ready4useDyad, "ds_tb",
-                                 A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(k10_start) >= severity_ls$Low[1] & as.numeric(k10_start) <= severity_ls$Low[2] ~ "Low",
-                                                                                                     as.numeric(k10_start) >= severity_ls$Moderate[1] & as.numeric(k10_start) <= severity_ls$Moderate[2] ~ "Moderate",
-                                                                                                     as.numeric(k10_start) >= severity_ls$High[1] & as.numeric(k10_start) <= severity_ls$High[2] ~ "High",
-                                                                                                     as.numeric(k10_start) >= severity_ls$VeryHigh[1] & as.numeric(k10_start) <= severity_ls$VeryHigh[2] ~ "VeryHigh",
-                                                                                                     T ~ NA_character_)))
+    A_Ready4useDyad <- renewSlot(A_Ready4useDyad, "ds_tb", 
+                                 A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(k10_start) >= 
+                                                                                                       severity_ls$Low[1] & as.numeric(k10_start) <= 
+                                                                                                       severity_ls$Low[2] ~ "Low", as.numeric(k10_start) >= 
+                                                                                                       severity_ls$Moderate[1] & as.numeric(k10_start) <= 
+                                                                                                       severity_ls$Moderate[2] ~ "Moderate", as.numeric(k10_start) >= 
+                                                                                                       severity_ls$High[1] & as.numeric(k10_start) <= 
+                                                                                                       severity_ls$High[2] ~ "High", as.numeric(k10_start) >= 
+                                                                                                       severity_ls$VeryHigh[1] & as.numeric(k10_start) <= 
+                                                                                                       severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
   }
   return(A_Ready4useDyad)
 }
@@ -2274,36 +2425,74 @@ make_synthetic_data <- function(model_data_ls,
                                               Synthetic_r4 = Synthetic_r4))
   return(output_ls)
 }
-make_synthetic_tests <- function(population_ls,
-                                 model_data_ls = NULL,
-                                 comparison_1L_chr = c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners", "Outcomes")){
+make_synthetic_tests <- function (population_ls, model_data_ls = NULL, comparison_1L_chr = c("OutcomesJoinersImputed", 
+                                                                                             "Joiners", "OutcomesJoiners", "Outcomes"), ...) 
+{
   comparison_1L_chr <- match.arg(comparison_1L_chr)
-  if(comparison_1L_chr == "Joiners"){
-    original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>%
-      dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == "Other" ~ NA_character_,
-                                                        T ~ treatment_status) %>% as.factor())
+  if (comparison_1L_chr == "Joiners") {
+    original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
+      dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == 
+                                                          "Other" ~ NA_character_, T ~ treatment_status) %>% 
+                      as.factor())
   }
-  if(comparison_1L_chr == "OutcomesJoinersImputed"){
-    original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb 
+  if (comparison_1L_chr == "OutcomesJoinersImputed") {
+    original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb
   }
-  if(comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")){
-    original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb 
+  if (comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")) {
+    original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb
   }
-  original_tb <- dplyr::select(original_tb, intersect(names(original_tb), names(population_ls$fully_synthetic_ls$Synthetic_r4@ds_tb)))
-  if(comparison_1L_chr == "Outcomes"){
-    original_tb <- original_tb[complete.cases(original_tb), ] 
+  original_tb <- dplyr::select(original_tb, intersect(names(original_tb), 
+                                                      names(population_ls$fully_synthetic_ls$Synthetic_r4@ds_tb)))
+  if (comparison_1L_chr == "Outcomes") {
+    original_tb <- original_tb[complete.cases(original_tb), 
+    ]
   }
-  extras_chr <- setdiff(names(population_ls$fully_synthetic_ls$synthetic_ls$syn), names(original_tb))
-  if(length(extras_chr)>0){
-    extras_tb <- population_ls$fully_synthetic_ls$synthetic_ls$syn  %>% 
+  extras_chr <- setdiff(names(population_ls$fully_synthetic_ls$synthetic_ls$syn), 
+                        names(original_tb))
+  if (length(extras_chr) > 0) {
+    extras_tb <- population_ls$fully_synthetic_ls$synthetic_ls$syn %>% 
       dplyr::select(tidyselect::all_of(extras_chr))
-    extras_tb <- extras_tb  %>%
-      dplyr::mutate(dplyr::across(names(extras_tb), ~ ifelse(.x==Inf,Inf,NA_real_))) %>%
-      dplyr::slice(1)
+    extras_tb <- extras_tb %>% dplyr::mutate(dplyr::across(names(extras_tb), 
+                                                           ~ifelse(.x == Inf, Inf, NA_real_))) %>% dplyr::slice(1)
     original_tb <- dplyr::cross_join(original_tb, extras_tb)
   }
-  synthetic_tests_ls <- synthpop::compare(population_ls$fully_synthetic_ls$synthetic_ls, original_tb, print.flag = F)
+  synthetic_tests_ls <- synthpop::compare(population_ls$fully_synthetic_ls$synthetic_ls, 
+                                          original_tb, print.flag = F, ...)
   return(synthetic_tests_ls)
+}
+make_test_comparisons <- function(X_Ready4useDyad,
+                                  Y_Ready4useDyad = ready4use::Ready4useDyad(),
+                                  type_1L_chr = c("full", "wsummary", "lsummary")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(!identical(Y_Ready4useDyad, ready4use::Ready4useDyad())){
+    Z_Ready4useDyad <- make_predd_observed_ds(renewSlot(X_Ready4useDyad, "ds_tb",
+                                                        X_Ready4useDyad@ds_tb %>% 
+                                                          dplyr::select(tidyr::any_of(names(Y_Ready4useDyad@ds_tb))) %>%
+                                                          dplyr::mutate(UID = as.integer(UID))), Y_Ready4useDyad = Y_Ready4useDyad)
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", Z_Ready4useDyad@ds_tb %>% dplyr::select_if(~ !any(is.na(.))))
+  }else{
+    Z_Ready4useDyad <- X_Ready4useDyad
+  }
+  
+  if(type_1L_chr %in% c("wsummary", "lsummary")){
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", Z_Ready4useDyad@ds_tb %>% dplyr::group_by(Data) %>% dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~mean(.x)))) 
+    
+    if(type_1L_chr == "lsummary"){
+      Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+                                   Z_Ready4useDyad@ds_tb %>%
+                                     dplyr::filter(Data == "Observed") %>%
+                                     tidyr::pivot_longer(cols = dplyr::where(is.numeric), names_to = "Variable", values_to = "Observed") %>%
+                                     dplyr::select(-Data) %>%
+                                     dplyr::left_join(Z_Ready4useDyad@ds_tb %>%
+                                                        dplyr::filter(Data == "Simulated") %>%
+                                                        tidyr::pivot_longer(cols = dplyr::where(is.numeric), names_to = "Variable", values_to = "Simulated") %>%
+                                                        dplyr::select(-Data)))
+      
+      Z_Ready4useDyad <- ready4use::Ready4useDyad(ds_tb = Z_Ready4useDyad@ds_tb) %>% ready4use::add_dictionary()
+      
+    }
+  }
+  return(Z_Ready4useDyad)
 }
 make_two_part_mdl <- function(data_tb,
                               family_2_1L_chr = "Gamma(link = 'inverse')",

@@ -8,6 +8,7 @@ add_cost_calculations(
   data_tb,
   inputs_ls,
   add_fixed_1L_lgl = FALSE,
+  add_logic_fn = identity,
   add_offsets_1L_lgl = FALSE,
   add_variable_1L_lgl = TRUE,
   base_for_rates_int = 1L,
@@ -21,6 +22,8 @@ add_cost_calculations(
 \item{inputs_ls}{Inputs (a list)}
 
 \item{add_fixed_1L_lgl}{Add fixed (a logical vector of length one), Default: FALSE}
+
+\item{add_logic_fn}{Add logic (a function), Default: identity}
 
 \item{add_offsets_1L_lgl}{Add offsets (a logical vector of length one), Default: FALSE}
 

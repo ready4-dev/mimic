@@ -78,31 +78,34 @@ add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_
 #' Add clients to summary
 #' @description add_clients_to_summary() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add clients to summary. The function returns Summaries (a list).
 #' @param summaries_ls Summaries (a list)
+#' @param onboarded_tb Onboarded (a tibble)
 #' @param arrange_1L_chr Arrange (a character vector of length one), Default: character(0)
 #' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
-#' @param weeks_1L_int Weeks (an integer vector of length one), Default: 26
 #' @return Summaries (a list)
 #' @rdname add_clients_to_summary
 #' @export 
-#' @importFrom dplyr select where bind_rows filter mutate across pull arrange
-#' @importFrom purrr reduce
+#' @importFrom dplyr select where mutate left_join arrange
+#' @importFrom purrr reduce map_chr map2_chr
+#' @importFrom stringr str_extract str_remove
 #' @importFrom rlang sym
 #' @keywords internal
-add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0), reference_1L_chr = "Status quo", 
-    weeks_1L_int = 26) 
+add_clients_to_summary <- function (summaries_ls, onboarded_tb, arrange_1L_chr = character(0), 
+    reference_1L_chr = "Status quo") 
 {
     summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$retained_tb %>% 
         dplyr::select(dplyr::where(is.numeric)) %>% names() %>% 
-        purrr::reduce(.init = dplyr::bind_rows(summaries_ls$scenarios_ls$onboarders_tb, 
-            summaries_ls$scenarios_ls$onboarders_tb %>% dplyr::filter(Scenario != 
-                reference_1L_chr) %>% dplyr::mutate(Scenario = paste0(Scenario, 
-                ", 100% of onboarder growth"))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-            ~.x/weeks_1L_int)), ~{
+        purrr::reduce(.init = summaries_ls$scenarios_ls$retained_tb %>% 
+            dplyr::mutate(Group = stringr::str_extract(Scenario, 
+                ",.*") %>% purrr::map_chr(~ifelse(is.na(.x), 
+                "", .x))) %>% dplyr::mutate(Scenario = Scenario %>% 
+            purrr::map2_chr(Group, ~ifelse(.y != "", stringr::str_remove(.x, 
+                .y), .x))) %>% dplyr::left_join(onboarded_tb) %>% 
+            dplyr::mutate(Scenario = paste0(Scenario, Group)) %>% 
+            dplyr::select(-Group), ~{
             name_1L_chr <- .y
             .x %>% dplyr::mutate(`:=`(!!rlang::sym(name_1L_chr), 
-                !!rlang::sym(name_1L_chr) + summaries_ls$scenarios_ls$retained_tb %>% 
-                  dplyr::pull(!!rlang::sym(name_1L_chr))))
-        })
+                !!rlang::sym(name_1L_chr) + Onboarded))
+        }) %>% dplyr::select(-Onboarded)
     if (!identical(arrange_1L_chr, character(0))) {
         summaries_ls$scenarios_ls$clients_tb <- summaries_ls$scenarios_ls$clients_tb %>% 
             dplyr::arrange(!!rlang::sym(arrange_1L_chr))
@@ -114,6 +117,7 @@ add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0),
 #' @param data_tb Data (a tibble)
 #' @param inputs_ls Inputs (a list)
 #' @param add_fixed_1L_lgl Add fixed (a logical vector of length one), Default: FALSE
+#' @param add_logic_fn Add logic (a function), Default: identity
 #' @param add_offsets_1L_lgl Add offsets (a logical vector of length one), Default: FALSE
 #' @param add_variable_1L_lgl Add variable (a logical vector of length one), Default: TRUE
 #' @param base_for_rates_int Base for rates (an integer vector), Default: 1
@@ -122,16 +126,13 @@ add_clients_to_summary <- function (summaries_ls, arrange_1L_chr = character(0),
 #' @return Data (a tibble)
 #' @rdname add_cost_calculations
 #' @export 
-#' @importFrom purrr reduce map_int map_dfr
-#' @importFrom dplyr mutate group_by summarise n first left_join select
+#' @importFrom purrr reduce
+#' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @importFrom stringr str_remove
-#' @importFrom tibble tibble
-#' @importFrom tidyselect all_of
 #' @keywords internal
-add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE, add_offsets_1L_lgl = FALSE, 
-    add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, offsets_chr = character(0), 
-    variable_unit_1L_chr = "Minutes") 
+add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE, add_logic_fn = identity, 
+    add_offsets_1L_lgl = FALSE, add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, 
+    offsets_chr = character(0), variable_unit_1L_chr = "Minutes") 
 {
     scenarios_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, 
         what_1L_chr = "scenarios")
@@ -146,12 +147,8 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
     else {
         offset_counts_chr <- offset_costs_chr <- character(0)
     }
-    need_to_set_chr <- setdiff(c(cost_names_chr, offset_counts_chr, 
-        offset_costs_chr), names(data_tb))
-    if (!identical(need_to_set_chr, character(0))) {
-        data_tb <- need_to_set_chr %>% purrr::reduce(.init = data_tb, 
-            ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 0)))
-    }
+    data_tb <- add_unset_vars(data_tb, var_names_chr = c(cost_names_chr, 
+        offset_counts_chr, offset_costs_chr), value_xx = 0)
     if (add_variable_1L_lgl) {
         data_tb <- 1:length(scenarios_chr) %>% purrr::reduce(.init = data_tb, 
             ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(cost_names_chr[.y]), 
@@ -166,149 +163,213 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
                 !!rlang::sym(cost_names_chr[.y]) + fixed_costs_dbl[.y])))
     }
     if (add_offsets_1L_lgl) {
-        if (length(base_for_rates_int) == 1 & length(base_for_rates_int) < 
-            length(offsets_chr)) {
-            base_for_rates_int <- rep(base_for_rates_int, length(offset_costs_chr))
-        }
-        data_tb <- 1:length(offsets_chr) %>% purrr::reduce(.init = data_tb, 
-            ~{
-                rate_1L_chr <- paste0("ParamPool", offsets_chr[.y])
-                mean_1L_chr <- paste0("Param", offsets_chr[.y], 
-                  "OOSCost_mean")
-                sd_1L_chr <- paste0("Param", offsets_chr[.y], 
-                  "OOSCost_sd")
-                unit_1L_chr <- paste0(stringr::str_remove(mean_1L_chr, 
-                  "_mean"), "Unit")
-                rates_tb <- .x %>% dplyr::group_by(Iteration) %>% 
-                  dplyr::summarise(NumberOfAgents = dplyr::n(), 
-                    `:=`(!!rlang::sym(rate_1L_chr), dplyr::first(!!rlang::sym(rate_1L_chr))), 
-                    `:=`(!!rlang::sym(mean_1L_chr), dplyr::first(!!rlang::sym(mean_1L_chr))), 
-                    `:=`(!!rlang::sym(sd_1L_chr), dplyr::first(!!rlang::sym(sd_1L_chr)))) %>% 
-                  dplyr::mutate(`:=`(!!rlang::sym(paste0(rate_1L_chr, 
-                    "Rate")), abs(!!rlang::sym(rate_1L_chr))/base_for_rates_int[.y]), 
-                    `:=`(!!rlang::sym(paste0(rate_1L_chr, "Multiplier")), 
-                      !!rlang::sym(rate_1L_chr) %>% purrr::map_int(~ifelse(.x < 
-                        0, -1, 1))), `:=`(!!rlang::sym(unit_1L_chr), 
-                      !!rlang::sym(mean_1L_chr)))
-                count_1L_chr <- offset_counts_chr[.y]
-                cost_1L_chr <- offset_costs_chr[.y]
-                iterations_int <- .x$Iteration %>% unique()
-                join_tb <- purrr::map_dfr(1:nrow(rates_tb), ~tibble::tibble(Iteration = iterations_int[.x], 
-                  UID = data_tb$UID %>% unique(), `:=`(!!rlang::sym(paste0(count_1L_chr, 
-                    "_new")), rpois(n = rates_tb$NumberOfAgents[.x], 
-                    lambda = rates_tb[[.x, paste0(rate_1L_chr, 
-                      "Rate")]]) * rates_tb[[.x, paste0(rate_1L_chr, 
-                    "Multiplier")]])) %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(cost_1L_chr, 
-                  "_new")), !!rlang::sym(paste0(count_1L_chr, 
-                  "_new")) * rates_tb[[.x, unit_1L_chr]])))
-                joined_tb <- .x %>% dplyr::left_join(join_tb) %>% 
-                  dplyr::mutate(`:=`(!!rlang::sym(count_1L_chr), 
-                    !!rlang::sym(count_1L_chr) + !!rlang::sym(paste0(count_1L_chr, 
-                      "_new"))), `:=`(!!rlang::sym(cost_1L_chr), 
-                    !!rlang::sym(cost_1L_chr) + !!rlang::sym(paste0(cost_1L_chr, 
-                      "_new")))) %>% dplyr::select(-tidyselect::all_of(c(paste0(count_1L_chr, 
-                  "_new"), paste0(cost_1L_chr, "_new"))))
-                1:length(scenarios_chr) %>% purrr::reduce(.init = joined_tb, 
-                  ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(cost_names_chr[.y]), 
-                    !!rlang::sym(cost_names_chr[.y]) + !!rlang::sym(cost_1L_chr))))
-            })
+        data_tb <- add_cost_offsets(data_tb, add_logic_fn = add_logic_fn, 
+            offsets_chr = offsets_chr, base_for_rates_int = base_for_rates_int, 
+            inputs_ls = inputs_ls)
     }
+    return(data_tb)
+}
+#' Add cost effectiveness
+#' @description add_cost_effectiveness() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost effectiveness. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param cost_1L_chr Cost (a character vector of length one), Default: 'Cost'
+#' @param dominance_1L_chr Dominance (a character vector of length one), Default: character(0)
+#' @param effect_1L_chr Effect (a character vector of length one), Default: 'QALYs'
+#' @param icer_1L_chr Icer (a character vector of length one), Default: character(0)
+#' @param suffix_1L_chr Suffix (a character vector of length one), Default: ''
+#' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @return Data (a tibble)
+#' @rdname add_cost_effectiveness
+#' @export 
+#' @importFrom dplyr mutate select
+#' @importFrom rlang sym
+#' @importFrom purrr map2_dbl pmap_dbl
+#' @keywords internal
+add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_chr = character(0), 
+    effect_1L_chr = "QALYs", icer_1L_chr = character(0), suffix_1L_chr = "", 
+    threshold_1L_dbl = 96000) 
+{
+    if (identical(icer_1L_chr, character(0))) {
+        icer_1L_chr <- paste0("ICER", suffix_1L_chr)
+    }
+    if (identical(dominance_1L_chr, character(0))) {
+        dominance_1L_chr <- paste0("Dominance", suffix_1L_chr)
+    }
+    data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("CE", 
+        suffix_1L_chr)), !!rlang::sym(icer_1L_chr) %>% purrr::map2_dbl(!!rlang::sym(dominance_1L_chr), 
+        ~ifelse(.y == "Ratio", ifelse(.x <= threshold_1L_dbl, 
+            1, 0), ifelse(.y == "Dominant", 1, 0)))))
+    data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("CE", 
+        suffix_1L_chr)), data_tb %>% dplyr::select(!!rlang::sym(paste0("CE", 
+        suffix_1L_chr)), !!rlang::sym(cost_1L_chr), !!rlang::sym(effect_1L_chr)) %>% 
+        purrr::pmap_dbl(~ifelse(..2 >= 0 & ..3 <= 0, (!(..1 == 
+            1)) %>% as.numeric(), ..1))))
     return(data_tb)
 }
 #' Add cost effectiveness statistics
 #' @description add_cost_effectiveness_stats() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost effectiveness statistics. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @return Data (a tibble)
 #' @rdname add_cost_effectiveness_stats
 #' @export 
-#' @importFrom dplyr mutate
-#' @importFrom purrr map2_chr map2_dbl
+#' @importFrom purrr reduce
 #' @keywords internal
-add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000) 
+add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
+    "CHU9D")) 
 {
-    data_tb <- data_tb %>% dplyr::mutate(Dominance_AQoL6D = Cost %>% 
-        purrr::map2_chr(AQoL6D_QALYs_YR1, ~ifelse(.x > 0 & .y < 
-            0, "Dominated", ifelse(.x < 0 & .y > 0, "Dominant", 
-            "Ratio"))), Dominance_AQoL6D_S10 = Cost_S1 %>% purrr::map2_chr(AQoL6D_QALYs_YR1, 
-        ~ifelse(.x > 0 & .y < 0, "Dominated", ifelse(.x < 0 & 
-            .y > 0, "Dominant", "Ratio"))), Dominance_AQoL6D_S01 = Cost %>% 
-        purrr::map2_chr(AQoL6D_QALYs_YR1_S1, ~ifelse(.x > 0 & 
-            .y < 0, "Dominated", ifelse(.x < 0 & .y > 0, "Dominant", 
-            "Ratio"))), Dominance_AQoL6D_S02 = Cost %>% purrr::map2_chr(AQoL6D_QALYs_YR1_S2, 
-        ~ifelse(.x > 0 & .y < 0, "Dominated", ifelse(.x < 0 & 
-            .y > 0, "Dominant", "Ratio"))), Dominance_AQoL6D_S11 = Cost_S1 %>% 
-        purrr::map2_chr(AQoL6D_QALYs_YR1_S1, ~ifelse(.x > 0 & 
-            .y < 0, "Dominated", ifelse(.x < 0 & .y > 0, "Dominant", 
-            "Ratio"))), Dominance_AQoL6D_S12 = Cost_S1 %>% purrr::map2_chr(AQoL6D_QALYs_YR1_S2, 
-        ~ifelse(.x > 0 & .y < 0, "Dominated", ifelse(.x < 0 & 
-            .y > 0, "Dominant", "Ratio"))), ICER_AQoL6D = Cost/AQoL6D_QALYs_YR1, 
-        ICER_AQoL6D_S10 = Cost_S1/AQoL6D_QALYs_YR1, ICER_AQoL6D_S01 = Cost/AQoL6D_QALYs_YR1_S1, 
-        ICER_AQoL6D_S02 = Cost/AQoL6D_QALYs_YR1_S2, ICER_AQoL6D_S11 = Cost_S1/AQoL6D_QALYs_YR1_S1, 
-        ICER_AQoL6D_S12 = Cost_S1/AQoL6D_QALYs_YR1_S2, CE_AQoL6D = ICER_AQoL6D %>% 
-            purrr::map2_dbl(Dominance_AQoL6D, ~ifelse(.y == "Ratio", 
-                ifelse(.x <= threshold_1L_dbl, 1, 0), ifelse(.y == 
-                  "Dominant", 1, 0))), CE_AQoL6D_S10 = ICER_AQoL6D_S10 %>% 
-            purrr::map2_dbl(Dominance_AQoL6D_S10, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_AQoL6D_S01 = ICER_AQoL6D_S01 %>% 
-            purrr::map2_dbl(Dominance_AQoL6D_S01, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_AQoL6D_S02 = ICER_AQoL6D_S02 %>% 
-            purrr::map2_dbl(Dominance_AQoL6D_S02, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_AQoL6D_S11 = ICER_AQoL6D_S11 %>% 
-            purrr::map2_dbl(Dominance_AQoL6D_S11, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_AQoL6D_S12 = ICER_AQoL6D_S12 %>% 
-            purrr::map2_dbl(Dominance_AQoL6D_S12, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), Dominance_CHU9D = Cost %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1, ~ifelse(.x > 0 & 
-                .y < 0, "Dominated", ifelse(.x < 0 & .y > 0, 
-                "Dominant", "Ratio"))), Dominance_CHU9D_S10 = Cost_S1 %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1, ~ifelse(.x > 0 & 
-                .y < 0, "Dominated", ifelse(.x < 0 & .y > 0, 
-                "Dominant", "Ratio"))), Dominance_CHU9D_S01 = Cost %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1_S1, ~ifelse(.x > 
-                0 & .y < 0, "Dominated", ifelse(.x < 0 & .y > 
-                0, "Dominant", "Ratio"))), Dominance_CHU9D_S02 = Cost %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1_S2, ~ifelse(.x > 
-                0 & .y < 0, "Dominated", ifelse(.x < 0 & .y > 
-                0, "Dominant", "Ratio"))), Dominance_CHU9D_S11 = Cost_S1 %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1_S1, ~ifelse(.x > 
-                0 & .y < 0, "Dominated", ifelse(.x < 0 & .y > 
-                0, "Dominant", "Ratio"))), Dominance_CHU9D_S12 = Cost_S1 %>% 
-            purrr::map2_chr(CHU9D_QALYs_YR1_S2, ~ifelse(.x > 
-                0 & .y < 0, "Dominated", ifelse(.x < 0 & .y > 
-                0, "Dominant", "Ratio"))), ICER_CHU9D = Cost/CHU9D_QALYs_YR1, 
-        ICER_CHU9D_S10 = Cost_S1/CHU9D_QALYs_YR1, ICER_CHU9D_S01 = Cost/CHU9D_QALYs_YR1_S1, 
-        ICER_CHU9D_S02 = Cost/CHU9D_QALYs_YR1_S2, ICER_CHU9D_S11 = Cost_S1/CHU9D_QALYs_YR1_S1, 
-        ICER_CHU9D_S12 = Cost_S1/CHU9D_QALYs_YR1_S2, CE_CHU9D = ICER_CHU9D %>% 
-            purrr::map2_dbl(Dominance_CHU9D, ~ifelse(.y == "Ratio", 
-                ifelse(.x <= threshold_1L_dbl, 1, 0), ifelse(.y == 
-                  "Dominant", 1, 0))), CE_CHU9D_S10 = ICER_CHU9D_S10 %>% 
-            purrr::map2_dbl(Dominance_CHU9D_S10, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_CHU9D_S01 = ICER_CHU9D_S01 %>% 
-            purrr::map2_dbl(Dominance_CHU9D_S01, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_CHU9D_S02 = ICER_CHU9D_S02 %>% 
-            purrr::map2_dbl(Dominance_CHU9D_S02, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_CHU9D_S11 = ICER_CHU9D_S11 %>% 
-            purrr::map2_dbl(Dominance_CHU9D_S11, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))), CE_CHU9D_S12 = ICER_CHU9D_S12 %>% 
-            purrr::map2_dbl(Dominance_CHU9D_S12, ~ifelse(.y == 
-                "Ratio", ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                ifelse(.y == "Dominant", 1, 0))))
+    data_tb <- purrr::reduce(utilities_chr, .init = data_tb, 
+        ~{
+            utility_1L_chr <- .y
+            .x %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S10")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                "_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "_S01")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                "_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "_S02")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S11")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S12")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S10")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                "_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "_S01")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                "_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                "_S02")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S11")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S12")) %>% add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
+                ""), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                  "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                  "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                  utility_1L_chr, "_S10"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                  ""), effect_1L_chr = paste0(utility_1L_chr, 
+                  "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                  utility_1L_chr, "_S01"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                  ""), effect_1L_chr = paste0(utility_1L_chr, 
+                  "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                  utility_1L_chr, "_S02"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                  "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                  "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                  utility_1L_chr, "_S11"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                  "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
+                  "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                  utility_1L_chr, "_S12"), threshold_1L_dbl = threshold_1L_dbl)
+        })
+    return(data_tb)
+}
+#' Add cost offsets
+#' @description add_cost_offsets() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost offsets. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param inputs_ls Inputs (a list)
+#' @param offsets_chr Offsets (a character vector)
+#' @param add_logic_fn Add logic (a function), Default: identity
+#' @param base_for_rates_int Base for rates (an integer vector), Default: 1
+#' @return Data (a tibble)
+#' @rdname add_cost_offsets
+#' @export 
+#' @importFrom purrr reduce map_int map_dfr
+#' @importFrom stringr str_remove
+#' @importFrom dplyr group_by summarise n first mutate left_join select
+#' @importFrom rlang sym
+#' @importFrom tibble tibble
+#' @importFrom tidyselect all_of
+#' @keywords internal
+add_cost_offsets <- function (data_tb, inputs_ls, offsets_chr, add_logic_fn = identity, 
+    base_for_rates_int = 1L) 
+{
+    cost_names_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, 
+        what_1L_chr = "names")
+    scenarios_chr <- get_unit_cost_detail(inputs_ls$unit_costs_tb, 
+        what_1L_chr = "scenarios")
+    offset_counts_chr <- paste0("OffsetCount", offsets_chr)
+    offset_costs_chr <- paste0("OffsetCosts", offsets_chr)
+    offset_logic_chr <- paste0("OffsetLogic", offsets_chr)
+    data_tb <- add_unset_vars(data_tb, var_names_chr = c(offset_counts_chr, 
+        offset_costs_chr), value_xx = 0)
+    data_tb <- add_unset_vars(data_tb, var_names_chr = offset_logic_chr, 
+        value_xx = 1)
+    data_tb <- add_logic_fn(data_tb)
+    if (length(base_for_rates_int) == 1 & length(base_for_rates_int) < 
+        length(offsets_chr)) {
+        base_for_rates_int <- rep(base_for_rates_int, length(offset_costs_chr))
+    }
+    data_tb <- 1:length(offsets_chr) %>% purrr::reduce(.init = data_tb, 
+        ~{
+            rate_1L_chr <- paste0("ParamPool", offsets_chr[.y])
+            mean_1L_chr <- paste0("Param", offsets_chr[.y], "OOSCost_mean")
+            sd_1L_chr <- paste0("Param", offsets_chr[.y], "OOSCost_sd")
+            unit_1L_chr <- paste0(stringr::str_remove(mean_1L_chr, 
+                "_mean"), "Unit")
+            rates_tb <- .x %>% dplyr::group_by(Iteration) %>% 
+                dplyr::summarise(NumberOfAgents = dplyr::n(), 
+                  `:=`(!!rlang::sym(rate_1L_chr), dplyr::first(!!rlang::sym(rate_1L_chr))), 
+                  `:=`(!!rlang::sym(mean_1L_chr), dplyr::first(!!rlang::sym(mean_1L_chr))), 
+                  `:=`(!!rlang::sym(sd_1L_chr), dplyr::first(!!rlang::sym(sd_1L_chr)))) %>% 
+                dplyr::mutate(`:=`(!!rlang::sym(paste0(rate_1L_chr, 
+                  "Rate")), abs(!!rlang::sym(rate_1L_chr))/base_for_rates_int[.y]), 
+                  `:=`(!!rlang::sym(paste0(rate_1L_chr, "Multiplier")), 
+                    !!rlang::sym(rate_1L_chr) %>% purrr::map_int(~ifelse(.x < 
+                      0, -1, 1))), `:=`(!!rlang::sym(unit_1L_chr), 
+                    !!rlang::sym(mean_1L_chr)))
+            count_1L_chr <- offset_counts_chr[.y]
+            cost_1L_chr <- offset_costs_chr[.y]
+            iterations_int <- .x$Iteration %>% unique()
+            join_tb <- purrr::map_dfr(1:nrow(rates_tb), ~tibble::tibble(Iteration = iterations_int[.x], 
+                UID = data_tb$UID %>% unique(), `:=`(!!rlang::sym(paste0(count_1L_chr, 
+                  "_new")), rpois(n = rates_tb$NumberOfAgents[.x], 
+                  lambda = rates_tb[[.x, paste0(rate_1L_chr, 
+                    "Rate")]]) * rates_tb[[.x, paste0(rate_1L_chr, 
+                  "Multiplier")]])) %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(cost_1L_chr, 
+                "_new")), !!rlang::sym(paste0(count_1L_chr, "_new")) * 
+                rates_tb[[.x, unit_1L_chr]])))
+            joined_tb <- .x %>% dplyr::left_join(join_tb) %>% 
+                dplyr::mutate(`:=`(!!rlang::sym(count_1L_chr), 
+                  !!rlang::sym(count_1L_chr) + (!!rlang::sym(paste0(count_1L_chr, 
+                    "_new")) * !!rlang::sym(offset_logic_chr[.y]))), 
+                  `:=`(!!rlang::sym(cost_1L_chr), !!rlang::sym(cost_1L_chr) + 
+                    (!!rlang::sym(paste0(cost_1L_chr, "_new")) * 
+                      !!rlang::sym(offset_logic_chr[.y])))) %>% 
+                dplyr::select(-tidyselect::all_of(c(paste0(count_1L_chr, 
+                  "_new"), paste0(cost_1L_chr, "_new"))))
+            1:length(scenarios_chr) %>% purrr::reduce(.init = joined_tb, 
+                ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(cost_names_chr[.y]), 
+                  !!rlang::sym(cost_names_chr[.y]) + !!rlang::sym(cost_1L_chr))))
+        })
     return(data_tb)
 }
 #' Add costs event
 #' @description add_costs_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add costs event. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param inputs_ls Inputs (a list)
+#' @param add_logic_fn Add logic (a function), Default: identity
 #' @param add_offsets_1L_lgl Add offsets (a logical vector of length one), Default: FALSE
 #' @param base_for_rates_int Base for rates (an integer vector), Default: 1
 #' @param offsets_chr Offsets (a character vector), Default: character(0)
@@ -318,26 +379,27 @@ add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000)
 #' @rdname add_costs_event
 #' @export 
 #' @keywords internal
-add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FALSE, 
-    base_for_rates_int = 1L, offsets_chr = character(0), type_1L_chr = c("variable", 
-        "fixed", "both", "zero"), variable_unit_1L_chr = "Minutes") 
+add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity, 
+    add_offsets_1L_lgl = FALSE, base_for_rates_int = 1L, offsets_chr = character(0), 
+    type_1L_chr = c("variable", "fixed", "both", "zero"), variable_unit_1L_chr = "Minutes") 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "zero") {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, 
-                add_fixed_1L_lgl = F, add_offsets_1L_lgl = add_offsets_1L_lgl, 
-                add_variable_1L_lgl = F, base_for_rates_int = base_for_rates_int, 
-                offsets_chr = offsets_chr, variable_unit_1L_chr = variable_unit_1L_chr))
+                add_fixed_1L_lgl = F, add_logic_fn = add_logic_fn, 
+                add_offsets_1L_lgl = add_offsets_1L_lgl, add_variable_1L_lgl = F, 
+                base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr, 
+                variable_unit_1L_chr = variable_unit_1L_chr))
     }
     else {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% add_cost_calculations(inputs_ls = inputs_ls, 
                 add_fixed_1L_lgl = (type_1L_chr %in% c("fixed", 
                   "both")), add_variable_1L_lgl = (type_1L_chr %in% 
-                  c("variable", "both")), add_offsets_1L_lgl = add_offsets_1L_lgl, 
-                base_for_rates_int = base_for_rates_int, offsets_chr = offsets_chr, 
-                variable_unit_1L_chr = variable_unit_1L_chr))
+                  c("variable", "both")), add_logic_fn = add_logic_fn, 
+                add_offsets_1L_lgl = add_offsets_1L_lgl, base_for_rates_int = base_for_rates_int, 
+                offsets_chr = offsets_chr, variable_unit_1L_chr = variable_unit_1L_chr))
     }
     return(X_Ready4useDyad)
 }
@@ -347,30 +409,42 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_offsets_1L_lgl = FA
 #' @param processed_ls Processed (a list)
 #' @param periods_1L_int Periods (an integer vector of length one), Default: 26
 #' @param arrange_1L_chr Arrange (a character vector of length one), Default: character(0)
+#' @param bind_to_tb Bind to (a tibble), Default: NULL
+#' @param cost_tfmn_fn Cost transformation (a function), Default: identity
 #' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
 #' @param tfmn_fn Transformation (a function), Default: identity
-#' @param type_1L_chr Type (a character vector of length one), Default: c("change_scenario", "change_sq", "scenario", "sq")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario", 
+#'    "scen_sq", "sq", "summary_scenario")
+#' @param unit_1L_chr Unit (a character vector of length one), Default: c("minutes", "clients")
 #' @return Summaries (a list)
 #' @rdname add_costs_to_summary
 #' @export 
-#' @importFrom purrr map_dfr
-#' @importFrom dplyr filter mutate across where arrange pull
+#' @importFrom purrr map_dfr pluck map reduce map2_dbl
+#' @importFrom dplyr filter mutate across where arrange bind_rows pull summarise n left_join select
 #' @importFrom ready4 get_from_lup_obj
 #' @importFrom rlang sym
+#' @importFrom lubridate weeks
+#' @importFrom tibble tibble add_case
 #' @keywords internal
 add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 26, arrange_1L_chr = character(0), 
-    reference_1L_chr = "Status quo", tfmn_fn = identity, type_1L_chr = c("change_scenario", 
-        "change_sq", "scenario", "sq")) 
+    bind_to_tb = NULL, cost_tfmn_fn = identity, reference_1L_chr = "Status quo", 
+    tfmn_fn = identity, type_1L_chr = c("change_scenario", "change_scen_sq", 
+        "change_sq", "scenario", "scen_sq", "sq", "summary_scenario"), 
+    unit_1L_chr = c("minutes", "clients")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
-    if (type_1L_chr == "sq") {
-        summaries_ls$scenarios_ls$costs_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+    unit_1L_chr <- match.arg(unit_1L_chr)
+    if (type_1L_chr %in% c("scen_sq", "sq")) {
+        costs_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
-            make_forecast_growth(summaries_ls$scenarios_ls$clients_tb %>% 
+            make_forecast_growth(summaries_ls$scenarios_ls %>% 
+                purrr::pluck(paste0(unit_1L_chr, "_tb")) %>% 
                 dplyr::filter(Scenario == reference_1L_chr), 
-                reference_1L_dbl = summaries_ls$empirical_ls$onboarded_1L_dbl/periods_1L_int + 
-                  summaries_ls$empirical_ls$retained_1L_dbl, 
+                reference_1L_dbl = ifelse(unit_1L_chr == "clients", 
+                  summaries_ls$empirical_ls$onboarded_1L_dbl/periods_1L_int + 
+                    summaries_ls$empirical_ls$retained_1L_dbl, 
+                  summaries_ls$empirical_ls$minutes_1L_dbl), 
                 tfmn_fn = identity) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
                 ~processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == 
                   cost_scenario_1L_chr) %>% ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type", 
@@ -379,18 +453,26 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
                 ", ", cost_scenario_1L_chr))
         })
         if (!identical(arrange_1L_chr, character(0))) {
-            summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% 
-                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+            costs_sq_tb <- costs_sq_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
         }
-        summaries_ls$scenarios_ls$costs_sq_tb <- summaries_ls$scenarios_ls$costs_sq_tb %>% 
-            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-                ~tfmn_fn(.x)))
+        costs_sq_tb <- costs_sq_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+            ~tfmn_fn(.x)))
+        if (!is.null(bind_to_tb)) {
+            costs_sq_tb <- dplyr::bind_rows(bind_to_tb, costs_sq_tb)
+        }
+        if (type_1L_chr == "scen_sq") {
+            summaries_ls$scenarios_ls$costs_scen_sq_tb <- costs_sq_tb
+        }
+        else {
+            summaries_ls$scenarios_ls$costs_sq_tb <- costs_sq_tb
+        }
     }
-    if (type_1L_chr == "change_sq") {
+    if (type_1L_chr %in% c("change_sq", "change_scen_sq")) {
         unformatted_ls <- add_costs_to_summary(summaries_ls, 
             processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
-            reference_1L_chr = reference_1L_chr, type_1L_chr = "sq")
-        summaries_ls$scenarios_ls$costs_change_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            reference_1L_chr = reference_1L_chr, type_1L_chr = "sq", 
+            unit_1L_chr = unit_1L_chr)
+        costs_change_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
             total_cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
@@ -401,24 +483,32 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
                 ~.x/total_cost_1L_dbl))
         })
         if (!identical(arrange_1L_chr, character(0))) {
-            summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% 
-                dplyr::arrange(!!rlang::sym(arrange_1L_chr))
+            costs_change_sq_tb <- costs_change_sq_tb %>% dplyr::arrange(!!rlang::sym(arrange_1L_chr))
         }
-        summaries_ls$scenarios_ls$costs_change_sq_tb <- summaries_ls$scenarios_ls$costs_change_sq_tb %>% 
-            dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-                ~tfmn_fn(.x)))
+        costs_change_sq_tb <- costs_change_sq_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+            ~tfmn_fn(.x)))
+        if (!is.null(bind_to_tb)) {
+            costs_change_sq_tb <- dplyr::bind_rows(bind_to_tb, 
+                costs_change_sq_tb)
+        }
+        if (type_1L_chr == "change_scen_sq") {
+            summaries_ls$scenarios_ls$costs_change_scen_sq_tb <- costs_change_sq_tb
+        }
+        else {
+            summaries_ls$scenarios_ls$costs_change_sq_tb <- costs_change_sq_tb
+        }
     }
     if (type_1L_chr == "scenario") {
         summaries_ls$scenarios_ls$costs_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
-            make_forecast_growth(summaries_ls$scenarios_ls$clients_tb, 
-                reference_1L_chr = reference_1L_chr, tfmn_fn = identity) %>% 
-                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-                  ~processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == 
-                    cost_scenario_1L_chr) %>% ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type", 
-                    match_value_xx = "Variable", target_var_nm_1L_chr = "TotalCost") * 
-                    .x)) %>% dplyr::mutate(Scenario = paste0(Scenario, 
+            make_forecast_growth(summaries_ls$scenarios_ls %>% 
+                purrr::pluck(paste0(unit_1L_chr, "_tb")), reference_1L_chr = reference_1L_chr, 
+                tfmn_fn = identity) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~processed_ls$costs_unit@ds_tb %>% dplyr::filter(Scenario == 
+                  cost_scenario_1L_chr) %>% ready4::get_from_lup_obj(match_var_nm_1L_chr = "Type", 
+                  match_value_xx = "Variable", target_var_nm_1L_chr = "TotalCost") * 
+                  .x)) %>% dplyr::mutate(Scenario = paste0(Scenario, 
                 ", ", cost_scenario_1L_chr))
         })
         if (!identical(arrange_1L_chr, character(0))) {
@@ -428,11 +518,16 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
         summaries_ls$scenarios_ls$costs_scenarios_tb <- summaries_ls$scenarios_ls$costs_scenarios_tb %>% 
             dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
                 ~tfmn_fn(.x)))
+        if (!is.null(bind_to_tb)) {
+            summaries_ls$scenarios_ls$costs_scenarios_tb <- dplyr::bind_rows(bind_to_tb, 
+                summaries_ls$scenarios_ls$costs_scenarios_tb)
+        }
     }
     if (type_1L_chr == "change_scenario") {
         unformatted_ls <- add_costs_to_summary(summaries_ls, 
             processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
-            reference_1L_chr = reference_1L_chr, type_1L_chr = "scenario")
+            reference_1L_chr = reference_1L_chr, type_1L_chr = "scenario", 
+            unit_1L_chr = unit_1L_chr)
         summaries_ls$scenarios_ls$costs_change_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
@@ -440,8 +535,9 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
                 dplyr::filter(Scenario == cost_scenario_1L_chr) %>% 
                 dplyr::pull(TotalCost) %>% sum()
             unformatted_ls$scenarios_ls$costs_scenarios_tb %>% 
-                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-                  ~.x/total_cost_1L_dbl))
+                dplyr::filter(Scenario %>% endsWith(paste0(", ", 
+                  cost_scenario_1L_chr))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~.x/total_cost_1L_dbl))
         })
         if (!identical(arrange_1L_chr, character(0))) {
             summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% 
@@ -450,8 +546,103 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
         summaries_ls$scenarios_ls$costs_change_scenarios_tb <- summaries_ls$scenarios_ls$costs_change_scenarios_tb %>% 
             dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
                 ~tfmn_fn(.x)))
+        if (!is.null(bind_to_tb)) {
+            summaries_ls$scenarios_ls$costs_change_scenarios_tb <- dplyr::bind_rows(bind_to_tb, 
+                summaries_ls$scenarios_ls$costs_change_scenarios_tb)
+        }
+    }
+    if (type_1L_chr %in% c("summary_scenario")) {
+        X_Ready4useDyad <- make_report_data(processed_ls = processed_ls, 
+            date_end_dtm = as.POSIXct("2023-07-31"), date_start_dtm = as.POSIXct("2023-07-01"), 
+            period_dtm = lubridate::weeks(14), platform_1L_chr = "MOST", 
+            what_1L_chr = "serviceusecost")
+        some_1L_dbl <- X_Ready4useDyad@ds_tb %>% dplyr::mutate(Some = Minutes > 
+            0) %>% dplyr::summarise(CumulativeMinutes = sum(Minutes), 
+            Minutes = mean(Minutes), Some = sum(Some), N = dplyr::n()) %>% 
+            dplyr::mutate(`Minutes, if >0 Minutes` = CumulativeMinutes/Some, 
+                `% with >0 Minutes` = Some/N) %>% dplyr::pull(`% with >0 Minutes`)
+        costs_scenarios_ls <- processed_ls$costs_unit@ds_tb$Scenario %>% 
+            unique() %>% purrr::map(~{
+            scenario_1L_chr <- .x
+            cost_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == scenario_1L_chr) %>% 
+                dplyr::pull(TotalCost) %>% sum() %>% cost_tfmn_fn()
+            clients_1L_int <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == scenario_1L_chr, Unit == 
+                  "Clients") %>% dplyr::pull(Quantity)
+            variable_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == scenario_1L_chr, Type == 
+                  "Variable") %>% dplyr::pull(UnitCost)
+            fixed_1L_dbl <- processed_ls$costs_unit@ds_tb %>% 
+                dplyr::filter(Scenario == scenario_1L_chr, Type == 
+                  "Fixed") %>% dplyr::pull(TotalCost)
+            scenario_onboarders_tb <- tibble::tibble(Scale = c(0.5, 
+                1, 1.5, 2)) %>% dplyr::mutate(Scenario = paste0(Scale * 
+                100, "% of onboarders, ", scenario_1L_chr)) %>% 
+                tibble::add_case(Scale = 1, Scenario = paste0(c("Status quo, ", 
+                  "Unscaled empirical, "), scenario_1L_chr))
+            scenario_minutes_tb <- summaries_ls$scenarios_ls$minutes_tb %>% 
+                dplyr::filter(!endsWith(Scenario, "100% of onboarder growth")) %>% 
+                dplyr::mutate(Scenario = paste0(Scenario, ", ", 
+                  scenario_1L_chr))
+            total_scenario_tb <- scenario_minutes_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                ~fixed_1L_dbl + (.x * variable_1L_dbl)/periods_1L_int/7 * 
+                  365.25))
+            scenario_clients_tb <- summaries_ls$scenarios_ls$clients_tb %>% 
+                dplyr::filter(!endsWith(Scenario, "100% of onboarder growth")) %>% 
+                dplyr::mutate(Scenario = paste0(Scenario, ", ", 
+                  scenario_1L_chr)) %>% make_forecast_growth(reference_1L_chr = paste0(reference_1L_chr, 
+                ", ", scenario_1L_chr), tfmn_fn = identity) %>% 
+                dplyr::left_join(scenario_onboarders_tb) %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~(1 + .x) * clients_1L_int * some_1L_dbl + 
+                    clients_1L_int * (1 - some_1L_dbl) * Scale)) %>% 
+                dplyr::select(-Scale)
+            unit_scenario_tb <- total_scenario_tb %>% dplyr::select(dplyr::where(is.numeric)) %>% 
+                names() %>% purrr::reduce(.init = total_scenario_tb, 
+                ~{
+                  metric_1L_chr <- .y
+                  .x %>% dplyr::mutate(`:=`(!!rlang::sym(metric_1L_chr), 
+                    !!rlang::sym(metric_1L_chr) %>% purrr::map2_dbl(Scenario, 
+                      ~.x/ready4::get_from_lup_obj(scenario_clients_tb, 
+                        match_var_nm_1L_chr = "Scenario", match_value_xx = .y, 
+                        target_var_nm_1L_chr = metric_1L_chr))))
+                })
+            unit_change_scenario_tb <- unit_scenario_tb %>% make_forecast_growth(reference_1L_chr = paste0(reference_1L_chr, 
+                ", ", scenario_1L_chr), tfmn_fn = identity)
+            list(total_scenario_tb = total_scenario_tb, unit_scenario_tb = unit_scenario_tb, 
+                unit_change_scenario_tb = unit_change_scenario_tb)
+        })
+        summaries_ls$scenarios_ls$costs_total_scenario_tb <- costs_scenarios_ls %>% 
+            purrr::map_dfr(~.x$total_scenario_tb)
+        summaries_ls$scenarios_ls$costs_unit_scenario_tb <- costs_scenarios_ls %>% 
+            purrr::map_dfr(~.x$unit_scenario_tb)
+        summaries_ls$scenarios_ls$unit_change_scenario_tb <- costs_scenarios_ls %>% 
+            purrr::map_dfr(~.x$unit_change_scenario_tb)
     }
     return(summaries_ls)
+}
+#' Add dominated
+#' @description add_dominated() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add dominated. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param cost_1L_chr Cost (a character vector of length one), Default: 'Cost'
+#' @param effect_1L_chr Effect (a character vector of length one), Default: 'QALYs'
+#' @param suffix_1L_chr Suffix (a character vector of length one), Default: ''
+#' @return Data (a tibble)
+#' @rdname add_dominated
+#' @export 
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @importFrom purrr map2_chr
+#' @keywords internal
+add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
+    suffix_1L_chr = "") 
+{
+    data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("Dominance", 
+        suffix_1L_chr)), !!rlang::sym(cost_1L_chr) %>% purrr::map2_chr(!!rlang::sym(effect_1L_chr), 
+        ~ifelse(.x > 0 & .y < 0, "Dominated", ifelse(.x < 0 & 
+            .y > 0, "Dominant", "Ratio")))))
+    return(data_tb)
 }
 #' Add enter model event
 #' @description add_enter_model_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add enter model event. The function is called for its side effects and does not return a value.
@@ -493,6 +684,25 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::inner_join(draws_tb))
     return(X_Ready4useDyad)
+}
+#' Add icer
+#' @description add_icer() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add icer. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param cost_1L_chr Cost (a character vector of length one), Default: 'Cost'
+#' @param effect_1L_chr Effect (a character vector of length one), Default: 'QALYs'
+#' @param suffix_1L_chr Suffix (a character vector of length one), Default: ''
+#' @return Data (a tibble)
+#' @rdname add_icer
+#' @export 
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @keywords internal
+add_icer <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
+    suffix_1L_chr = "") 
+{
+    data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ICER", 
+        suffix_1L_chr)), !!rlang::sym(cost_1L_chr)/!!rlang::sym(effect_1L_chr)))
+    return(data_tb)
 }
 #' Add imputed data
 #' @description add_imputed_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add imputed data. The function is called for its side effects and does not return a value.
@@ -957,15 +1167,18 @@ add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4u
 #' Add minutes event
 #' @description add_minutes_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add minutes event. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
-#' @param minutes_mdl Minutes (a model)
+#' @param minutes_mdl Minutes (a model), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
+#' @param fraction_1L_dbl Fraction (a double vector of length one), Default: numeric(0)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_minutes_event
 #' @export 
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate case_when
 #' @importFrom purrr map_int
+#' @importFrom assertthat assert_that
 #' @keywords internal
-add_minutes_event <- function (X_Ready4useDyad, minutes_mdl, iterations_int = 1:100L) 
+add_minutes_event <- function (X_Ready4useDyad, minutes_mdl = NULL, iterations_int = 1:100L, 
+    fraction_1L_dbl = numeric(0)) 
 {
     if (!"Minutes" %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -978,10 +1191,21 @@ add_minutes_event <- function (X_Ready4useDyad, minutes_mdl, iterations_int = 1:
         dplyr::mutate(MeasurementWeek = paste0("Week", round(as.numeric((CurrentDate - 
             StartDate))/7, 0) %>% purrr::map_int(~ifelse(.x == 
             52, 53, .x)))))
-    X_Ready4useDyad <- add_simulated_data(minutes_mdl, var_1L_chr = "Minutes_change", 
-        Y_Ready4useDyad = X_Ready4useDyad, iterations_int = iterations_int, 
-        join_with_chr = c("Iteration"), type_1L_chr = "third", 
-        what_1L_chr = "new")
+    if (!is.null(minutes_mdl)) {
+        X_Ready4useDyad <- add_simulated_data(minutes_mdl, var_1L_chr = "Minutes_change", 
+            Y_Ready4useDyad = X_Ready4useDyad, iterations_int = iterations_int, 
+            join_with_chr = c("Iteration"), type_1L_chr = "third", 
+            what_1L_chr = "new")
+    }
+    else {
+        assertthat::assert_that(!identical(fraction_1L_dbl, numeric(0)))
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Minutes_change = fraction_1L_dbl * 
+                Minutes_change_previous))
+    }
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(Minutes_change = dplyr::case_when(is.nan(Minutes_change) ~ 
+            0, T ~ Minutes_change)))
     X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c("Minutes", 
         "Minutes_change"))
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -1090,7 +1314,9 @@ add_model_tests <- function (model_data_ls, regressions_ls, imputed_1L_lgl = T,
     test_ls <- append(test_ls, plots_ls)
     if (what_1L_chr == "Minutes") {
         test_ls$comparison_tb <- make_project_minutes_cmprsn(test_ls$Simulated_r4, 
-            Y_Ready4useDyad = test_ls$Comparison_r4, type_1L_chr = "prediction")
+            Y_Ready4useDyad = test_ls$Comparison_r4, type_1L_chr = "prediction", 
+            weeks_chr = Y_Ready4useDyad@ds_tb$MeasurementWeek %>% 
+                unique())
     }
     regressions_ls$tests_ls <- purrr::assign_in(regressions_ls$tests_ls, 
         where = paste0(what_1L_chr, "_ls"), value = test_ls)
@@ -1244,8 +1470,8 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
         add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, adjustment_1L_dbl = adjustment_1L_dbl, 
         models_ls = inputs_ls$models_ls, iterations_int = iterations_int, 
-        sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-        utilities_chr = utilities_chr, type_1L_chr = type_1L_chr, 
+        rewind_chr = "k10", sensitivities_ls = sensitivities_ls, 
+        tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, type_1L_chr = type_1L_chr, 
         what_1L_chr = "new")
     if (k10_method_1L_chr == "Table" & type_1L_chr == "Model") {
         Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -1275,8 +1501,9 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
             Z_Ready4useDyad <- add_utility_event(Z_Ready4useDyad, 
                 add_qalys_1L_lgl = T, add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, 
                 adjustment_1L_dbl = adjustment_1L_dbl, models_ls = inputs_ls$models_ls, 
-                iterations_int = iterations_int, tfmn_ls = tfmn_ls, 
-                utilities_chr = utilities_chr, what_1L_chr = "new")
+                iterations_int = iterations_int, rewind_chr = "k10", 
+                tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
+                what_1L_chr = "new")
             new_chr <- setdiff(names(Z_Ready4useDyad@ds_tb), 
                 names(Y_Ready4useDyad@ds_tb))
             if (!identical(new_chr, character(0))) {
@@ -1375,8 +1602,9 @@ add_project_assessments <- function (regressions_ls, confusion_1L_lgl = F, exclu
 #' @param mdls_lup Models (a lookup table), Default: NULL
 #' @param processed_ls Processed (a list), Default: NULL
 #' @param type_1L_chr Type (a character vector of length one), Default: c("unimputed", "imputed")
-#' @param what_1L_chr What (a character vector of length one), Default: c("CostWide", "Joiners", "MicroLong", "MicroWide", "MicroWide1Year", 
-#'    "MinutesLong", "Outcomes", "OutcomesJoiners", "Series")
+#' @param what_1L_chr What (a character vector of length one), Default: c("CostWide", "Joiners", "JulyJoiners", "MicroLong", "MicroWide", 
+#'    "MicroWide1Year", "MinutesLong", "Outcomes", "OutcomesJoiners", 
+#'    "Series")
 #' @return Model data (a list)
 #' @rdname add_project_model_data
 #' @export 
@@ -1388,7 +1616,7 @@ add_project_assessments <- function (regressions_ls, confusion_1L_lgl = F, exclu
 #' @keywords internal
 add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, processed_ls = NULL, 
     type_1L_chr = c("unimputed", "imputed"), what_1L_chr = c("CostWide", 
-        "Joiners", "MicroLong", "MicroWide", "MicroWide1Year", 
+        "Joiners", "JulyJoiners", "MicroLong", "MicroWide", "MicroWide1Year", 
         "MinutesLong", "Outcomes", "OutcomesJoiners", "Series")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -1441,6 +1669,17 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
                     dplyr::filter(!duplicated(UID))), Y_Ready4useDyad = model_data_ls$unimputed_ls$Joiners_r4, 
                   impute_age_1L_lgl = T, treatment_status_1L_int = 1)
             }
+        }
+        if (what_1L_chr == "JulyJoiners") {
+            if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, what_1L_chr = "Joiners")
+            }
+            X_Ready4useDyad <- make_report_data(model_data_ls = model_data_ls, 
+                processed_ls = processed_ls, date_end_dtm = as.POSIXct("2023-07-31"), 
+                date_start_dtm = as.POSIXct("2023-07-01"), platform_1L_chr = "MOST", 
+                transformations_chr = "gender", what_1L_chr = "serviceusecost", 
+                weeks_int = c(14, 48))
         }
         if (what_1L_chr == "MicroLong") {
             if (type_1L_chr == "unimputed") {
@@ -1538,6 +1777,21 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
         }
     }
     return(model_data_ls)
+}
+#' Add project offset logic
+#' @description add_project_offset_logic() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project offset logic. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @return Data (a tibble)
+#' @rdname add_project_offset_logic
+#' @export 
+#' @importFrom dplyr mutate case_when
+#' @keywords internal
+add_project_offset_logic <- function (data_tb) 
+{
+    data_tb <- data_tb %>% dplyr::mutate(OffsetLogicHeadspace = dplyr::case_when(as.character(clinic_type) == 
+        "headspace" ~ 1, T ~ 0), OffsetLogicSpecialist = dplyr::case_when(as.character(clinic_type) == 
+        "Specialist Services" ~ 1, T ~ 0))
+    return(data_tb)
 }
 #' Add project outcomes data
 #' @description add_project_outcomes_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project outcomes data. The function returns Model data (a list).
@@ -1893,16 +2147,17 @@ add_regressions <- function (regressions_ls, model_1L_int = integer(0), fn_args_
 #' @param Y_Ready4useDyad PARAM_DESCRIPTION
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param join_with_chr Join with (a character vector), Default: character(0)
+#' @param rewind_chr Rewind (a character vector), Default: character(0)
 #' @param tfmn_1L_chr Transformation (a character vector of length one), Default: 'NTF'
 #' @param type_1L_chr Type (a character vector of length one), Default: c("first", "second", "third", "fourth")
 #' @param what_1L_chr What (a character vector of length one), Default: c("old", "new")
 #' @return Y (A dataset and data dictionary pair.)
 #' @rdname add_simulated_data
 #' @export 
+#' @importFrom purrr reduce map_dfc map_dfr
 #' @importFrom dplyr mutate select across everything rename_with inner_join filter starts_with
-#' @importFrom tidyr all_of any_of
 #' @importFrom rlang sym
-#' @importFrom purrr map_dfc map_dfr reduce
+#' @importFrom tidyr all_of any_of
 #' @importFrom didgformula sim
 #' @importFrom stats setNames
 #' @importFrom tibble as_tibble
@@ -1910,15 +2165,21 @@ add_regressions <- function (regressions_ls, model_1L_int = integer(0), fn_args_
 #' @importFrom tidyselect any_of
 #' @keywords internal
 add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iterations_int = 1:100L, 
-    join_with_chr = character(0), tfmn_1L_chr = "NTF", type_1L_chr = c("first", 
-        "second", "third", "fourth"), what_1L_chr = c("old", 
-        "new")) 
+    join_with_chr = character(0), rewind_chr = character(0), 
+    tfmn_1L_chr = "NTF", type_1L_chr = c("first", "second", "third", 
+        "fourth"), what_1L_chr = c("old", "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
     iterations_1L_int <- length(unique(iterations_int))
     if (type_1L_chr == "first") {
         new_data_tb <- Y_Ready4useDyad@ds_tb
+        if (!identical(rewind_chr, character(0))) {
+            new_data_tb <- rewind_chr %>% purrr::reduce(.init = new_data_tb, 
+                ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
+                  !!rlang::sym(.y) - !!rlang::sym(paste0(.y, 
+                    "_change")))))
+        }
         if (inherits(model_mdl, "twopartm")) {
             new_part_1_tb <- new_data_tb %>% dplyr::mutate(nonzero = NA_real_) %>% 
                 dplyr::select(tidyr::all_of(names(model_mdl@model_part1$data)))
@@ -1998,10 +2259,11 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
                 rbind(.x, add_simulated_data(model_mdl = model_mdl, 
                   var_1L_chr = var_1L_chr, Y_Ready4useDyad = renewSlot(Y_Ready4useDyad, 
                     "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::filter(Iteration == 
-                      .y)), iterations_int = 1L, what_1L_chr = what_1L_chr) %>% 
-                  procureSlot("ds_tb") %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
-                  !!rlang::sym(paste0(var_1L_chr, "_sim_", ifelse(.y == 
-                    0, "mean", "1"))))) %>% dplyr::select(-tidyr::all_of(paste0(var_1L_chr, 
+                      .y)), iterations_int = 1L, rewind_chr = rewind_chr, 
+                  what_1L_chr = what_1L_chr) %>% procureSlot("ds_tb") %>% 
+                  dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                    !!rlang::sym(paste0(var_1L_chr, "_sim_", 
+                      ifelse(.y == 0, "mean", "1"))))) %>% dplyr::select(-tidyr::all_of(paste0(var_1L_chr, 
                   "_sim_", c("1", "mean")))))
             }))
     }
@@ -2009,11 +2271,11 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
         Y_Ready4useDyad <- add_simulated_data(model_mdl = model_mdl, 
             var_1L_chr = var_1L_chr, Y_Ready4useDyad = Y_Ready4useDyad, 
             iterations_int = iterations_int, join_with_chr = join_with_chr, 
-            what_1L_chr = what_1L_chr)
+            rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
         Y_Ready4useDyad <- add_simulated_data(model_mdl = model_mdl, 
             var_1L_chr = var_1L_chr, Y_Ready4useDyad = Y_Ready4useDyad, 
             iterations_int = iterations_int, type_1L_chr = "fourth", 
-            what_1L_chr = what_1L_chr)
+            rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
     }
     if (type_1L_chr == "fourth") {
         Y_Ready4useDyad <- Y_Ready4useDyad %>% update_predictions_ds(var_1L_chr = var_1L_chr, 
@@ -2252,6 +2514,27 @@ add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "na
     data_xx <- transform_data_fmt(data_xx, X_Ready4useDyad = X_Ready4useDyad)
     return(data_xx)
 }
+#' Add unset variables
+#' @description add_unset_vars() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add unset variables. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param var_names_chr Variable names (a character vector)
+#' @param value_xx Value (an output object of multiple potential types), Default: 0
+#' @return Data (a tibble)
+#' @rdname add_unset_vars
+#' @export 
+#' @importFrom purrr reduce
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @keywords internal
+add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0) 
+{
+    need_to_set_chr <- setdiff(var_names_chr, names(data_tb))
+    if (!identical(need_to_set_chr, character(0))) {
+        data_tb <- need_to_set_chr %>% purrr::reduce(.init = data_tb, 
+            ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), value_xx)))
+    }
+    return(data_tb)
+}
 #' Add utility event
 #' @description add_utility_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add utility event. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2262,6 +2545,7 @@ add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "na
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
 #' @param models_ls Models (a list), Default: NULL
+#' @param rewind_chr Rewind (a character vector), Default: character(0)
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param simulate_1L_lgl Simulate (a logical vector of length one), Default: TRUE
 #' @param tfmn_ls Transformation (a list), Default: NULL
@@ -2279,10 +2563,11 @@ add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "na
 #' @keywords internal
 add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_sensitivity_1L_lgl = FALSE, 
     adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), iterations_int = 1:100L, 
-    maintain_for_1L_int = 0L, models_ls = NULL, sensitivities_ls = make_sensitivities_ls(), 
-    simulate_1L_lgl = TRUE, tfmn_ls = NULL, tidy_1L_lgl = TRUE, 
-    utilities_chr = c("AQoL6D", "CHU9D"), type_1L_chr = c("Model", 
-        "Project"), what_1L_chr = c("old", "new")) 
+    maintain_for_1L_int = 0L, models_ls = NULL, rewind_chr = character(0), 
+    sensitivities_ls = make_sensitivities_ls(), simulate_1L_lgl = TRUE, 
+    tfmn_ls = NULL, tidy_1L_lgl = TRUE, utilities_chr = c("AQoL6D", 
+        "CHU9D"), type_1L_chr = c("Model", "Project"), what_1L_chr = c("old", 
+        "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
@@ -2315,8 +2600,8 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
                 Y_Ready4useDyad <- add_simulated_data(models_ls %>% 
                   purrr::pluck(paste0(.y, "_mdl")), var_1L_chr = paste0(.y, 
                   suffix_1L_chr), Y_Ready4useDyad = .x, iterations_int = iterations_int, 
-                  join_with_chr = "Iteration", type_1L_chr = "second", 
-                  what_1L_chr = what_1L_chr)
+                  join_with_chr = "Iteration", rewind_chr = rewind_chr, 
+                  type_1L_chr = "second", what_1L_chr = what_1L_chr)
                 Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, 
                   "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
                     !!rlang::sym(paste0(.y, suffix_1L_chr)))))

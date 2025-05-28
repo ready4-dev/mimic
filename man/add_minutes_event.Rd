@@ -4,14 +4,21 @@
 \alias{add_minutes_event}
 \title{Add minutes event}
 \usage{
-add_minutes_event(X_Ready4useDyad, minutes_mdl, iterations_int = 1:100L)
+add_minutes_event(
+  X_Ready4useDyad,
+  minutes_mdl = NULL,
+  iterations_int = 1:100L,
+  fraction_1L_dbl = numeric(0)
+)
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
-\item{minutes_mdl}{Minutes (a model)}
+\item{minutes_mdl}{Minutes (a model), Default: NULL}
 
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
+
+\item{fraction_1L_dbl}{Fraction (a double vector of length one), Default: numeric(0)}
 }
 \value{
 X (A dataset and data dictionary pair.)

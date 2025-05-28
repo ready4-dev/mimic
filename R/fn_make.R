@@ -5,26 +5,50 @@
 #' @param date_end_dtm Date end (a date vector), Default: NULL
 #' @param date_start_dtm Date start (a date vector), Default: NULL
 #' @param date_var_1L_chr Date variable (a character vector of length one), Default: make_temporal_vars()
+#' @param periods_1L_int Periods (an integer vector of length one), Default: integer(0)
 #' @return Actives (an output object of multiple potential types)
 #' @rdname make_actives_tb
 #' @export 
-#' @importFrom dplyr group_by filter summarise left_join select mutate across where
+#' @importFrom dplyr select group_by summarise filter left_join mutate lag pull across where
 #' @importFrom rlang sym
-#' @importFrom purrr map2 map_int
+#' @importFrom lubridate NA_Date_
+#' @importFrom purrr map_dfr flatten_chr map2 map_int
 #' @importFrom tsibble as_tsibble
 #' @keywords internal
 make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_dtm = NULL, 
-    date_start_dtm = NULL, date_var_1L_chr = make_temporal_vars()) 
+    date_start_dtm = NULL, date_var_1L_chr = make_temporal_vars(), 
+    periods_1L_int = integer(0)) 
 {
     date_var_1L_chr <- match.arg(date_var_1L_chr)
+    onboarded_tb <- processed_ls$overview@ds_tb %>% dplyr::select(UID, 
+        onboarding_date) %>% add_temporal_vars(date_var_1L_chr = "onboarding_date", 
+        temporal_vars_chr = c(date_var_1L_chr)) %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
+        dplyr::summarise(Onboarded = list(unique(UID)))
     actives_tb <- model_data_ls$imputed_ls$MicroLong_r4@ds_tb %>% 
         dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% dplyr::filter(Activity == 
         "Contact") %>% dplyr::summarise(Contacters = list(unique(UID))) %>% 
-        dplyr::left_join(processed_ls$overview@ds_tb %>% dplyr::select(UID, 
-            onboarding_date) %>% add_temporal_vars(date_var_1L_chr = "onboarding_date", 
-            temporal_vars_chr = c(date_var_1L_chr)) %>% dplyr::group_by(!!rlang::sym(date_var_1L_chr)) %>% 
-            dplyr::summarise(Onboarded = list(unique(UID)))) %>% 
-        dplyr::filter(!is.null(Onboarded) | !is.null(Contacters))
+        dplyr::left_join(onboarded_tb) %>% dplyr::filter(!is.null(Onboarded) | 
+        !is.null(Contacters))
+    if (!identical(periods_1L_int, integer(0))) {
+        date_fn <- get_temporal_fn(date_var_1L_chr)
+        period_tb <- onboarded_tb %>% dplyr::mutate(Period_Starts = dplyr::lag(!!rlang::sym(date_var_1L_chr), 
+            n = periods_1L_int, default = date_fn(lubridate::NA_Date_)))
+        period_tb <- period_tb %>% na.omit() %>% dplyr::pull(!!rlang::sym(date_var_1L_chr)) %>% 
+            purrr::map_dfr(~{
+                filtered_tb <- period_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) == 
+                  .x)
+                period_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= 
+                  filtered_tb$Period_Starts & !!rlang::sym(date_var_1L_chr) <= 
+                  .x) %>% dplyr::summarise(`:=`(!!rlang::sym(date_var_1L_chr), 
+                  .x), Onboarded_Same_Period = list(purrr::flatten_chr(Onboarded)), 
+                  Period_Starts = filtered_tb$Period_Starts)
+            })
+        actives_tb <- dplyr::left_join(actives_tb, period_tb)
+        use_1L_chr <- "Onboarded_Same_Period"
+    }
+    else {
+        use_1L_chr <- "Onboarded"
+    }
     if (!is.null(date_start_dtm)) {
         actives_tb <- actives_tb %>% dplyr::filter(!!rlang::sym(date_var_1L_chr) >= 
             date_start_dtm)
@@ -34,7 +58,7 @@ make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_
             date_end_dtm)
     }
     actives_tb <- actives_tb %>% dplyr::mutate(Retained = purrr::map2(Contacters, 
-        Onboarded, ~setdiff(.x, .y)), Inactive = purrr::map2(Contacters, 
+        !!rlang::sym(use_1L_chr), ~setdiff(.x, .y)), Inactive = purrr::map2(Contacters, 
         Onboarded, ~setdiff(.y, .x))) %>% dplyr::mutate(dplyr::across(dplyr::where(is.list), 
         ~.x %>% purrr::map_int(~length(.x))))
     if (as_tsibble_1L_lgl) {
@@ -545,6 +569,21 @@ make_k10_severity_cuts <- function (mild_int = c(10, 15), moderate_int = c(16, 2
     severity_cuts_ls <- list(Low = mild_int, Moderate = moderate_int, 
         High = high_int, VeryHigh = very_high_int)
     return(severity_cuts_ls)
+}
+#' Make model dyad list
+#' @description make_model_dyad_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make model dyad list. The function returns Model dyad (a list).
+#' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @return Model dyad (a list)
+#' @rdname make_model_dyad_ls
+#' @export 
+#' @importFrom ready4use Ready4useDyad
+#' @keywords internal
+make_model_dyad_ls <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad = ready4use::Ready4useDyad()) 
+{
+    model_dyad_ls <- list(X_Ready4useDyad = X_Ready4useDyad, 
+        Y_Ready4useDyad = Y_Ready4useDyad)
+    return(model_dyad_ls)
 }
 #' Make outcomes variables
 #' @description make_outcomes_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make outcomes variables. The function returns Outcomes (a character vector).
@@ -1533,6 +1572,7 @@ make_project_metrics <- function (unit_costs_tb)
 #' @param names_chr Names (a character vector), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("dataset", "prediction")
 #' @param var_1L_chr Variable (a character vector of length one), Default: character(0)
+#' @param weeks_chr Weeks (a character vector), Default: c("Week14", "Week53")
 #' @return Comparison (a tibble)
 #' @rdname make_project_minutes_cmprsn
 #' @export 
@@ -1541,7 +1581,8 @@ make_project_metrics <- function (unit_costs_tb)
 #' @importFrom rlang sym
 #' @keywords internal
 make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names_chr = character(0), 
-    type_1L_chr = c("dataset", "prediction"), var_1L_chr = character(0)) 
+    type_1L_chr = c("dataset", "prediction"), var_1L_chr = character(0), 
+    weeks_chr = c("Week14", "Week53")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "dataset") {
@@ -1564,39 +1605,36 @@ make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names
             var_1L_chr <- "Minutes_change"
         }
     }
-    comparison_tb <- rbind(c("Week14", "Week53") %>% purrr::map_dfr(~{
+    comparison_tb <- rbind(weeks_chr %>% purrr::map_dfr(~{
         cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
             .x) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
             mean(!!rlang::sym(var_1L_chr)))), Z_Ready4useDyad@ds_tb %>% 
             dplyr::filter(MeasurementWeek == .x) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
             mean(!!rlang::sym(var_1L_chr))))) %>% dplyr::mutate(Timepoint = .x) %>% 
-            dplyr::mutate(Measure = "Average minutes per client") %>% 
+            dplyr::mutate(Measure = "Average minutes") %>% dplyr::select(Measure, 
+            Timepoint, dplyr::everything())
+    }) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+        ~round(.x, 2) %>% as.character())), weeks_chr %>% purrr::map_dfr(~{
+        cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+            .x, !!rlang::sym(var_1L_chr) > 0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
+            mean(!!rlang::sym(var_1L_chr)))), Z_Ready4useDyad@ds_tb %>% 
+            dplyr::filter(MeasurementWeek == .x, !!rlang::sym(var_1L_chr) > 
+                0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
+            mean(!!rlang::sym(var_1L_chr))))) %>% dplyr::mutate(Timepoint = .x) %>% 
+            dplyr::mutate(Measure = "Average minutes, clients with >0 minutes") %>% 
             dplyr::select(Measure, Timepoint, dplyr::everything())
     }) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-        ~round(.x, 2) %>% as.character())), c("Week14", "Week53") %>% 
-        purrr::map_dfr(~{
-            cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
-                .x, !!rlang::sym(var_1L_chr) > 0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
-                mean(!!rlang::sym(var_1L_chr)))), Z_Ready4useDyad@ds_tb %>% 
-                dplyr::filter(MeasurementWeek == .x, !!rlang::sym(var_1L_chr) > 
-                  0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
-                mean(!!rlang::sym(var_1L_chr))))) %>% dplyr::mutate(Timepoint = .x) %>% 
-                dplyr::mutate(Measure = "Average minutes for clients with >0 minutes") %>% 
-                dplyr::select(Measure, Timepoint, dplyr::everything())
-        }) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-        ~round(.x, 2) %>% as.character())), c("Week14", "Week53") %>% 
-        purrr::map_dfr(~{
-            cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
-                .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
-                0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
-                paste0(round(mean(NonZero) * 100, 2), " %"))), 
-                Z_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
-                  .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
-                  0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
-                  paste0(round(mean(NonZero) * 100, 2), " %")))) %>% 
-                dplyr::mutate(Timepoint = .x) %>% dplyr::mutate(Measure = "% of clients with non-zero minutes") %>% 
-                dplyr::select(Measure, Timepoint, dplyr::everything())
-        }))
+        ~round(.x, 2) %>% as.character())), weeks_chr %>% purrr::map_dfr(~{
+        cbind(X_Ready4useDyad@ds_tb %>% dplyr::filter(MeasurementWeek == 
+            .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
+            0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[1]), 
+            paste0(round(mean(NonZero) * 100, 2), " %"))), Z_Ready4useDyad@ds_tb %>% 
+            dplyr::filter(MeasurementWeek == .x) %>% dplyr::mutate(NonZero = !!rlang::sym(var_1L_chr) > 
+            0) %>% dplyr::summarise(`:=`(!!rlang::sym(names_chr[2]), 
+            paste0(round(mean(NonZero) * 100, 2), " %")))) %>% 
+            dplyr::mutate(Timepoint = .x) %>% dplyr::mutate(Measure = "% with non-zero minutes") %>% 
+            dplyr::select(Measure, Timepoint, dplyr::everything())
+    }))
     return(comparison_tb)
 }
 #' Make project minutes dataset
@@ -1744,11 +1782,19 @@ make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma
     if (is.null(x_part_1_ls)) {
         x_part_1_ls <- list(c("Age", "employment_status", "gender", 
             "clinic_type", "MeasurementWeek"), c("Age", "employment_status", 
-            "clinic_type", "MeasurementWeek"), c("Age", "gender", 
-            "clinic_type", "MeasurementWeek"), c("employment_status", 
-            "gender", "clinic_type", "MeasurementWeek"), c("Age", 
-            "MeasurementWeek"), c("Age", "employment_status", 
-            "gender"), c("Age", "employment_status"), "Age")
+            "gender", "clinic_type", "Minutes", "MeasurementWeek"), 
+            c("Age", "employment_status", "gender", "Minutes", 
+                "MeasurementWeek"), c("Age", "employment_status", 
+                "gender", "clinic_type", "Minutes", "MeasurementWeek"), 
+            c("Age", "employment_status", "clinic_type", "Minutes", 
+                "MeasurementWeek"), c("Age", "gender", "clinic_type", 
+                "Minutes", "MeasurementWeek"), c("employment_status", 
+                "gender", "clinic_type", "Minutes", "MeasurementWeek"), 
+            c("Age", "Minutes", "MeasurementWeek"), c("Age", 
+                "employment_status", "gender", "MeasurementWeek"), 
+            c("Age", "employment_status", "Minutes", "MeasurementWeek"), 
+            c("Age", "gender", "Minutes", "MeasurementWeek"), 
+            c("Age", "Minutes", "MeasurementWeek"))
     }
     if (is.null(x_part_2_ls)) {
         x_part_2_ls <- x_part_1_ls
@@ -2113,6 +2159,30 @@ make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_i
         stage_ls = stage_ls, total_ls = total_ls)
     return(sim_results_ls)
 }
+#' Make project results synthesis
+#' @description make_project_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project results synthesis. The function is called for its side effects and does not return a value.
+#' @param inputs_ls Inputs (a list)
+#' @param results_ls Results (a list)
+#' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_project_results_synthesis
+#' @export 
+#' @keywords internal
+make_project_results_synthesis <- function (inputs_ls, results_ls, modifiable_chr = c("treatment_status", 
+    "Minutes", "k10", "AQoL6D", "CHU9D"), type_1L_chr = c("D", 
+    "AB", "C")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
+        results_ls = results_ls, add_severity_1L_lgl = T, exclude_chr = c("Adult", 
+            "Period", "MeasurementWeek", "treatment_fraction", 
+            "treatment_measurement", "treatment_start"), exclude_suffixes_chr = c("_change", 
+            "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
+            "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+        modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+    return(X_Ready4useDyad)
+}
 #' Make project service use dataset
 #' @description make_project_service_use_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project service use dataset. The function is called for its side effects and does not return a value.
 #' @param processed_ls Processed (a list)
@@ -2404,6 +2474,45 @@ make_project_sunk_tb <- function (global_1L_dbl = numeric(0), content_dbl = 0.9,
         Sunk = sunk_dbl, Kept = 1 - Sunk)
     return(sunk_tb)
 }
+#' Make project test dataset
+#' @description make_project_test_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project test dataset. The function is called for its side effects and does not return a value.
+#' @param model_data_ls Model data (a list)
+#' @param update_qalys_fn Update Quality Adjusted Life Years (a function), Default: identity
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_project_test_ds
+#' @export 
+#' @importFrom dplyr group_by arrange mutate lag ungroup filter across
+#' @importFrom serious add_new_uid
+#' @importFrom tidyselect all_of
+#' @keywords internal
+make_project_test_ds <- function (model_data_ls, update_qalys_fn = identity) 
+{
+    X_Ready4useDyad <- renewSlot(model_data_ls$unimputed_ls$OutcomesAllWide_r4, 
+        "ds_tb", model_data_ls$unimputed_ls$OutcomesAllWide_r4@ds_tb %>% 
+            dplyr::group_by(UID) %>% dplyr::arrange(Period) %>% 
+            dplyr::mutate(Minutes = dplyr::lag(Minutes_change, 
+                default = 0) + Minutes_change) %>% dplyr::ungroup() %>% 
+            dplyr::arrange(UID, Period) %>% dplyr::filter(as.character(Period) == 
+            "0 to 12 Weeks") %>% serious::add_new_uid("UID", 
+            recode_1L_lgl = T, recode_pfx_1L_chr = "") %>% dplyr::mutate(gender = as.factor(gender), 
+            dplyr::across(tidyselect::all_of(c("Age", "gad7", 
+                "k10", "phq9", "AQoL6D", "CHU9D")), ~as.double(.x))) %>% 
+            dplyr::mutate(dplyr::across(c("AQoL6D_QALYs", "CHU9D_QALYs"), 
+                ~update_qalys_fn(.x))) %>% dplyr::group_by(Period) %>% 
+            dplyr::ungroup() %>% dplyr::arrange(UID) %>% dplyr::mutate(UID = as.character(as.numeric(UID)))) %>% 
+        update_previous(modifiable_chr = c("treatment_status", 
+            "Minutes", "k10", "AQoL6D", "CHU9D", "AQoL6D_QALYs", 
+            "CHU9D_QALYs")) %>% update_previous(modifiable_chr = c("treatment_status", 
+        "Minutes", "k10", "AQoL6D", "CHU9D", "AQoL6D_QALYs", 
+        "CHU9D_QALYs"), pattern_1L_chr = "{col}_start")
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(dplyr::across(c("Minutes_previous", "Minutes_start"), 
+            ~0)))
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(dplyr::across(c("AQoL6D_QALYs", "CHU9D_QALYs"), 
+            ~update_qalys_fn(.x))))
+    return(X_Ready4useDyad)
+}
 #' Make project time series dataset
 #' @description make_project_ts_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project time series dataset. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2660,36 +2769,64 @@ make_regressions_ls <- function ()
 #' Make report data
 #' @description make_report_data() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make report data. The function returns Data (an output object of multiple potential types).
 #' @param model_data_ls Model data (a list), Default: NULL
+#' @param date_end_dtm Date end (a date vector), Default: as.POSIXct("2023-07-01")
+#' @param date_start_dtm Date start (a date vector), Default: as.POSIXct("2023-06-01")
+#' @param period_dtm Period (a date vector), Default: lubridate::years(1)
 #' @param platform_1L_chr Platform (a character vector of length one), Default: 'Intervention'
 #' @param processed_ls Processed (a list), Default: NULL
 #' @param regressions_ls Regressions (a list), Default: NULL
 #' @param sim_results_ls Sim results (a list), Default: NULL
+#' @param timepoint_1L_chr Timepoint (a character vector of length one), Default: character(0)
 #' @param transformations_chr Transformations (a character vector), Default: character(0)
-#' @param what_1L_chr What (a character vector of length one), Default: c("descriptives", "costadj", "costitem", "costsum", "costunit", 
-#'    "minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", 
-#'    "outcomeslong", "paramscost", "paramsk10", "resultsaqol", 
+#' @param type_1L_chr Type (a character vector of length one), Default: 'full_combos'
+#' @param ungroup_1L_lgl Ungroup (a logical vector of length one), Default: FALSE
+#' @param weeks_int Weeks (an integer vector), Default: integer(0)
+#' @param what_1L_chr What (a character vector of length one), Default: c("descriptives", "composite", "costadj", "costitem", "costsum", 
+#'    "costunit", "minutes", "mnl-wait", "mnl-tx", "mnl-disc", 
+#'    "outcomes", "outcomeslong", "paramscost", "paramsk10", "resultsaqol", 
 #'    "resultschu", "resultsoutcomes", "resultseconomic", "serviceuse", 
 #'    "serviceusecost")
 #' @return Data (an output object of multiple potential types)
 #' @rdname make_report_data
 #' @export 
-#' @importFrom dplyr mutate across where select arrange rename everything group_by summarise inner_join filter case_when n ungroup first left_join
+#' @importFrom lubridate years weeks
+#' @importFrom dplyr bind_rows filter select mutate across where group_by summarise first arrange rename everything inner_join case_when n ungroup lag left_join
+#' @importFrom tidyselect all_of any_of
 #' @importFrom scales dollar
 #' @importFrom tidyr pivot_wider
 #' @importFrom youthvars YouthvarsProfile
 #' @importFrom stringr str_replace_all
-#' @importFrom tidyselect any_of
-#' @importFrom lubridate years
+#' @importFrom purrr reduce
+#' @importFrom rlang sym
 #' @keywords internal
-make_report_data <- function (model_data_ls = NULL, platform_1L_chr = "Intervention", 
-    processed_ls = NULL, regressions_ls = NULL, sim_results_ls = NULL, 
-    transformations_chr = character(0), what_1L_chr = c("descriptives", 
-        "costadj", "costitem", "costsum", "costunit", "minutes", 
-        "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", "outcomeslong", 
-        "paramscost", "paramsk10", "resultsaqol", "resultschu", 
-        "resultsoutcomes", "resultseconomic", "serviceuse", "serviceusecost")) 
+make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2023-07-01"), 
+    date_start_dtm = as.POSIXct("2023-06-01"), period_dtm = lubridate::years(1), 
+    platform_1L_chr = "Intervention", processed_ls = NULL, regressions_ls = NULL, 
+    sim_results_ls = NULL, timepoint_1L_chr = character(0), transformations_chr = character(0), 
+    type_1L_chr = "full_combos", ungroup_1L_lgl = FALSE, weeks_int = integer(0), 
+    what_1L_chr = c("descriptives", "composite", "costadj", "costitem", 
+        "costsum", "costunit", "minutes", "mnl-wait", "mnl-tx", 
+        "mnl-disc", "outcomes", "outcomeslong", "paramscost", 
+        "paramsk10", "resultsaqol", "resultschu", "resultsoutcomes", 
+        "resultseconomic", "serviceuse", "serviceusecost")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "composite") {
+        OUTCOMES <- make_report_data(model_data_ls = model_data_ls, 
+            platform_1L_chr = platform_1L_chr, what_1L_chr = "outcomes")
+        vars_chr <- c("UID", "platform", "clinic_type", "clinic_state", 
+            "treatment_status", "Age", "gender", "employment_status")
+        data_xx <- renewSlot(OUTCOMES, "ds_tb", dplyr::bind_rows(OUTCOMES@ds_tb %>% 
+            dplyr::filter(MeasurementWeek == "Week0") %>% dplyr::select(tidyselect::all_of(vars_chr)) %>% 
+            dplyr::mutate(dplyr::across(dplyr::where(is.factor), 
+                ~as.character(.x)), Dataset = "Outcomes"), processed_ls$contacts@ds_tb %>% 
+            add_treatment_status(three_levels_1L_lgl = T, type_1L_int = 1) %>% 
+            dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(tidyselect::all_of(setdiff(vars_chr, 
+            "UID")), ~dplyr::first(.x))) %>% dplyr::mutate(Dataset = "Contacts"), 
+            processed_ls$overview@ds_tb %>% add_treatment_status(three_levels_1L_lgl = T, 
+                type_1L_int = 1) %>% dplyr::select(tidyselect::all_of(vars_chr)) %>% 
+                dplyr::mutate(Dataset = "Complete")))
+    }
     if (what_1L_chr == "costadj") {
         data_xx <- processed_ls$costs_adjusted@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
             ~scales::dollar(.x))) %>% dplyr::select(Scenario, 
@@ -2781,17 +2918,17 @@ make_report_data <- function (model_data_ls = NULL, platform_1L_chr = "Intervent
             stringr::str_replace_all("O O S  ", "Occasion of Service ")) %>% 
             dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, 
                 "Low") | endsWith(Parameter, "Moderate") | endsWith(Parameter, 
-                "High") ~ paste0(Parameter, "Baseline Distress"), 
+                "High") ~ paste0(Parameter, " Baseline Distress"), 
                 T ~ Parameter))
     }
     if (what_1L_chr == "resultsaqol") {
         data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
-            platform_1L_chr = platform_1L_chr, what_1L_chr = "full_combos", 
+            platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
             select_1L_chr = "AQoL-6D")
     }
     if (what_1L_chr == "resultschu") {
         data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
-            platform_1L_chr = platform_1L_chr, what_1L_chr = "full_combos", 
+            platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
             select_1L_chr = "CHU-9D")
     }
     if (what_1L_chr == "resultsoutcomes") {
@@ -2806,29 +2943,72 @@ make_report_data <- function (model_data_ls = NULL, platform_1L_chr = "Intervent
             type_1L_chr = "economic")
     }
     if (what_1L_chr %in% c("serviceuse", "serviceusecost")) {
-        data_xx <- renewSlot(processed_ls$contacts, "ds_tb", 
-            processed_ls$overview@ds_tb %>% dplyr::filter(onboarding_date >= 
-                as.POSIXct("2023-06-01") & onboarding_date < 
-                as.POSIXct("2023-07-01")) %>% dplyr::select(tidyselect::any_of(c("UID", 
-                c("platform", "clinic_type", "Age", "gender", 
-                  "employment_status", "clinic_state")))) %>% 
-                dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(dplyr::everything(), 
-                ~dplyr::first(.))) %>% dplyr::left_join(processed_ls$contacts@ds_tb %>% 
-                dplyr::filter(onboarding_date >= as.POSIXct("2023-06-01") & 
-                  onboarding_date < as.POSIXct("2023-07-01")) %>% 
-                dplyr::group_by(UID) %>% dplyr::mutate(cutoffdate = dplyr::first(onboarding_date) + 
-                lubridate::years(1)) %>% dplyr::filter(date_contacted <= 
-                cutoffdate) %>% dplyr::summarise(dplyr::across("onboarding_date", 
-                ~dplyr::first(.)), dplyr::across(dplyr::where(is.numeric), 
-                ~sum(.))) %>% dplyr::select(-Age)) %>% dplyr::mutate(dplyr::across(c("direct_mins", 
-                "indirect_mins", "Minutes"), ~dplyr::case_when(is.na(.) ~ 
-                0, T ~ .))))
+        if (!is.null(model_data_ls)) {
+            demographics_tb <- model_data_ls$imputed_ls$Joiners_r4@ds_tb %>% 
+                dplyr::filter(Onboarded == 1) %>% dplyr::rename(onboarding_date = Date)
+        }
+        else {
+            demographics_tb <- processed_ls$overview@ds_tb
+        }
+        if ("gender" %in% transformations_chr) {
+            demographics_tb <- update_gender(demographics_tb)
+        }
+        if (!identical(weeks_int, integer(0))) {
+            data_xx <- purrr::reduce(weeks_int, .init = make_report_data(model_data_ls = model_data_ls, 
+                processed_ls = processed_ls, date_end_dtm = date_end_dtm, 
+                date_start_dtm = date_start_dtm, period_dtm = lubridate::weeks(0), 
+                platform_1L_chr = platform_1L_chr, timepoint_1L_chr = "Week0", 
+                transformations_chr = transformations_chr, what_1L_chr = what_1L_chr) %>% 
+                renewSlot("ds_tb", .@ds_tb %>% dplyr::filter(F)), 
+                ~renewSlot(.x, "ds_tb", dplyr::bind_rows(.x@ds_tb, 
+                  make_report_data(model_data_ls = model_data_ls, 
+                    processed_ls = processed_ls, date_end_dtm = date_end_dtm, 
+                    date_start_dtm = date_start_dtm, period_dtm = lubridate::weeks(.y), 
+                    platform_1L_chr = platform_1L_chr, timepoint_1L_chr = paste0("Week", 
+                      .y), transformations_chr = transformations_chr, 
+                    what_1L_chr = what_1L_chr) %>% procureSlot("ds_tb"))))
+            data_xx <- renewSlot(data_xx, "ds_tb", setdiff(data_xx@ds_tb %>% 
+                dplyr::ungroup() %>% dplyr::select(dplyr::where(is.numeric)) %>% 
+                names(), "Age") %>% purrr::reduce(.init = data_xx@ds_tb %>% 
+                dplyr::arrange(UID, onboarding_date) %>% dplyr::group_by(UID), 
+                ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(.y, 
+                  "_change")), !!rlang::sym(.y) - dplyr::lag(!!rlang::sym(.y), 
+                  default = 0)), `:=`(!!rlang::sym(.y), !!rlang::sym(.y) - 
+                  !!rlang::sym(paste0(.y, "_change"))))) %>% 
+                dplyr::ungroup())
+        }
+        else {
+            data_xx <- renewSlot(processed_ls$contacts, "ds_tb", 
+                demographics_tb %>% dplyr::filter(onboarding_date >= 
+                  date_start_dtm & onboarding_date < date_end_dtm) %>% 
+                  dplyr::select(tidyselect::any_of(c("UID", c("onboarding_date", 
+                    "platform", "clinic_type", "Age", "gender", 
+                    "employment_status", "clinic_state")))) %>% 
+                  dplyr::group_by(UID) %>% dplyr::summarise(dplyr::across(dplyr::everything(), 
+                  ~dplyr::first(.))) %>% dplyr::left_join(processed_ls$contacts@ds_tb %>% 
+                  dplyr::filter(onboarding_date >= date_start_dtm & 
+                    onboarding_date < date_end_dtm) %>% dplyr::group_by(UID) %>% 
+                  dplyr::mutate(cutoffdate = dplyr::first(onboarding_date) + 
+                    period_dtm) %>% dplyr::filter(date_contacted <= 
+                  cutoffdate) %>% dplyr::summarise(dplyr::across(dplyr::where(is.numeric), 
+                  ~sum(.))) %>% dplyr::select(-Age)) %>% dplyr::mutate(dplyr::across(c("direct_mins", 
+                  "indirect_mins", "Minutes"), ~dplyr::case_when(is.na(.) ~ 
+                  0, T ~ .))) %>% dplyr::ungroup())
+        }
+        if (what_1L_chr == "serviceusecost") {
+            data_xx <- renewSlot(data_xx, "ds_tb", add_cost_calculations(data_xx@ds_tb, 
+                inputs_ls = list(unit_costs_tb = processed_ls$costs_unit@ds_tb), 
+                add_fixed_1L_lgl = T) %>% dplyr::mutate(Contact = dplyr::case_when(Minutes > 
+                0 ~ TRUE, TRUE ~ FALSE)))
+        }
+        if (!identical(timepoint_1L_chr, character(0))) {
+            data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% 
+                dplyr::mutate(MeasurementWeek = timepoint_1L_chr))
+        }
     }
-    if (what_1L_chr == "serviceusecost") {
-        data_xx <- renewSlot(data_xx, "ds_tb", add_cost_calculations(data_xx@ds_tb, 
-            inputs_ls = list(unit_costs_tb = processed_ls$costs_unit@ds_tb), 
-            add_fixed_1L_lgl = T) %>% dplyr::mutate(Contact = dplyr::case_when(Minutes > 
-            0 ~ TRUE, TRUE ~ FALSE)))
+    if (ungroup_1L_lgl) {
+        data_xx <- renewSlot(data_xx, "ds_tb", data_xx@ds_tb %>% 
+            dplyr::ungroup())
     }
     return(data_xx)
 }
@@ -2921,8 +3101,6 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' Make results synthesis
 #' @description make_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results synthesis. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
-#' @param Y_Ready4useDyad PARAM_DESCRIPTION
-#' @param Z_Ready4useDyad PARAM_DESCRIPTION
 #' @param add_severity_1L_lgl Add severity (a logical vector of length one), Default: TRUE
 #' @param exclude_chr Exclude (a character vector), Default: c("Adult", "Period", "MeasurementWeek", "treatment_fraction", 
 #'    "treatment_measurement", "treatment_start")
@@ -2930,22 +3108,29 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' @param keep_chr Keep (a character vector), Default: c("platform", "clinic_state", "clinic_type", "Age", "gender", 
 #'    "employment_status")
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
+#' @param results_ls Results (a list), Default: NULL
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
+#' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param Z_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
 #' @return A (A dataset and data dictionary pair.)
 #' @rdname make_results_synthesis
 #' @export 
+#' @importFrom ready4use Ready4useDyad
 #' @importFrom dplyr mutate case_when
 #' @keywords internal
-make_results_synthesis <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDyad, 
-    add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", "Period", 
-        "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
-        "treatment_start"), exclude_suffixes_chr = c("_change", 
-        "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
-        "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
-    modifiable_chr = character(0), type_1L_chr = c("D", "AB", 
-        "C")) 
+make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", 
+    "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
+    "treatment_start"), exclude_suffixes_chr = c("_change", "_date", 
+    "_previous", "52_Weeks"), keep_chr = c("platform", "clinic_state", 
+    "clinic_type", "Age", "gender", "employment_status"), modifiable_chr = character(0), 
+    results_ls = NULL, type_1L_chr = c("D", "AB", "C"), Y_Ready4useDyad = ready4use::Ready4useDyad(), 
+    Z_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (!is.null(results_ls)) {
+        Y_Ready4useDyad = results_ls$Y_Ready4useDyad
+        Z_Ready4useDyad = results_ls$Z_Ready4useDyad
+    }
     A_Ready4useDyad <- make_composite_results(X_Ready4useDyad, 
         Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad, 
         exclude_chr = exclude_chr, exclude_suffixes_chr = exclude_suffixes_chr, 
@@ -3082,6 +3267,7 @@ make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L
 #' @param population_ls Population (a list)
 #' @param model_data_ls Model data (a list), Default: NULL
 #' @param comparison_1L_chr Comparison (a character vector of length one), Default: c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners", "Outcomes")
+#' @param ... Additional arguments
 #' @return Synthetic tests (a list)
 #' @rdname make_synthetic_tests
 #' @export 
@@ -3090,7 +3276,7 @@ make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L
 #' @importFrom synthpop compare
 #' @keywords internal
 make_synthetic_tests <- function (population_ls, model_data_ls = NULL, comparison_1L_chr = c("OutcomesJoinersImputed", 
-    "Joiners", "OutcomesJoiners", "Outcomes")) 
+    "Joiners", "OutcomesJoiners", "Outcomes"), ...) 
 {
     comparison_1L_chr <- match.arg(comparison_1L_chr)
     if (comparison_1L_chr == "Joiners") {
@@ -3121,8 +3307,54 @@ make_synthetic_tests <- function (population_ls, model_data_ls = NULL, compariso
         original_tb <- dplyr::cross_join(original_tb, extras_tb)
     }
     synthetic_tests_ls <- synthpop::compare(population_ls$fully_synthetic_ls$synthetic_ls, 
-        original_tb, print.flag = F)
+        original_tb, print.flag = F, ...)
     return(synthetic_tests_ls)
+}
+#' Make test comparisons
+#' @description make_test_comparisons() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make test comparisons. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("full", "wsummary", "lsummary")
+#' @return Z (A dataset and data dictionary pair.)
+#' @rdname make_test_comparisons
+#' @export 
+#' @importFrom ready4use Ready4useDyad add_dictionary
+#' @importFrom dplyr select mutate select_if group_by summarise across where filter left_join
+#' @importFrom tidyr any_of pivot_longer
+#' @keywords internal
+make_test_comparisons <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
+    type_1L_chr = c("full", "wsummary", "lsummary")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (!identical(Y_Ready4useDyad, ready4use::Ready4useDyad())) {
+        Z_Ready4useDyad <- make_predd_observed_ds(renewSlot(X_Ready4useDyad, 
+            "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::select(tidyr::any_of(names(Y_Ready4useDyad@ds_tb))) %>% 
+                dplyr::mutate(UID = as.integer(UID))), Y_Ready4useDyad = Y_Ready4useDyad)
+        Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+            Z_Ready4useDyad@ds_tb %>% dplyr::select_if(~!any(is.na(.))))
+    }
+    else {
+        Z_Ready4useDyad <- X_Ready4useDyad
+    }
+    if (type_1L_chr %in% c("wsummary", "lsummary")) {
+        Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+            Z_Ready4useDyad@ds_tb %>% dplyr::group_by(Data) %>% 
+                dplyr::summarise(dplyr::across(dplyr::where(is.numeric), 
+                  ~mean(.x))))
+        if (type_1L_chr == "lsummary") {
+            Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+                Z_Ready4useDyad@ds_tb %>% dplyr::filter(Data == 
+                  "Observed") %>% tidyr::pivot_longer(cols = dplyr::where(is.numeric), 
+                  names_to = "Variable", values_to = "Observed") %>% 
+                  dplyr::select(-Data) %>% dplyr::left_join(Z_Ready4useDyad@ds_tb %>% 
+                  dplyr::filter(Data == "Simulated") %>% tidyr::pivot_longer(cols = dplyr::where(is.numeric), 
+                  names_to = "Variable", values_to = "Simulated") %>% 
+                  dplyr::select(-Data)))
+            Z_Ready4useDyad <- ready4use::Ready4useDyad(ds_tb = Z_Ready4useDyad@ds_tb) %>% 
+                ready4use::add_dictionary()
+        }
+    }
+    return(Z_Ready4useDyad)
 }
 #' Make two part model
 #' @description make_two_part_mdl() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make two part model. The function returns Model (a model).

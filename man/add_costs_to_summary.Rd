@@ -9,9 +9,13 @@ add_costs_to_summary(
   processed_ls,
   periods_1L_int = 26,
   arrange_1L_chr = character(0),
+  bind_to_tb = NULL,
+  cost_tfmn_fn = identity,
   reference_1L_chr = "Status quo",
   tfmn_fn = identity,
-  type_1L_chr = c("change_scenario", "change_sq", "scenario", "sq")
+  type_1L_chr = c("change_scenario", "change_scen_sq", "change_sq", "scenario",
+    "scen_sq", "sq", "summary_scenario"),
+  unit_1L_chr = c("minutes", "clients")
 )
 }
 \arguments{
@@ -23,11 +27,18 @@ add_costs_to_summary(
 
 \item{arrange_1L_chr}{Arrange (a character vector of length one), Default: character(0)}
 
+\item{bind_to_tb}{Bind to (a tibble), Default: NULL}
+
+\item{cost_tfmn_fn}{Cost transformation (a function), Default: identity}
+
 \item{reference_1L_chr}{Reference (a character vector of length one), Default: 'Status quo'}
 
 \item{tfmn_fn}{Transformation (a function), Default: identity}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("change_scenario", "change_sq", "scenario", "sq")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario",
+"scen_sq", "sq", "summary_scenario")}
+
+\item{unit_1L_chr}{Unit (a character vector of length one), Default: c("minutes", "clients")}
 }
 \value{
 Summaries (a list)

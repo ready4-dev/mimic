@@ -41,27 +41,51 @@ import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", 
 #' @description import_project_data() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import project data. The function returns Data (a list).
 #' @param path_to_private_1L_chr Path to private (a character vector of length one)
 #' @param dir_1L_chr Directory (a character vector of length one)
+#' @param custom_1L_chr Custom (a character vector of length one), Default: character(0)
 #' @param r_dir_1L_chr R directory (a character vector of length one), Default: 'R'
 #' @param divider_1L_chr Divider (a character vector of length one), Default: '\'
 #' @param names_ls Names (a list), Default: NULL
-#' @param type_1L_chr Type (a character vector of length one), Default: c("raw", "experts", "forecasts", "processed", "modelling", "pooled", 
-#'    "population", "regressions", "results", "simulation")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("raw", "experts", "custom", "forecasts", "processed", "modelling", 
+#'    "pooled", "population", "regressions", "results", "simulation", 
+#'    "summaries", "validation")
 #' @return Data (a list)
 #' @rdname import_project_data
 #' @export 
 #' @importFrom assertthat assert_that
-#' @importFrom purrr map flatten_chr
-#' @importFrom readxl read_xlsx
-#' @importFrom stats setNames
 #' @importFrom stringr str_sub
+#' @importFrom purrr map flatten_chr
+#' @importFrom stats setNames
+#' @importFrom readxl read_xlsx
 #' @importFrom ready4use Ready4useDyad
 #' @keywords internal
-import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_chr = "R", 
-    divider_1L_chr = "\\", names_ls = NULL, type_1L_chr = c("raw", 
-        "experts", "forecasts", "processed", "modelling", "pooled", 
-        "population", "regressions", "results", "simulation")) 
+import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_chr = character(0), 
+    r_dir_1L_chr = "R", divider_1L_chr = "\\", names_ls = NULL, 
+    type_1L_chr = c("raw", "experts", "custom", "forecasts", 
+        "processed", "modelling", "pooled", "population", "regressions", 
+        "results", "simulation", "summaries", "validation")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (type_1L_chr %in% c("custom", "forecasts", "pooled", "summaries", 
+        "validation")) {
+        if (type_1L_chr == "custom") {
+            assertthat::assert_that(!identical(custom_1L_chr, 
+                character(0)))
+            destination_1L_chr <- custom_1L_chr
+        }
+        else {
+            destination_1L_chr <- type_1L_chr
+        }
+        if (is.null(names_ls)) {
+            names_ls <- list.files(paste0(path_to_private_1L_chr, 
+                divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
+                divider_1L_chr, destination_1L_chr)) %>% stringr::str_sub(end = -5) %>% 
+                as.list()
+        }
+        data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
+            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
+            divider_1L_chr, destination_1L_chr, divider_1L_chr, 
+            .x, ".RDS"))) %>% stats::setNames(names_ls %>% purrr::flatten_chr())
+    }
     if (type_1L_chr == "raw") {
         test_1L_lgl <- assertthat::assert_that(!is.null(names_ls))
         data_ls <- purrr::map(names_ls, ~readxl::read_xlsx(paste0(path_to_private_1L_chr, 
@@ -72,16 +96,6 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_ch
             divider_1L_chr, dir_1L_chr, divider_1L_chr, "SEE", 
             divider_1L_chr, .x), skip = 1)) %>% stats::setNames(names_ls %>% 
             purrr::flatten_chr() %>% stringr::str_sub(end = -6))
-    }
-    if (type_1L_chr %in% c("forecasts")) {
-        names_ls <- list.files(paste0(path_to_private_1L_chr, 
-            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
-            divider_1L_chr, type_1L_chr)) %>% stringr::str_sub(end = -5) %>% 
-            as.list()
-        data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
-            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
-            divider_1L_chr, type_1L_chr, divider_1L_chr, .x, 
-            ".RDS"))) %>% stats::setNames(names_ls %>% purrr::flatten_chr())
     }
     if (type_1L_chr == "modelling") {
         if (is.null(names_ls)) {
@@ -96,12 +110,6 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, r_dir_1L_ch
                 end = -5))
         }) %>% stats::setNames(paste0(names_ls %>% unlist(), 
             "_ls"))
-    }
-    if (type_1L_chr %in% c("pooled")) {
-        data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
-            divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
-            divider_1L_chr, type_1L_chr, divider_1L_chr, .x, 
-            ".RDS"))) %>% stats::setNames(names_ls %>% purrr::flatten_chr())
     }
     if (type_1L_chr == "population") {
         data_ls <- c("real_imputed_ls", "fully_synthetic_ls", 
@@ -172,11 +180,17 @@ import_results_batches <- function (batches_1L_int, dir_1L_chr)
                 additions_ls
             }
             else {
-                list(Y_Ready4useDyad = renewSlot(.x$Y_Ready4useDyad, 
-                  "ds_tb", dplyr::bind_rows(.x$Y_Ready4useDyad@ds_tb, 
-                    additions_ls$Y_Ready4useDyad@ds_tb)), Z_Ready4useDyad = renewSlot(.x$Z_Ready4useDyad, 
-                  "ds_tb", dplyr::bind_rows(.x$Z_Ready4useDyad@ds_tb, 
-                    additions_ls$Z_Ready4useDyad@ds_tb)))
+                y_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Y_Ready4useDyad, 
+                  Y_Ready4useDyad = additions_ls$Y_Ready4useDyad) %>% 
+                  update_mismatched_vars()
+                z_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Z_Ready4useDyad, 
+                  Y_Ready4useDyad = additions_ls$Z_Ready4useDyad) %>% 
+                  update_mismatched_vars()
+                list(Y_Ready4useDyad = renewSlot(y_dyad_ls$X_Ready4useDyad, 
+                  "ds_tb", dplyr::bind_rows(y_dyad_ls$X_Ready4useDyad@ds_tb, 
+                    y_dyad_ls$Y_Ready4useDyad@ds_tb)), Z_Ready4useDyad = renewSlot(z_dyad_ls$X_Ready4useDyad, 
+                  "ds_tb", dplyr::bind_rows(z_dyad_ls$X_Ready4useDyad@ds_tb, 
+                    z_dyad_ls$Y_Ready4useDyad@ds_tb)))
             }
         })
     return(results_ls)
