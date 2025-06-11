@@ -764,25 +764,26 @@ make_project_aqol6d_mdls <- function (X_Ready4useDyad)
     Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
         vars_chr = c("AQoL6D_12_Weeks"))
     aqol6d_ls <- list(OLS_1_mdl = lm(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb))
     aqol6d_ls$GLM_GSN_2_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
-        family = gaussian())
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = gaussian())
     aqol6d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
-        family = gaussian(link = "log"))
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
     aqol6d_ls$GLM_GMA_4_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
-        family = Gamma(link = "inverse"))
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
     aqol6d_ls$GLM_CLL_5_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
-        family = binomial(link = "cloglog"))
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cloglog"))
     aqol6d_ls$BET_CLL_6_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
-        link = "cloglog")
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, link = "cloglog")
     aqol6d_ls$BET_LGT_7_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ 
-        AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
-        link = "logit")
+        AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, link = "logit")
     return(aqol6d_ls)
 }
 #' Make project CHU-9D models
@@ -798,47 +799,47 @@ make_project_chu9d_mdls <- function (X_Ready4useDyad)
     Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
         vars_chr = c("CHU9D_12_Weeks"))
     chu9d_ls <- list(OLS_1_mdl = lm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb))
     chu9d_ls$GLM_GSN_2_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, family = gaussian())
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = gaussian())
     chu9d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
     chu9d_ls$GLM_GSN_INV_4_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
     chu9d_ls$GLM_GMA_6_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma())
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = Gamma())
     chu9d_ls$GLM_GMA_LOG_7_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
     chu9d_ls$GLM_GMA_INV_8_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
     chu9d_ls$GLM_BNL_LGT_9_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "logit"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = binomial(link = "logit"))
     chu9d_ls$GLM_BNL_PBT_10_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "probit"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = binomial(link = "probit"))
     chu9d_ls$GLM_BNL_CAU_11_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cauchit"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cauchit"))
     chu9d_ls$GLM_QSB_LGT_12_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "logit"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "logit"))
     chu9d_ls$GLM_QSB_CLL_13_mdl <- glm(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "cloglog"))
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "cloglog"))
     chu9d_ls$BET_CLL_14_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "cloglog")
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, link = "cloglog")
     chu9d_ls$BET_LGT_15_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ 
-        Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + 
-            Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "logit")
+        Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
+        data = Y_Ready4useDyad@ds_tb, link = "logit")
     return(chu9d_ls)
 }
 #' Make project consolidated dataset

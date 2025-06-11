@@ -115,55 +115,149 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
   }
   return(data_tb)
 }
-add_cost_effectiveness <- function(data_tb,
-                                   cost_1L_chr = "Cost",
-                                   dominance_1L_chr = character(0),
-                                   effect_1L_chr = "QALYs",
-                                   icer_1L_chr = character(0),
-                                   suffix_1L_chr = "",
-                                   threshold_1L_dbl = 96000){
-  if(identical(icer_1L_chr, character(0))){
+add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_chr = character(0), 
+                                    effect_1L_chr = "QALYs", icer_1L_chr = character(0), suffix_1L_chr = "", 
+                                    threshold_1L_dbl = 96000) 
+{
+  if (identical(icer_1L_chr, character(0))) {
     icer_1L_chr <- paste0("ICER", suffix_1L_chr)
   }
-  if(identical(dominance_1L_chr, character(0))){
+  if (identical(dominance_1L_chr, character(0))) {
     dominance_1L_chr <- paste0("Dominance", suffix_1L_chr)
   }
-  data_tb <- data_tb %>%
-    dplyr::mutate(!!rlang::sym(paste0("CE", suffix_1L_chr)) := !!rlang::sym(icer_1L_chr)  %>% 
-                    purrr::map2_dbl(!!rlang::sym(dominance_1L_chr), 
-                                    ~ifelse(.y == "Ratio", 
-                                            ifelse(.x <= threshold_1L_dbl, 1, 0), 
-                                            ifelse(.y == "Dominant", 1, 0))))
-  data_tb <- data_tb %>% 
-    dplyr::mutate(!!rlang::sym(paste0("CE", suffix_1L_chr)) := data_tb %>% dplyr::select(!!rlang::sym(paste0("CE", suffix_1L_chr)), !!rlang::sym(cost_1L_chr), !!rlang::sym(effect_1L_chr)) %>%
-                    purrr::pmap_dbl(~ifelse(..2>=0 & ..3<=0,
-                                            (!(..1==1)) %>% as.numeric(),
-                                            ..1)))
+  data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("CE", 
+                                                                suffix_1L_chr)), !!rlang::sym(icer_1L_chr) %>% purrr::map2_dbl(!!rlang::sym(dominance_1L_chr), 
+                                                                                                                               ~ifelse(.y == "Ratio", ifelse(.x <= threshold_1L_dbl, 
+                                                                                                                                                             1, 0), ifelse(.y == "Dominant", 1, 0)))))
+  data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("CE", 
+                                                                suffix_1L_chr)), 
+                                            data_tb %>% dplyr::select(!!rlang::sym(paste0("CE", 
+                                                                                          suffix_1L_chr)), !!rlang::sym(cost_1L_chr), !!rlang::sym(effect_1L_chr), !!rlang::sym(dominance_1L_chr)) %>% 
+                                              purrr::pmap_dbl(~ifelse(..2 < 0 & ..3 < 0, 
+                                                                      (!(..1 == 1)) %>% as.numeric(),
+                                                                      ..1))))
   return(data_tb)
 }
-add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", "CHU9D")) {
-  data_tb <- purrr::reduce(utilities_chr,.init = data_tb,
+add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
+                                                                                               "CHU9D")) 
+{
+  data_tb <- purrr::reduce(utilities_chr, .init = data_tb, 
                            ~{
                              utility_1L_chr <- .y
-                             .x %>% 
-                               add_dominated(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, "")) %>%
-                               add_dominated(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, "_S10")) %>%
-                               add_dominated(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S01")) %>%
-                               add_dominated(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S02")) %>%
-                               add_dominated(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S11")) %>%
-                               add_dominated(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S12")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, "")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, "_S10")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S01")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S02")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S11")) %>%
-                               add_icer(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S12")) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, ""), threshold_1L_dbl = threshold_1L_dbl) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1",""), suffix_1L_chr = paste0("_", utility_1L_chr, "_S10"), threshold_1L_dbl = threshold_1L_dbl) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S01"), threshold_1L_dbl = threshold_1L_dbl) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost",""), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S02"), threshold_1L_dbl = threshold_1L_dbl) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S11"), threshold_1L_dbl = threshold_1L_dbl) %>%
-                               add_cost_effectiveness(cost_1L_chr = paste0("Cost","_S1"), effect_1L_chr = paste0(utility_1L_chr,"_QALYs_YR1","_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, "_S12"), threshold_1L_dbl = threshold_1L_dbl)
+                             .x %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                       ""), 
+                                                  effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                                         ""), 
+                                                  suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                                         "")) %>% 
+                               add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                  "_S1"), 
+                                             effect_1L_chr = paste0(utility_1L_chr, 
+                                                                    "_QALYs_YR1", ""), 
+                                             suffix_1L_chr = paste0("_", 
+                                                                    utility_1L_chr, "_S10")) %>% 
+                               add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                  ""), 
+                                             effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                                    "_S1"), 
+                                             suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                                    "_S01")) %>% 
+                               add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                  ""), 
+                                             effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                                    "_S2"), 
+                                             suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                                    "_S02")) %>% 
+                               add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                  "_S1"), 
+                                             effect_1L_chr = paste0(utility_1L_chr, 
+                                                                    "_QALYs_YR1", "_S1"), 
+                                             suffix_1L_chr = paste0("_", 
+                                                                    utility_1L_chr, "_S11")) %>%
+                               add_dominated(cost_1L_chr = paste0("Cost", 
+                                                                  "_S1"), 
+                                             effect_1L_chr = paste0(utility_1L_chr, 
+                                                                    "_QALYs_YR1", "_S2"), 
+                                             suffix_1L_chr = paste0("_", 
+                                                                    utility_1L_chr, "_S12")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             ""), 
+                                        effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                               ""), 
+                                        suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                               "")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             "_S1"), 
+                                        effect_1L_chr = paste0(utility_1L_chr, 
+                                                               "_QALYs_YR1", ""), 
+                                        suffix_1L_chr = paste0("_", 
+                                                               utility_1L_chr, "_S10")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             ""), 
+                                        effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                               "_S1"), 
+                                        suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                               "_S01")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             ""), 
+                                        effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                               "_S2"), 
+                                        suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                               "_S02")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             "_S1"), 
+                                        effect_1L_chr = paste0(utility_1L_chr, 
+                                                               "_QALYs_YR1", "_S1"), 
+                                        suffix_1L_chr = paste0("_", 
+                                                               utility_1L_chr, "_S11")) %>% 
+                               add_icer(cost_1L_chr = paste0("Cost", 
+                                                             "_S1"), 
+                                        effect_1L_chr = paste0(utility_1L_chr, 
+                                                               "_QALYs_YR1", "_S2"), 
+                                        suffix_1L_chr = paste0("_", 
+                                                               utility_1L_chr, "_S12")) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           ""), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
+                                                                             ""), 
+                                                      suffix_1L_chr = paste0("_", utility_1L_chr, 
+                                                                             ""), 
+                                                      threshold_1L_dbl = threshold_1L_dbl) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           "_S1"), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, 
+                                                                             "_QALYs_YR1", ""), 
+                                                      suffix_1L_chr = paste0("_", 
+                                                                             utility_1L_chr, "_S10"), 
+                                                      threshold_1L_dbl = threshold_1L_dbl) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           ""), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, 
+                                                                             "_QALYs_YR1", "_S1"), 
+                                                      suffix_1L_chr = paste0("_", 
+                                                                             utility_1L_chr, "_S01"), 
+                                                      threshold_1L_dbl = threshold_1L_dbl) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           ""), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, 
+                                                                             "_QALYs_YR1", "_S2"), 
+                                                      suffix_1L_chr = paste0("_", 
+                                                                             utility_1L_chr, "_S02"), 
+                                                      threshold_1L_dbl = threshold_1L_dbl) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           "_S1"), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, 
+                                                                             "_QALYs_YR1", "_S1"), 
+                                                      suffix_1L_chr = paste0("_", 
+                                                                             utility_1L_chr, "_S11"),
+                                                      threshold_1L_dbl = threshold_1L_dbl) %>% 
+                               add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
+                                                                           "_S1"), 
+                                                      effect_1L_chr = paste0(utility_1L_chr, 
+                                                                             "_QALYs_YR1", "_S2"), 
+                                                      suffix_1L_chr = paste0("_", 
+                                                                             utility_1L_chr, "_S12"), 
+                                                      threshold_1L_dbl = threshold_1L_dbl)
                            })
   return(data_tb)
 }
@@ -932,7 +1026,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
                                          adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_method_1L_chr = c("Model", 
                                                                                                                 "Table"), sensitivities_ls = make_sensitivities_ls(), 
                                          suffix_1L_chr = character(0), tfmn_ls = make_class_tfmns(T), 
-                                         utilities_chr = c("AQoL6D", "CHU9D"), type_1L_chr = c("Model", 
+                                         utilities_chr = c("CHU9D", "AQoL6D"), type_1L_chr = c("Model", 
                                                                                                "Project")) 
 {
   type_1L_chr <- match.arg(type_1L_chr)

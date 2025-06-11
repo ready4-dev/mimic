@@ -201,9 +201,9 @@ add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_
             1, 0), ifelse(.y == "Dominant", 1, 0)))))
     data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("CE", 
         suffix_1L_chr)), data_tb %>% dplyr::select(!!rlang::sym(paste0("CE", 
-        suffix_1L_chr)), !!rlang::sym(cost_1L_chr), !!rlang::sym(effect_1L_chr)) %>% 
-        purrr::pmap_dbl(~ifelse(..2 >= 0 & ..3 <= 0, (!(..1 == 
-            1)) %>% as.numeric(), ..1))))
+        suffix_1L_chr)), !!rlang::sym(cost_1L_chr), !!rlang::sym(effect_1L_chr), 
+        !!rlang::sym(dominance_1L_chr)) %>% purrr::pmap_dbl(~ifelse(..2 < 
+        0 & ..3 < 0, (!(..1 == 1)) %>% as.numeric(), ..1))))
     return(data_tb)
 }
 #' Add cost effectiveness statistics
@@ -1433,7 +1433,7 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param suffix_1L_chr Suffix (a character vector of length one), Default: character(0)
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns(T)
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_outcomes_event_sequence
@@ -1447,7 +1447,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_method_1L_chr = c("Model", 
         "Table"), sensitivities_ls = make_sensitivities_ls(), 
     suffix_1L_chr = character(0), tfmn_ls = make_class_tfmns(T), 
-    utilities_chr = c("AQoL6D", "CHU9D"), type_1L_chr = c("Model", 
+    utilities_chr = c("CHU9D", "AQoL6D"), type_1L_chr = c("Model", 
         "Project")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)

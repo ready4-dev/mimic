@@ -13,7 +13,7 @@
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @param variable_unit_1L_chr Variable unit (a character vector of length one), Default: 'Minutes'
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname predict_comparator_pathway
@@ -25,7 +25,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-    utilities_chr = c("AQoL6D", "CHU9D"), variable_unit_1L_chr = "Minutes") 
+    utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
     if (is.null(draws_tb)) {
         draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
@@ -108,7 +108,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @param variable_unit_1L_chr Variable unit (a character vector of length one), Default: 'Minutes'
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname predict_digital_pathway
@@ -120,7 +120,7 @@ predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offse
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-    utilities_chr = c("AQoL6D", "CHU9D"), variable_unit_1L_chr = "Minutes") 
+    utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
     if (is.null(draws_tb)) {
         draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 

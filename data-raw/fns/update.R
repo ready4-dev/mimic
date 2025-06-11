@@ -145,7 +145,7 @@ update_project_test_cmprsns <- function(X_Ready4useDyad){
 }
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
                           follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(),
-                          tidy_1L_lgl = FALSE, utilities_chr = c("AQoL6D", "CHU9D")) 
+                          tidy_1L_lgl = FALSE, utilities_chr = c("CHU9D", "AQoL6D")) 
 {
   sensitivity_1L_int <- integer(0)
   if (add_sensitivity_1L_lgl) {

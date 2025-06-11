@@ -14,7 +14,7 @@ add_outcomes_event_sequence(
   sensitivities_ls = make_sensitivities_ls(),
   suffix_1L_chr = character(0),
   tfmn_ls = make_class_tfmns(T),
-  utilities_chr = c("AQoL6D", "CHU9D"),
+  utilities_chr = c("CHU9D", "AQoL6D"),
   type_1L_chr = c("Model", "Project")
 )
 }
@@ -37,7 +37,7 @@ add_outcomes_event_sequence(
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
 
-\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+\item{utilities_chr}{Utilities (a character vector), Default: c("CHU9D", "AQoL6D")}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project")}
 }

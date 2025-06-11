@@ -12,7 +12,7 @@ update_qalys(
   maintain_for_1L_int = 0,
   sensitivities_ls = make_sensitivities_ls(),
   tidy_1L_lgl = FALSE,
-  utilities_chr = c("AQoL6D", "CHU9D")
+  utilities_chr = c("CHU9D", "AQoL6D")
 )
 }
 \arguments{
@@ -30,7 +30,7 @@ update_qalys(
 
 \item{tidy_1L_lgl}{Tidy (a logical vector of length one), Default: FALSE}
 
-\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+\item{utilities_chr}{Utilities (a character vector), Default: c("CHU9D", "AQoL6D")}
 }
 \value{
 X (A dataset and data dictionary pair.)

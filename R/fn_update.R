@@ -293,7 +293,7 @@ update_project_test_cmprsns <- function (X_Ready4useDyad)
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tidy_1L_lgl Tidy (a logical vector of length one), Default: FALSE
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_qalys
 #' @export 
@@ -304,7 +304,7 @@ update_project_test_cmprsns <- function (X_Ready4useDyad)
 #' @keywords internal
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
     follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(), 
-    tidy_1L_lgl = FALSE, utilities_chr = c("AQoL6D", "CHU9D")) 
+    tidy_1L_lgl = FALSE, utilities_chr = c("CHU9D", "AQoL6D")) 
 {
     sensitivity_1L_int <- integer(0)
     if (add_sensitivity_1L_lgl) {

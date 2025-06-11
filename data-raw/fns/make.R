@@ -402,52 +402,77 @@ make_project_activity_ds <- function(raw_data_ls,
   }
   return(activity_tb)
 }
-make_project_aqol6d_mdls <- function(X_Ready4useDyad){
-  Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, vars_chr = c("AQoL6D_12_Weeks")) 
-  aqol6d_ls <- list(OLS_1_mdl = lm(formula = AQoL6D_12_Weeks ~ AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
-  aqol6d_ls$GLM_GSN_2_mdl <- glm(formula = AQoL6D_12_Weeks ~  AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, family = gaussian())
-  ## With transofrmation
-  aqol6d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = AQoL6D_12_Weeks ~ AQoL6D + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
-  aqol6d_ls$GLM_GMA_4_mdl <- glm(formula = AQoL6D_12_Weeks ~ AQoL6D  + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
-  aqol6d_ls$GLM_CLL_5_mdl <- glm(formula = AQoL6D_12_Weeks ~ AQoL6D  + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cloglog")) #
-  aqol6d_ls$BET_CLL_6_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ AQoL6D  + k10 + k10_change+ Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "cloglog")
-  aqol6d_ls$BET_LGT_7_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ AQoL6D  + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "logit")
-  # AQoL6D_ls$OLS_CLL_8_mdl <- lm(formula = AQoL6D_12_Weeks ~ AQoL6D  + k10 + k10_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb %>% 
-  #                                 dplyr::mutate(AQoL6D_12_Weeks = AQoL6D_12_Weeks %>%
-  #                                                 specific::calculate_depnt_var_tfmn(tfmn_1L_chr = "CLL", tfmn_is_outp_1L_lgl = F))) #
+make_project_aqol6d_mdls<- function (X_Ready4useDyad) {
+  Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
+                                              vars_chr = c("AQoL6D_12_Weeks"))
+  aqol6d_ls <- list(OLS_1_mdl = lm(formula = AQoL6D_12_Weeks ~ 
+                                     AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+  aqol6d_ls$GLM_GSN_2_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
+                                   AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+                                 family = gaussian())
+  aqol6d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
+                                       AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
+                                     family = gaussian(link = "log"))
+  aqol6d_ls$GLM_GMA_4_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
+                                   AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
+                                 family = Gamma(link = "inverse"))
+  aqol6d_ls$GLM_CLL_5_mdl <- glm(formula = AQoL6D_12_Weeks ~ 
+                                   AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
+                                 family = binomial(link = "cloglog"))
+  aqol6d_ls$BET_CLL_6_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ 
+                                                AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
+                                              link = "cloglog")
+  aqol6d_ls$BET_LGT_7_mdl <- betareg::betareg(formula = AQoL6D_12_Weeks ~ 
+                                                AQoL6D + k10 + k10_change + CHU9D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, 
+                                              link = "logit")
   return(aqol6d_ls)
 }
-make_project_chu9d_mdls <- function(X_Ready4useDyad){
-  Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, vars_chr = c("CHU9D_12_Weeks")) 
-  # No transformation
-  chu9d_ls <- list(OLS_1_mdl = lm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
-  chu9d_ls$GLM_GSN_2_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, family = gaussian())
-  # With transformation
-  chu9d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
-  chu9d_ls$GLM_GSN_INV_4_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
-  chu9d_ls$GLM_GMA_6_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma())
-  chu9d_ls$GLM_GMA_LOG_7_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
-  chu9d_ls$GLM_GMA_INV_8_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
-  chu9d_ls$GLM_BNL_LGT_9_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "logit"))
-  chu9d_ls$GLM_BNL_PBT_10_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "probit"))
-  chu9d_ls$GLM_BNL_CAU_11_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cauchit"))
-  chu9d_ls$GLM_QSB_LGT_12_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "logit"))
-  chu9d_ls$GLM_QSB_CLL_13_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "cloglog"))
-  chu9d_ls$BET_CLL_14_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks,data = Y_Ready4useDyad@ds_tb, link = "cloglog")
-  chu9d_ls$BET_LGT_15_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ Age + gender + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "logit")
-  # chu9d_ls$OLS_CLL_5_mdl <- lm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change + AQoL6D_change + Minutes_12_Weeks, 
-  #                              data = Y_Ready4useDyad@ds_tb %>%  dplyr::mutate(CHU9D_12_Weeks = CHU9D_12_Weeks  %>%
-  #                                                                                specific::calculate_depnt_var_tfmn(tfmn_1L_chr = "CLL", tfmn_is_outp_1L_lgl = F)))
-  # CHU9D_GLM_ING_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change, 
-  #                           data = Y_Ready4useDyad@ds_tb, family = inverse.gaussian())
-  # CHU9D_GLM_ING_LOG_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change,
-  # #                           data = Y_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "log"))
-  # CHU9D_GLM_ING_INV_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change, 
-  #                           data = Y_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "inverse"))
-  # CHU9D_GLM_ING_SQT_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change, 
-  #                           data = Y_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "1/mu^2"))
-  # CHU9D_GLM_QSB_SQT_mdl <- glm(formula = CHU9D_12_Weeks ~ Age + gender  + CHU9D + k10 + k10_change, 
-  #                           data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "sqrt"))
+make_project_chu9d_mdls <- function (X_Ready4useDyad) 
+{
+  Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
+                                              vars_chr = c("CHU9D_12_Weeks"))
+  chu9d_ls <- list(OLS_1_mdl = lm(formula = CHU9D_12_Weeks ~ 
+                                    Age + gender + CHU9D + k10 + k10_change +  
+                                    Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+  chu9d_ls$GLM_GSN_2_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                  Age + gender + CHU9D + k10 + k10_change +  
+                                  Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, family = gaussian())
+  chu9d_ls$GLM_GSN_LOG_3_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                      Age + gender + CHU9D + k10 + k10_change +  
+                                      Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
+  chu9d_ls$GLM_GSN_INV_4_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                      Age + gender + CHU9D + k10 + k10_change +  
+                                      Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
+  chu9d_ls$GLM_GMA_6_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                  Age + gender + CHU9D + k10 + k10_change +  
+                                  Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma())
+  chu9d_ls$GLM_GMA_LOG_7_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                      Age + gender + CHU9D + k10 + k10_change +  
+                                      Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
+  chu9d_ls$GLM_GMA_INV_8_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                      Age + gender + CHU9D + k10 + k10_change +  
+                                      Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
+  chu9d_ls$GLM_BNL_LGT_9_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                      Age + gender + CHU9D + k10 + k10_change +  
+                                      Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "logit"))
+  chu9d_ls$GLM_BNL_PBT_10_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                       Age + gender + CHU9D + k10 + k10_change +  
+                                       Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "probit"))
+  chu9d_ls$GLM_BNL_CAU_11_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                       Age + gender + CHU9D + k10 + k10_change +  
+                                       Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = binomial(link = "cauchit"))
+  chu9d_ls$GLM_QSB_LGT_12_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                       Age + gender + CHU9D + k10 + k10_change +  
+                                       Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "logit"))
+  chu9d_ls$GLM_QSB_CLL_13_mdl <- glm(formula = CHU9D_12_Weeks ~ 
+                                       Age + gender + CHU9D + k10 + k10_change +  
+                                       Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, family = quasibinomial(link = "cloglog"))
+  chu9d_ls$BET_CLL_14_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ 
+                                                Age + gender + CHU9D + k10 + k10_change +  
+                                                Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "cloglog")
+  chu9d_ls$BET_LGT_15_mdl <- betareg::betareg(formula = CHU9D_12_Weeks ~ 
+                                                Age + gender + CHU9D + k10 + k10_change +  
+                                                Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "logit")
   return(chu9d_ls)
 }
 make_project_consolidated_ds <- function(X_Ready4useDyad,
@@ -1466,49 +1491,53 @@ make_project_recode_lup <- function(){
                                                                  c("Psychosocial", "Coordination", "Psychological",  "Suicide prevention")))
   return(recode_lup_r3)
 }
-make_project_results <- function(X_Ready4useDyad,
-                              inputs_ls,
-                              min_cell_size_1L_int = 30L,
-                              modifiable_chr = character(0),
-                              outcomes_chr = character(0),
-                              threshold_1L_dbl = 96000){
-  if(identical(outcomes_chr, character(0))){
+make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_int = 30L, 
+                                  modifiable_chr = character(0), outcomes_chr = character(0), 
+                                  threshold_1L_dbl = 96000) 
+{
+  if (identical(outcomes_chr, character(0))) {
     outcomes_chr <- make_outcomes_vars(inputs_ls$Synthetic_r4, 
-                                       Y_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::filter(Data == "Intervention")), 
-                                       Z_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::filter(Data == "Comparator")),
-                                       exclude_chr = c("Adult", "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", "treatment_start"),
-                                       exclude_suffixes_chr = c( "_change","_date", "_previous","52_Weeks"), 
-                                       modifiable_chr = modifiable_chr,
+                                       Y_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb", 
+                                                                   X_Ready4useDyad@ds_tb %>% dplyr::filter(Data == 
+                                                                                                             "Intervention")), Z_Ready4useDyad = renewSlot(X_Ready4useDyad, 
+                                                                                                                                                           "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::filter(Data == 
+                                                                                                                                                                                                              "Comparator")), exclude_chr = c("Adult", "Period", 
+                                                                                                                                                                                                                                              "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
+                                                                                                                                                                                                                                              "treatment_start"), exclude_suffixes_chr = c("_change", 
+                                                                                                                                                                                                                                                                                           "_date", "_previous", "52_Weeks"), modifiable_chr = modifiable_chr, 
                                        numeric_only_1L_lgl = T)
   }
-  full_combos_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type", "treatment_status_start", "Distress"), min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  clinic_stage_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type", "treatment_status_start"), min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  stage_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("treatment_status_start"), min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  clinic_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type"), min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"), min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  total_ls <- make_results_summary(X_Ready4useDyad, min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
-  sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad,
-                         clinic_ls = clinic_ls,
-                         clinic_stage_ls = clinic_stage_ls,
-                         distress_ls = distress_ls,
-                         full_combos_ls = full_combos_ls,
-                         stage_ls = stage_ls,
-                         total_ls = total_ls)
+  full_combos_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type", 
+                                                                           "treatment_status_start", "Distress"), min_cell_size_1L_int = min_cell_size_1L_int, 
+                                         outcomes_chr = outcomes_chr)
+  clinic_stage_ls <- make_results_summary(X_Ready4useDyad, 
+                                          group_by_chr = c("clinic_type", "treatment_status_start"), 
+                                          min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+  stage_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("treatment_status_start"), 
+                                   min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+  clinic_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type"), 
+                                    min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+  distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"), 
+                                      min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+  total_ls <- make_results_summary(X_Ready4useDyad, min_cell_size_1L_int = min_cell_size_1L_int, 
+                                   outcomes_chr = outcomes_chr)
+  sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad, 
+                         clinic_ls = clinic_ls, clinic_stage_ls = clinic_stage_ls, 
+                         distress_ls = distress_ls, full_combos_ls = full_combos_ls, 
+                         stage_ls = stage_ls, total_ls = total_ls)
   return(sim_results_ls)
-  
 }
-make_project_results_synthesis <- function(inputs_ls,
-                                           results_ls,
-                                           modifiable_chr = c("treatment_status", 
-                                                              "Minutes", "k10", "AQoL6D", "CHU9D"),
-                                           type_1L_chr = c("D", "AB", "C")){
+make_project_results_synthesis <- function (inputs_ls, results_ls, modifiable_chr = c("treatment_status", 
+                                                                                      "Minutes", "k10", "AQoL6D", "CHU9D"), type_1L_chr = c("D", 
+                                                                                                                                            "AB", "C")) 
+{
   type_1L_chr <- match.arg(type_1L_chr)
   X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
-                                            results_ls = results_ls,
-                                            add_severity_1L_lgl = T, 
-                                            exclude_chr = c("Adult", "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", "treatment_start"), 
-                                            exclude_suffixes_chr = c("_change",  "_date", "_previous", "52_Weeks"), 
-                                            keep_chr = c("platform", "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+                                            results_ls = results_ls, add_severity_1L_lgl = T, exclude_chr = c("Adult", 
+                                                                                                              "Period", "MeasurementWeek", "treatment_fraction", 
+                                                                                                              "treatment_measurement", "treatment_start"), exclude_suffixes_chr = c("_change", 
+                                                                                                                                                                                    "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
+                                                                                                                                                                                                                                    "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
                                             modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   return(X_Ready4useDyad)
 }
@@ -2281,48 +2310,52 @@ make_results_matrix <- function(data_tb,
   return(results_mat)
 }
 
-make_results_summary <- function(X_Ready4useDyad,
-                                 outcomes_chr,
-                                 group_by_chr = character(0),
-                                 min_cell_size_1L_int = 1L,
-                                 threshold_1L_dbl = 96000){
+make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = character(0), 
+                                  min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000) 
+{
   D <- X_Ready4useDyad
-  E <- renewSlot(D, "ds_tb",
-                 D@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
-                                                                           "Data",
-                                                                           group_by_chr)))) %>%
-                   dplyr::summarise_at(outcomes_chr, mean) %>%
-                   dplyr::left_join(X_Ready4useDyad@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", "Data", group_by_chr)))) %>% dplyr::summarise(N = dplyr::n())) %>%
+  E <- renewSlot(D, "ds_tb", D@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
+                                                                                       "Data", group_by_chr)))) %>% dplyr::summarise_at(outcomes_chr, 
+                                                                                                                                        mean) %>% dplyr::left_join(X_Ready4useDyad@ds_tb %>% 
+                                                                                                                                                                     dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
+                                                                                                                                                                                                                   "Data", group_by_chr)))) %>% dplyr::summarise(N = dplyr::n())) %>% 
                    dplyr::ungroup())
-  AB <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::filter(Data != "Difference"))
-  E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::filter(Data == "Difference"))
+  AB <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::filter(Data != 
+                                                          "Difference"))
+  E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::filter(Data == 
+                                                         "Difference"))
   ab_tb <- AB@ds_tb
   x_tb <- E@ds_tb
   y_tb <- D@ds_tb %>% dplyr::filter(Data == "Difference")
   z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
   E <- renewSlot(E, "ds_tb", z_tb)
-    ab_tb <- ab_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", group_by_chr))))
-    x_tb <- x_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", group_by_chr))))
-    y_tb <- y_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", group_by_chr))))
-    z_tb <- z_tb  %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", group_by_chr))))
-  ab_tb <- ab_tb %>%
-    dplyr::summarise_at(outcomes_chr, mean, .groups = "drop")
-  x_tb <- x_tb %>%
-    dplyr::summarise_at(outcomes_chr, mean, .groups = "drop")
-  y_tb <- y_tb %>% dplyr::summarise(N = dplyr::n()/max(X_Ready4useDyad@ds_tb$Iteration),
+  ab_tb <- ab_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
+                                                                   group_by_chr))))
+  x_tb <- x_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
+                                                                 group_by_chr))))
+  y_tb <- y_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
+                                                                 group_by_chr))))
+  z_tb <- z_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
+                                                                 group_by_chr))))
+  ab_tb <- ab_tb %>% dplyr::summarise_at(outcomes_chr, mean, 
+                                         .groups = "drop")
+  x_tb <- x_tb %>% dplyr::summarise_at(outcomes_chr, mean, 
+                                       .groups = "drop")
+  y_tb <- y_tb %>% dplyr::summarise(N = dplyr::n()/max(X_Ready4useDyad@ds_tb$Iteration), 
                                     .groups = "drop")
-  z_tb <- z_tb %>%
-    dplyr::summarise(dplyr::across(dplyr::starts_with("CE_"), ~mean(as.numeric(.x))), .groups = "drop")
-  z_tb <- z_tb %>% dplyr::rename_with(~paste("PROB",.x),.cols = names(z_tb)[names(z_tb) %>% startsWith("CE_")])
-    x_tb <- x_tb %>%
-      dplyr::left_join(y_tb) %>%
-      dplyr::ungroup() %>%
-      dplyr::left_join(z_tb)
+  z_tb <- z_tb %>% dplyr::summarise(dplyr::across(dplyr::starts_with("CE_"), 
+                                                  ~mean(as.numeric(.x))), .groups = "drop")
+  z_tb <- z_tb %>% dplyr::rename_with(~paste("PROB", .x), .cols = names(z_tb)[names(z_tb) %>% 
+                                                                                startsWith("CE_")])
+  x_tb <- x_tb %>% dplyr::left_join(y_tb) %>% dplyr::ungroup() %>% 
+    dplyr::left_join(z_tb)
   x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
-  x_tb <- dplyr::bind_rows(x_tb, ab_tb %>% dplyr::left_join(ab_tb$Data %>% unique() %>% purrr::map_dfr(~y_tb %>% dplyr::mutate(Data = .x))))
+  x_tb <- dplyr::bind_rows(x_tb, ab_tb %>% dplyr::left_join(ab_tb$Data %>% 
+                                                              unique() %>% purrr::map_dfr(~y_tb %>% dplyr::mutate(Data = .x))))
   E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::bind_rows(AB@ds_tb))
   E1 <- renewSlot(E, "ds_tb", x_tb)
-  E2 <- renewSlot(E1, "ds_tb", E1@ds_tb %>% dplyr::filter(N >= min_cell_size_1L_int))
+  E2 <- renewSlot(E1, "ds_tb", E1@ds_tb %>% dplyr::filter(N >= 
+                                                            min_cell_size_1L_int))
   results_summary_ls <- list(X = E, Y = E1, Z = E2)
   return(results_summary_ls)
 }
