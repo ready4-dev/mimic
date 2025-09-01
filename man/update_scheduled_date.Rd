@@ -8,6 +8,7 @@ update_scheduled_date(
   X_Ready4useDyad,
   increment_1L_int = integer(0),
   target_1L_int = integer(0),
+  variable_1L_chr = character(0),
   type_1L_chr = c("End", "Day")
 )
 }
@@ -17,6 +18,8 @@ update_scheduled_date(
 \item{increment_1L_int}{Increment (an integer vector of length one), Default: integer(0)}
 
 \item{target_1L_int}{Target (an integer vector of length one), Default: integer(0)}
+
+\item{variable_1L_chr}{Variable (a character vector of length one), Default: character(0)}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("End", "Day")}
 }

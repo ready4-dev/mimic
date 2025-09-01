@@ -8,6 +8,7 @@ plot_test_scatter(
   X_Ready4useDyad,
   collapse_1L_lgl = F,
   grouping_1L_chr = character(0),
+  new_1L_lgl = F,
   var_1L_chr,
   old_1L_chr = "Observed",
   type_1L_chr = c("Simulated", "Predicted")
@@ -19,6 +20,8 @@ plot_test_scatter(
 \item{collapse_1L_lgl}{Collapse (a logical vector of length one), Default: F}
 
 \item{grouping_1L_chr}{Grouping (a character vector of length one), Default: character(0)}
+
+\item{new_1L_lgl}{New (a logical vector of length one), Default: F}
 
 \item{var_1L_chr}{Variable (a character vector of length one)}
 

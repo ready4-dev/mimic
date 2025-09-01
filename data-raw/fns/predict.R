@@ -214,16 +214,23 @@ predict_from_pool <- function(pooled_xx,
   }
   return(predictions_xx)
 }
-predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic, base_for_rates_int = c(1000L, 1L, 1L), 
-                              comparator_fn = predict_comparator_pathway,
-                              intervention_fn = predict_digital_pathway,
-                              iterations_ls = list(1:100L), 
+predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic, arms_chr = c("Intervention", "Comparator"),
+                              base_for_rates_int = c(1000L, 1L, 1L), comparator_fn = predict_comparator_pathway, 
+                              drop_missing_1L_lgl = FALSE,
+                              drop_suffix_1L_chr = character(0),
+                              intervention_fn = predict_digital_pathway, iterations_ls = make_batch(5, of_1L_int = 20), 
                               horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
-                                                                                    "Minutes", "k10", "AQoL6D", "CHU9D"), purge_1L_lgl = TRUE, 
+                                                                                    "Minutes", "k10", "AQoL6D", "CHU9D"), 
+                              prior_batches_1L_int = 0,
+                              purge_1L_lgl = TRUE, 
                               scale_1L_int = 10L, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
                               start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-                              type_1L_chr = c("D", "AB", "C","NULL"), utilities_chr = c("AQoL6D", 
-                                                                                        "CHU9D"), write_to_1L_chr = character(0)) 
+                              type_1L_chr = c("D", "AB", "C", "NULL"), 
+                              unlink_1L_lgl = FALSE,
+                              utilities_chr = c("AQoL6D", 
+                                                "CHU9D"), 
+                              variable_unit_1L_chr = "Minutes", 
+                              write_to_1L_chr = character(0)) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
   if (!identical(seed_1L_int, integer(0))) {
@@ -232,53 +239,44 @@ predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic
   if (identical(write_to_1L_chr, character(0))) {
     write_to_1L_chr <- tempdir()
   }
-  1:length(iterations_ls) %>% purrr::walk(~{
-    iterations_int <- iterations_ls[[.x]]
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-                              scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
-                                .x)
-    if(!is.null(intervention_fn)){
-      Y_Ready4useDyad <- intervention_fn(inputs_ls, add_logic_fn = add_logic_fn, 
-                                         arm_1L_chr = "Intervention", base_for_rates_int = base_for_rates_int, 
-                                         draws_tb = draws_tb, iterations_int = iterations_int, 
-                                         horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                                         sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                                         tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + .x, 
-                                         start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                                         variable_unit_1L_chr = "Minutes")
-    }else{
-      Y_Ready4useDyad <- ready4use::Ready4useDyad()
-    }
-    if(!is.null(comparator_fn)){
-      Z_Ready4useDyad <- comparator_fn(inputs_ls, 
-                                       arm_1L_chr = "Comparator", add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
-                                       draws_tb = draws_tb, iterations_int = iterations_int, 
-                                       horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                                       sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                                       tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + .x, 
-                                       start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                                       variable_unit_1L_chr = "Minutes")
-    }else{
-      Z_Ready4useDyad <- ready4use::Ready4useDyad()
-    }
-    
-    
-    saveRDS(list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad), 
-            paste0(write_to_1L_chr, "/SimBatch", .x, ".RDS"))
-  })
-  if(type_1L_chr != "NULL"){
-    results_ls <- import_results_batches(length(iterations_ls), 
-                                         dir_1L_chr = write_to_1L_chr)
+  predict_safely_fn <- purrr::safely(.f = write_batch,
+                                     quiet = FALSE)
+  if (unlink_1L_lgl) {
+    list.files(write_to_1L_chr)[endsWith(list.files(write_to_1L_chr), ".RDS")] %>% purrr::walk(~unlink(paste0(write_to_1L_chr, "/", .x )))
+  }
+  output_xx <- 1:length(iterations_ls) %>% purrr::map(~predict_safely_fn(batch_1L_int = .x,
+                                                                         add_logic_fn = add_logic_fn,
+                                                                         arms_chr = arms_chr,
+                                                                         base_for_rates_int = base_for_rates_int,
+                                                                         comparator_fn = comparator_fn,
+                                                                         drop_missing_1L_lgl = drop_missing_1L_lgl,
+                                                                         drop_suffix_1L_chr = drop_suffix_1L_chr,
+                                                                         horizon_dtm = horizon_dtm,
+                                                                         inputs_ls = inputs_ls,
+                                                                         intervention_fn = intervention_fn,
+                                                                         iterations_ls = iterations_ls,
+                                                                         modifiable_chr = modifiable_chr,
+                                                                         prior_batches_1L_int = prior_batches_1L_int,
+                                                                         scale_1L_int = scale_1L_int,
+                                                                         seed_1L_int = seed_1L_int,
+                                                                         sensitivities_ls = sensitivities_ls,
+                                                                         start_dtm = start_dtm,
+                                                                         tfmn_ls = tfmn_ls,
+                                                                         utilities_chr = utilities_chr,
+                                                                         variable_unit_1L_chr = variable_unit_1L_chr,
+                                                                         write_to_1L_chr = write_to_1L_chr))
+  if (type_1L_chr != "NULL") {
+    output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
   }
   if (purge_1L_lgl) {
     1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-                                                           "/SimBatch", .x, ".RDS")))
+                                                           "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
   }
-  if(type_1L_chr != "NULL"){
-    X_Ready4useDyad <- make_project_results_synthesis(inputs_ls, results_ls, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
-  }else{
-    X_Ready4useDyad <- NULL
+  if (type_1L_chr != "NULL") {
+    output_xx <- make_project_results_synthesis(inputs_ls, 
+                                                output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   }
-  return(X_Ready4useDyad)
+  return(output_xx)
 }
+
 

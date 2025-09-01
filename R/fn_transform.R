@@ -1,3 +1,27 @@
+#' Transform dates
+#' @description transform_dates() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform dates. The function returns Dates (a date vector).
+#' @param dates_chr Dates (a character vector)
+#' @return Dates (a date vector)
+#' @rdname transform_dates
+#' @export 
+#' @importFrom purrr map_vec
+#' @importFrom lubridate NA_Date_
+#' @importFrom stringr str_sub
+#' @keywords internal
+transform_dates <- function (dates_chr) 
+{
+    dates_dtm <- dates_chr %>% purrr::map_vec(~{
+        if (is.na(.x)) {
+            lubridate::NA_Date_
+        }
+        else {
+            as.Date(paste0(stringr::str_sub(.x, start = -4), 
+                "/", stringr::str_sub(.x, start = -6, end = -5), 
+                "/", stringr::str_sub(.x, end = -7)))
+        }
+    })
+    return(dates_dtm)
+}
 #' Transform dataset to wide
 #' @description transform_ds_to_wide() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform dataset to wide. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION

@@ -1,3 +1,13 @@
+transform_dates <- function(dates_chr){
+  dates_dtm <- dates_chr %>% purrr::map_vec( ~{
+    if(is.na(.x)){
+      lubridate::NA_Date_
+    }else{
+      as.Date(paste0(stringr::str_sub(.x, start = -4),"/",stringr::str_sub(.x, start = -6, end = -5),"/",stringr::str_sub(.x,  end = -7)))
+    }
+  })
+  return(dates_dtm)
+}
 transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm = NULL, 
                                   key_vars_chr = make_project_keys(), max_periods_1L_int = integer(0), 
                                   max_tenure_1L_dbl = numeric(0), metric_var_1L_chr = "Minutes", 

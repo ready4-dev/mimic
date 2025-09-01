@@ -6,15 +6,15 @@
 \usage{
 add_project_assessments(
   regressions_ls,
+  what_1L_chr,
   confusion_1L_lgl = F,
   exclude_int = integer(0),
+  group_ls = list(Treatments = c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")),
   model_1L_int = integer(0),
   rank_1L_lgl = TRUE,
   residual_1L_chr = "normal",
   two_part_1L_lgl = FALSE,
   type_1L_chr = c("candidates", "tests", "models"),
-  what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-    "Tx_Treatment", "Tx_Discharged"),
   var_1L_chr = character(0),
   X_Ready4useDyad = ready4use::Ready4useDyad()
 )
@@ -22,9 +22,13 @@ add_project_assessments(
 \arguments{
 \item{regressions_ls}{Regressions (a list)}
 
+\item{what_1L_chr}{What (a character vector of length one)}
+
 \item{confusion_1L_lgl}{Confusion (a logical vector of length one), Default: F}
 
 \item{exclude_int}{Exclude (an integer vector), Default: integer(0)}
+
+\item{group_ls}{Group (a list), Default: list(Treatments = c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged"))}
 
 \item{model_1L_int}{Model (an integer vector of length one), Default: integer(0)}
 
@@ -35,9 +39,6 @@ add_project_assessments(
 \item{two_part_1L_lgl}{Two part (a logical vector of length one), Default: FALSE}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("candidates", "tests", "models")}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-"Tx_Treatment", "Tx_Discharged")}
 
 \item{var_1L_chr}{Variable (a character vector of length one), Default: character(0)}
 

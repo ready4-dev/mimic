@@ -14,6 +14,8 @@ make_results_synthesis(
     "employment_status"),
   modifiable_chr = character(0),
   results_ls = NULL,
+  severity_fn = make_k10_severity_cuts,
+  severity_var_1L_chr = "k10_start",
   type_1L_chr = c("D", "AB", "C"),
   Y_Ready4useDyad = ready4use::Ready4useDyad(),
   Z_Ready4useDyad = ready4use::Ready4useDyad()
@@ -35,6 +37,10 @@ make_results_synthesis(
 \item{modifiable_chr}{Modifiable (a character vector), Default: character(0)}
 
 \item{results_ls}{Results (a list), Default: NULL}
+
+\item{severity_fn}{Severity (a function), Default: make_k10_severity_cuts}
+
+\item{severity_var_1L_chr}{Severity variable (a character vector of length one), Default: 'k10_start'}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
 

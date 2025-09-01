@@ -6,18 +6,19 @@
 \usage{
 add_regressions(
   regressions_ls,
+  what_1L_chr,
   model_1L_int = integer(0),
   fn_args_ls = list(),
   model_fn = NULL,
   named_1L_lgl = FALSE,
   X_Ready4useDyad = ready4use::Ready4useDyad(),
-  type_1L_chr = c("candidates", "tests", "models"),
-  what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-    "Tx_Treatment", "Tx_Discharged")
+  type_1L_chr = c("candidates", "tests", "models")
 )
 }
 \arguments{
 \item{regressions_ls}{Regressions (a list)}
+
+\item{what_1L_chr}{What (a character vector of length one)}
 
 \item{model_1L_int}{Model (an integer vector of length one), Default: integer(0)}
 
@@ -30,9 +31,6 @@ add_regressions(
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("candidates", "tests", "models")}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-"Tx_Treatment", "Tx_Discharged")}
 }
 \value{
 Regressions (a list)

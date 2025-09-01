@@ -4,10 +4,18 @@
 \alias{update_order}
 \title{Update order}
 \usage{
-update_order(X_Ready4useDyad)
+update_order(
+  X_Ready4useDyad,
+  structural_chr = make_structural_vars(data_1L_chr = character(0), uid_1L_chr = "UID"),
+  type_1L_chr = c("rows", "columns")
+)
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
+
+\item{structural_chr}{Structural (a character vector), Default: make_structural_vars(data_1L_chr = character(0), uid_1L_chr = "UID")}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("rows", "columns")}
 }
 \value{
 X (A dataset and data dictionary pair.)

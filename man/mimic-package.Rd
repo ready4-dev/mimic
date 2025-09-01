@@ -3,15 +3,15 @@
 \docType{package}
 \name{mimic-package}
 \alias{mimic-package}
-\title{mimic: Implement Simple Microsimulation to Economically Evaluate Mental Health Services}
+\title{mimic: Implement Microsimulations to Economically Evaluate Mental Health Services}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
+Tools for developing simple microsimulations of mental health services and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
 
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
+Tools for developing simple microsimulations of mental health services and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/). This early development version of mimic has been made available as part of the process of testing and documenting the library. If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).
 }
 \seealso{
 Useful links:

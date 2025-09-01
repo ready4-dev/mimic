@@ -11,6 +11,7 @@ add_treatment_event(
   bl_week_1L_dbl = 0,
   iterations_int = 1:100L,
   measurement_1L_int = integer(0),
+  prefix_1L_chr = "treatment",
   tx_duration_dtm = lubridate::weeks(12)
 )
 }
@@ -26,6 +27,8 @@ add_treatment_event(
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
 \item{measurement_1L_int}{Measurement (an integer vector of length one), Default: integer(0)}
+
+\item{prefix_1L_chr}{Prefix (a character vector of length one), Default: 'treatment'}
 
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 }

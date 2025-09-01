@@ -4,10 +4,10 @@
 \alias{import_results_batches}
 \title{Import results batches}
 \usage{
-import_results_batches(batches_1L_int, dir_1L_chr)
+import_results_batches(batches_1L_int = integer(0), dir_1L_chr)
 }
 \arguments{
-\item{batches_1L_int}{Batches (an integer vector of length one)}
+\item{batches_1L_int}{Batches (an integer vector of length one), Default: integer(0)}
 
 \item{dir_1L_chr}{Directory (a character vector of length one)}
 }

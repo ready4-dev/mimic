@@ -284,15 +284,19 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
     return(predictions_xx)
 }
 #' Predict with sim
-#' @description predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function is called for its side effects and does not return a value.
+#' @description predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function returns Output (an output object of multiple potential types).
 #' @param inputs_ls Inputs (a list)
 #' @param add_logic_fn Add logic (a function), Default: add_project_offset_logic
+#' @param arms_chr Arms (a character vector), Default: c("Intervention", "Comparator")
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1L, 1L)
 #' @param comparator_fn Comparator (a function), Default: predict_comparator_pathway
+#' @param drop_missing_1L_lgl Drop missing (a logical vector of length one), Default: FALSE
+#' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
 #' @param intervention_fn Intervention (a function), Default: predict_digital_pathway
-#' @param iterations_ls Iterations (a list), Default: list(1:100L)
+#' @param iterations_ls Iterations (a list), Default: make_batch(5, of_1L_int = 20)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
+#' @param prior_batches_1L_int Prior batches (an integer vector of length one), Default: 0
 #' @param purge_1L_lgl Purge (a logical vector of length one), Default: TRUE
 #' @param scale_1L_int Scale (an integer vector of length one), Default: 10
 #' @param seed_1L_int Seed (an integer vector of length one), Default: 2001
@@ -301,23 +305,28 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C", "NULL")
+#' @param unlink_1L_lgl Unlink (a logical vector of length one), Default: FALSE
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
+#' @param variable_unit_1L_chr Variable unit (a character vector of length one), Default: 'Minutes'
 #' @param write_to_1L_chr Write to (a character vector of length one), Default: character(0)
-#' @return X (A dataset and data dictionary pair.)
+#' @return Output (an output object of multiple potential types)
 #' @rdname predict_with_sim
 #' @export 
 #' @importFrom lubridate years weeks
-#' @importFrom purrr walk
-#' @importFrom ready4use Ready4useDyad
+#' @importFrom purrr safely walk map
 predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
-    base_for_rates_int = c(1000L, 1L, 1L), comparator_fn = predict_comparator_pathway, 
-    intervention_fn = predict_digital_pathway, iterations_ls = list(1:100L), 
-    horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
-        "Minutes", "k10", "AQoL6D", "CHU9D"), purge_1L_lgl = TRUE, 
-    scale_1L_int = 10L, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
-    start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-    type_1L_chr = c("D", "AB", "C", "NULL"), utilities_chr = c("AQoL6D", 
-        "CHU9D"), write_to_1L_chr = character(0)) 
+    arms_chr = c("Intervention", "Comparator"), base_for_rates_int = c(1000L, 
+        1L, 1L), comparator_fn = predict_comparator_pathway, 
+    drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
+    intervention_fn = predict_digital_pathway, iterations_ls = make_batch(5, 
+        of_1L_int = 20), horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
+        "Minutes", "k10", "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, 
+    purge_1L_lgl = TRUE, scale_1L_int = 10L, seed_1L_int = 2001L, 
+    sensitivities_ls = make_sensitivities_ls(), start_dtm = Sys.Date(), 
+    tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
+    type_1L_chr = c("D", "AB", "C", "NULL"), unlink_1L_lgl = FALSE, 
+    utilities_chr = c("AQoL6D", "CHU9D"), variable_unit_1L_chr = "Minutes", 
+    write_to_1L_chr = character(0)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (!identical(seed_1L_int, integer(0))) {
@@ -326,54 +335,32 @@ predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic
     if (identical(write_to_1L_chr, character(0))) {
         write_to_1L_chr <- tempdir()
     }
-    1:length(iterations_ls) %>% purrr::walk(~{
-        iterations_int <- iterations_ls[[.x]]
-        draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-            scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
-                .x)
-        if (!is.null(intervention_fn)) {
-            Y_Ready4useDyad <- intervention_fn(inputs_ls, add_logic_fn = add_logic_fn, 
-                arm_1L_chr = "Intervention", base_for_rates_int = base_for_rates_int, 
-                draws_tb = draws_tb, iterations_int = iterations_int, 
-                horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
-                  .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                variable_unit_1L_chr = "Minutes")
-        }
-        else {
-            Y_Ready4useDyad <- ready4use::Ready4useDyad()
-        }
-        if (!is.null(comparator_fn)) {
-            Z_Ready4useDyad <- comparator_fn(inputs_ls, arm_1L_chr = "Comparator", 
-                add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
-                draws_tb = draws_tb, iterations_int = iterations_int, 
-                horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
-                  .x, start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                variable_unit_1L_chr = "Minutes")
-        }
-        else {
-            Z_Ready4useDyad <- ready4use::Ready4useDyad()
-        }
-        saveRDS(list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad), 
-            paste0(write_to_1L_chr, "/SimBatch", .x, ".RDS"))
-    })
+    predict_safely_fn <- purrr::safely(.f = write_batch, quiet = FALSE)
+    if (unlink_1L_lgl) {
+        list.files(write_to_1L_chr)[endsWith(list.files(write_to_1L_chr), 
+            ".RDS")] %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
+            "/", .x)))
+    }
+    output_xx <- 1:length(iterations_ls) %>% purrr::map(~predict_safely_fn(batch_1L_int = .x, 
+        add_logic_fn = add_logic_fn, arms_chr = arms_chr, base_for_rates_int = base_for_rates_int, 
+        comparator_fn = comparator_fn, drop_missing_1L_lgl = drop_missing_1L_lgl, 
+        drop_suffix_1L_chr = drop_suffix_1L_chr, horizon_dtm = horizon_dtm, 
+        inputs_ls = inputs_ls, intervention_fn = intervention_fn, 
+        iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
+        prior_batches_1L_int = prior_batches_1L_int, scale_1L_int = scale_1L_int, 
+        seed_1L_int = seed_1L_int, sensitivities_ls = sensitivities_ls, 
+        start_dtm = start_dtm, tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
+        variable_unit_1L_chr = variable_unit_1L_chr, write_to_1L_chr = write_to_1L_chr))
     if (type_1L_chr != "NULL") {
-        results_ls <- import_results_batches(length(iterations_ls), 
-            dir_1L_chr = write_to_1L_chr)
+        output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
     }
     if (purge_1L_lgl) {
         1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-            "/SimBatch", .x, ".RDS")))
+            "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
     }
     if (type_1L_chr != "NULL") {
-        X_Ready4useDyad <- make_project_results_synthesis(inputs_ls, 
-            results_ls, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+        output_xx <- make_project_results_synthesis(inputs_ls, 
+            output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
     }
-    else {
-        X_Ready4useDyad <- NULL
-    }
-    return(X_Ready4useDyad)
+    return(output_xx)
 }

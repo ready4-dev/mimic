@@ -6,19 +6,20 @@
 \usage{
 get_regression(
   regressions_ls,
+  what_1L_chr,
   constrained_1L_lgl = logical(0),
   model_1L_int = integer(0),
   named_1L_lgl = FALSE,
   part_1L_int = integer(0),
   report_1L_chr = c("all", "check", "compare", "confusion", "density", "estimates",
     "histogram", "scatter", "test"),
-  type_1L_chr = c("candidates", "assessments", "models", "tests"),
-  what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-    "Tx_Treatment", "Tx_Discharged")
+  type_1L_chr = c("candidates", "assessments", "models", "tests")
 )
 }
 \arguments{
 \item{regressions_ls}{Regressions (a list)}
+
+\item{what_1L_chr}{What (a character vector of length one)}
 
 \item{constrained_1L_lgl}{Constrained (a logical vector of length one), Default: logical(0)}
 
@@ -32,9 +33,6 @@ get_regression(
 "histogram", "scatter", "test")}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("candidates", "assessments", "models", "tests")}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-"Tx_Treatment", "Tx_Discharged")}
 }
 \value{
 Model (an output object of multiple potential types)

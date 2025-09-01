@@ -1,3 +1,79 @@
+#' Write batch
+#' @description write_batch() is a Write function that writes a file to a specified local directory. Specifically, this function implements an algorithm to write batch. The function is called for its side effects and does not return a value.
+#' @param batch_1L_int Batch (an integer vector of length one)
+#' @param add_logic_fn Add logic (a function)
+#' @param arms_chr Arms (a character vector)
+#' @param base_for_rates_int Base for rates (an integer vector)
+#' @param comparator_fn Comparator (a function)
+#' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
+#' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
+#' @param horizon_dtm Horizon (a date vector)
+#' @param inputs_ls Inputs (a list)
+#' @param intervention_fn Intervention (a function)
+#' @param iterations_ls Iterations (a list)
+#' @param modifiable_chr Modifiable (a character vector)
+#' @param prior_batches_1L_int Prior batches (an integer vector of length one)
+#' @param scale_1L_int Scale (an integer vector of length one)
+#' @param seed_1L_int Seed (an integer vector of length one)
+#' @param sensitivities_ls Sensitivities (a list)
+#' @param start_dtm Start (a date vector)
+#' @param tfmn_ls Transformation (a list)
+#' @param utilities_chr Utilities (a character vector)
+#' @param variable_unit_1L_chr Variable unit (a character vector of length one)
+#' @param write_to_1L_chr Write to (a character vector of length one)
+#' @return No return value, called for side effects.
+#' @rdname write_batch
+#' @export 
+#' @importFrom ready4use Ready4useDyad
+#' @keywords internal
+write_batch <- function (batch_1L_int, add_logic_fn, arms_chr, base_for_rates_int, 
+    comparator_fn, drop_missing_1L_lgl, drop_suffix_1L_chr, horizon_dtm, 
+    inputs_ls, intervention_fn, iterations_ls, modifiable_chr, 
+    prior_batches_1L_int, scale_1L_int, seed_1L_int, sensitivities_ls, 
+    start_dtm, tfmn_ls, utilities_chr, variable_unit_1L_chr, 
+    write_to_1L_chr) 
+{
+    iterations_int <- iterations_ls[[batch_1L_int]]
+    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
+        drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
+        scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
+            batch_1L_int)
+    if (!is.null(intervention_fn)) {
+        Y_Ready4useDyad <- intervention_fn(inputs_ls, add_logic_fn = add_logic_fn, 
+            arm_1L_chr = arms_chr[1], base_for_rates_int = base_for_rates_int, 
+            draws_tb = draws_tb, iterations_int = iterations_int, 
+            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
+            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+            tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
+                batch_1L_int, start_dtm = start_dtm, utilities_chr = utilities_chr, 
+            variable_unit_1L_chr = variable_unit_1L_chr)
+    }
+    else {
+        Y_Ready4useDyad <- ready4use::Ready4useDyad()
+    }
+    if (!is.null(comparator_fn)) {
+        Z_Ready4useDyad <- comparator_fn(inputs_ls, arm_1L_chr = arms_chr[2], 
+            add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
+            draws_tb = draws_tb, iterations_int = iterations_int, 
+            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
+            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+            tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + 
+                batch_1L_int, start_dtm = start_dtm, utilities_chr = utilities_chr, 
+            variable_unit_1L_chr = variable_unit_1L_chr)
+    }
+    else {
+        Z_Ready4useDyad <- ready4use::Ready4useDyad()
+    }
+    output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad)
+    message(paste0("Batch ", batch_1L_int, " completed."))
+    if (!dir.exists(write_to_1L_chr)) {
+        dir.create(write_to_1L_chr)
+    }
+    saveRDS(output_ls, paste0(write_to_1L_chr, "/SimBatch", batch_1L_int + 
+        prior_batches_1L_int, ".RDS"))
+    message(paste0("Output saved as SimBatch", batch_1L_int + 
+        prior_batches_1L_int, ".RDS"))
+}
 #' Write project comma separated variables files
 #' @description write_project_csvs() is a Write function that writes a file to a specified local directory. Specifically, this function implements an algorithm to write project comma separated variables files. The function is called for its side effects and does not return a value.
 #' @param model_data_ls Model data (a list)
@@ -41,6 +117,16 @@ write_project_csvs <- function (model_data_ls, path_to_private_1L_chr, processed
 write_project_RDS <- function (data_ls, path_to_private_1L_chr, processed_dir_1L_chr, 
     divider_1L_chr = "\\") 
 {
+    if (!dir.exists(paste0(path_to_private_1L_chr, divider_1L_chr, 
+        processed_dir_1L_chr))) {
+        dir.create(paste0(path_to_private_1L_chr, divider_1L_chr, 
+            processed_dir_1L_chr))
+    }
+    if (!dir.exists(paste0(path_to_private_1L_chr, divider_1L_chr, 
+        processed_dir_1L_chr, divider_1L_chr, r_dir_1L_chr))) {
+        dir.create(paste0(path_to_private_1L_chr, divider_1L_chr, 
+            processed_dir_1L_chr, divider_1L_chr, r_dir_1L_chr))
+    }
     data_ls %>% names() %>% stringr::str_remove_all("_ls") %>% 
         purrr::walk(~{
             type_1L_chr <- .x
@@ -54,9 +140,10 @@ write_project_RDS <- function (data_ls, path_to_private_1L_chr, processed_dir_1L
             element_ls <- data_ls %>% purrr::pluck(paste0(.x, 
                 "_ls"))
             element_ls %>% purrr::walk2(names(element_ls), ~{
-                saveRDS(.x, paste0(path_to_private_1L_chr, "\\", 
-                  processed_dir_1L_chr, "\\", "R", "\\", type_1L_chr, 
-                  "\\", .y, ".RDS"))
+                saveRDS(.x, paste0(path_to_private_1L_chr, divider_1L_chr, 
+                  processed_dir_1L_chr, divider_1L_chr, "R", 
+                  divider_1L_chr, type_1L_chr, divider_1L_chr, 
+                  .y, ".RDS"))
             })
         })
 }

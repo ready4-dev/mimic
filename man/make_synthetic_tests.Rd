@@ -7,6 +7,7 @@
 make_synthetic_tests(
   population_ls,
   model_data_ls = NULL,
+  original_tb = NULL,
   comparison_1L_chr = c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners",
     "Outcomes"),
   ...
@@ -16,6 +17,8 @@ make_synthetic_tests(
 \item{population_ls}{Population (a list)}
 
 \item{model_data_ls}{Model data (a list), Default: NULL}
+
+\item{original_tb}{Original (a tibble), Default: NULL}
 
 \item{comparison_1L_chr}{Comparison (a character vector of length one), Default: c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners", "Outcomes")}
 

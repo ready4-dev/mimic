@@ -2,8 +2,8 @@ library(ready4)
 library(ready4use)
 library(ready4fun)
 # MANUAL STEP. Write all your functions to R files in the new "fns" directory.
-x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimulation To Economically Evaluate Mental Health Services",
-                                 pkg_desc_1L_chr = "Tools for developing simple microsimulations of mental health service and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/).
+x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations To Economically Evaluate Mental Health Services",
+                                 pkg_desc_1L_chr = "Tools for developing simple microsimulations of mental health services and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/).
                             This early development version of mimic has been made available as part of the process of testing and documenting the library.
                             If you have any questions, please contact the authors (matthew.hamilton1@monash.edu).",
                                  authors_prsn = c(utils::person(given = "Matthew",family = "Hamilton",email = "matthew.hamilton1@monash.edu", role = c("aut", "cph","cre"), comment = c(ORCID = "0000-0001-7407-9194"))),

@@ -86,6 +86,20 @@ make_annual_overview <- function (processed_ls)
         dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm = T)))
     return(annual_tb)
 }
+#' Make batches
+#' @description make_batches() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make batches. The function returns Batches (a list).
+#' @param n_1L_int N (an integer vector of length one), Default: 50
+#' @param of_1L_int Of (an integer vector of length one), Default: 20
+#' @return Batches (a list)
+#' @rdname make_batches
+#' @export 
+#' @keywords internal
+make_batches <- function (n_1L_int = 50, of_1L_int = 20) 
+{
+    batches_ls <- unname(split(1:(n_1L_int * of_1L_int), cut(1:(n_1L_int * 
+        of_1L_int), n_1L_int)))
+    return(batches_ls)
+}
 #' Make class transformations
 #' @description make_class_tfmns() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make class transformations. The function returns Transformations (a list).
 #' @param force_1L_lgl Force (a logical vector of length one), Default: FALSE
@@ -340,32 +354,100 @@ make_contacters_summary <- function (processed_ls, as_tsibble_1L_lgl = FALSE, ty
     }
     return(contacters_tb)
 }
+#' Make cost per minimums tibble
+#' @description make_cost_per_mins_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make cost per minimums tibble. The function returns Data (a tibble).
+#' @param path_1L_chr Path (a character vector of length one)
+#' @param mbs_fl_nm_1L_chr Medicare Benefits Schedule file name (a character vector of length one), Default: character(0)
+#' @param mbs_sheet_1L_chr Medicare Benefits Schedule sheet (a character vector of length one), Default: 'Table EXP.14'
+#' @param mbs_skip_1L_int Medicare Benefits Schedule skip (an integer vector of length one), Default: 4
+#' @param unit_cost_fl_nm_1L_chr Unit cost file name (a character vector of length one)
+#' @return Data (a tibble)
+#' @rdname make_cost_per_mins_tb
+#' @export 
+#' @importFrom purrr map_dfr map2_dbl
+#' @importFrom readxl read_xlsx
+#' @importFrom dplyr select filter mutate case_when group_by summarise nth first left_join
+#' @importFrom stringr str_replace
+#' @keywords internal
+make_cost_per_mins_tb <- function (path_1L_chr, mbs_fl_nm_1L_chr = character(0), mbs_sheet_1L_chr = "Table EXP.14", 
+    mbs_skip_1L_int = 4, unit_cost_fl_nm_1L_chr) 
+{
+    if (identical(mbs_fl_nm_1L_chr, character(0))) {
+        mbs_fl_nm_1L_chr <- "Expenditure on mental health services 2022-23.xlsx"
+    }
+    data_tb <- c("Allied health costs", "Psychologist costs", 
+        "psychaitrist costs", "GP costs") %>% purrr::map_dfr(~{
+        data_tb <- readxl::read_xlsx(paste0(path_1L_chr, "/", 
+            unit_cost_fl_nm_1L_chr), sheet = .x)
+        data_tb <- data_tb %>% dplyr::select(c(Professional, 
+            Duration, Interaction, Fee)) %>% dplyr::filter(!is.na(Duration)) %>% 
+            dplyr::filter(Duration != "-") %>% dplyr::filter(Interaction == 
+            "individual") %>% dplyr::mutate(Duration = Duration %>% 
+            stringr::str_replace("1hour", "60mins") %>% stringr::str_replace("minuts", 
+            "mins") %>% stringr::str_replace("minutes", "mins") %>% 
+            stringr::str_replace(" mins", "") %>% stringr::str_replace("mins", 
+            "") %>% stringr::str_replace(">", "greater than ") %>% 
+            stringr::str_replace("<", "less than ") %>% stringr::str_replace("At least ", 
+            "greater than ")) %>% dplyr::mutate(Multiplier = dplyr::case_when(startsWith(Duration, 
+            "greater than ") ~ 1.1, startsWith(Duration, "less than ") ~ 
+            1/1.1, T ~ 1)) %>% dplyr::mutate(Duration = stringr::str_replace(Duration, 
+            "greater than ", "") %>% stringr::str_replace("less than ", 
+            "")) %>% dplyr::mutate(MeanMinutes = strsplit(Duration, 
+            "-") %>% purrr::map2_dbl(Multiplier, ~mean(as.numeric(.x) * 
+            .y))) %>% dplyr::mutate(PerMinute = Fee/MeanMinutes) %>% 
+            dplyr::group_by(Professional) %>% dplyr::summarise(Fee = mean(Fee), 
+            Minutes = mean(MeanMinutes), PerMinute = mean(PerMinute))
+        data_tb
+    })
+    mbs_tb <- readxl::read_xlsx(paste0(path_1L_chr, "/", mbs_fl_nm_1L_chr), 
+        sheet = mbs_sheet_1L_chr, skip = mbs_skip_1L_int)
+    mbs_tb <- mbs_tb %>% dplyr::select(c(Provider, `Expenditure type`, 
+        `Expenditure measure`, `2023–24`)) %>% dplyr::filter(`Expenditure measure` == 
+        "Constant price ($'000)") %>% dplyr::filter(`Expenditure type` != 
+        "Total fees charged")
+    mbs_tb <- mbs_tb %>% dplyr::group_by(Provider) %>% dplyr::summarise(CopaymentMultiplier = dplyr::nth(`2023–24`, 
+        n = 2)/dplyr::first(`2023–24`))
+    data_tb <- data_tb %>% dplyr::mutate(Provider = dplyr::case_when(Professional %in% 
+        c("OT", "social worker", "Psychologist") ~ "Other allied health", 
+        Professional == "Clinical Psychologist" ~ "Clinical psychologists", 
+        Professional == "GP" ~ "General practitioners", Professional == 
+            "Psychiatrist" ~ "Psychiatrists")) %>% dplyr::left_join(mbs_tb) %>% 
+        dplyr::mutate(CopaymentPerMinute = PerMinute * CopaymentMultiplier) %>% 
+        dplyr::group_by(Provider) %>% dplyr::summarise(Subsidy = mean(PerMinute), 
+        OOP = mean(CopaymentPerMinute)) %>% dplyr::mutate(Total = Subsidy + 
+        OOP)
+    return(data_tb)
+}
 #' Make draws tibble
 #' @description make_draws_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make draws tibble. The function returns Draws (a tibble).
 #' @param inputs_ls Inputs (a list)
+#' @param drop_missing_1L_lgl Drop missing (a logical vector of length one), Default: FALSE
+#' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
 #' @param iterations_int Iterations (an integer vector), Default: 1:100
 #' @param scale_1L_int Scale (an integer vector of length one), Default: 1
 #' @param seed_1L_int Seed (an integer vector of length one), Default: integer(0)
 #' @return Draws (a tibble)
 #' @rdname make_draws_tb
 #' @export 
+#' @importFrom dplyr select mutate across everything rename_with where reframe first nth last
+#' @importFrom tidyselect any_of
 #' @importFrom janitor row_to_names
-#' @importFrom dplyr mutate across everything rename_with where reframe first nth last select
 #' @importFrom tibble rownames_to_column as_tibble
 #' @importFrom purrr reduce
 #' @importFrom rlang sym
-#' @importFrom tidyselect any_of
+#' @importFrom stringr str_remove
 #' @keywords internal
-make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L, 
-    seed_1L_int = integer(0)) 
+make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
+    iterations_int = 1:100, scale_1L_int = 1L, seed_1L_int = integer(0)) 
 {
     if (!identical(seed_1L_int, integer(0))) {
         set.seed(seed_1L_int)
     }
     iterations_1L_int <- length(unique(iterations_int))
     params_tb <- inputs_ls$params_tb
-    reshaped_tb <- params_tb %>% as.data.frame() %>% t() %>% 
-        janitor::row_to_names(1) %>% as.data.frame() %>% dplyr::mutate(dplyr::across(dplyr::everything(), 
+    reshaped_tb <- params_tb %>% dplyr::select(-tidyselect::any_of("Source")) %>% 
+        as.data.frame() %>% t() %>% janitor::row_to_names(1) %>% 
+        as.data.frame() %>% dplyr::mutate(dplyr::across(dplyr::everything(), 
         ~as.numeric(.x))) %>% tibble::rownames_to_column("Statistic") %>% 
         tibble::as_tibble() %>% dplyr::rename_with(.fn = ~paste0("Param", 
         .x), .cols = dplyr::where(is.numeric))
@@ -391,7 +473,33 @@ make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L,
     }
     draws_tb <- draws_tb %>% dplyr::select(-tidyselect::any_of(c("Iteration_mean", 
         "Iteration_sd")))
+    if (drop_missing_1L_lgl) {
+        draws_tb <- draws_tb %>% dplyr::select(dplyr::where(~any(!is.na(.x))))
+    }
+    if (!identical(drop_suffix_1L_chr, character(0))) {
+        draws_tb <- draws_tb %>% dplyr::rename_with(~stringr::str_remove(., 
+            drop_suffix_1L_chr))
+    }
     return(draws_tb)
+}
+#' Make economic results
+#' @description make_economic_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make economic results. The function returns Economic results (a list).
+#' @param sim_results_ls Sim results (a list)
+#' @param intervention_1L_chr Intervention (a character vector of length one)
+#' @param utilities_chr Utilities (a character vector)
+#' @return Economic results (a list)
+#' @rdname make_economic_results
+#' @export 
+#' @importFrom purrr map
+#' @importFrom stats setNames
+#' @keywords internal
+make_economic_results <- function (sim_results_ls, intervention_1L_chr, utilities_chr) 
+{
+    economic_results_ls <- utilities_chr %>% purrr::map(~{
+        make_economic_summary(sim_results_ls, reference_1L_chr = intervention_1L_chr, 
+            effects_1L_chr = paste0(.x, "_QALYs"))
+    }) %>% stats::setNames(utilities_chr)
+    return(economic_results_ls)
 }
 #' Make economic summary
 #' @description make_economic_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make economic summary. The function returns Economic (an output object of multiple potential types).
@@ -682,6 +790,27 @@ make_pooled_fit <- function (experts_tb, question_1L_chr = character(0))
     }
     return(fit_xx)
 }
+#' Make postcode lookup table
+#' @description make_postcode_lup() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make postcode lookup table. The function returns Postcode (a lookup table).
+#' @param url_1L_chr Url (a character vector of length one), Default: character(0)
+#' @return Postcode (a lookup table)
+#' @rdname make_postcode_lup
+#' @export 
+#' @importFrom openxlsx read.xlsx
+#' @importFrom dplyr mutate
+#' @importFrom purrr map_int
+#' @keywords internal
+make_postcode_lup <- function (url_1L_chr = character(0)) 
+{
+    if (identical(url_1L_chr, character(0))) {
+        url_1L_chr <- "https://www.abs.gov.au/statistics/people/people-and-communities/socio-economic-indexes-areas-seifa-australia/2021/Postal%20Area%2C%20Indexes%2C%20SEIFA%202021.xlsx"
+    }
+    postcode_lup <- openxlsx::read.xlsx(url_1L_chr, sheet = 3, 
+        startRow = 6, cols = c(1, 6)) %>% dplyr::mutate(IRSADQuintile = round(Decile/2) %>% 
+        purrr::map_int(~max(1, .x)))
+    names(postcode_lup)[1] <- "Postcode"
+    return(postcode_lup)
+}
 #' Make predicted observed dataset
 #' @description make_predd_observed_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make predicted observed dataset. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -725,6 +854,85 @@ make_predd_observed_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, consolidat
     Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary", 
         type_1L_chr = "update")
     return(Y_Ready4useDyad)
+}
+#' Make project 1 K10 models
+#' @description make_project_1_k10_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 1 k10 models. The function returns K10 (a list).
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @return K10 (a list)
+#' @rdname make_project_1_k10_mdls
+#' @export 
+#' @keywords internal
+make_project_1_k10_mdls <- function (X_Ready4useDyad) 
+{
+    k10_ls <- list(OLS_1_mdl = lm(formula = k10_12_Weeks ~ AQoL6D + 
+        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+    k10_ls$GLM_GSN_2_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+        family = gaussian())
+    k10_ls$GLM_GSN_LOG_3_mdl <- glm(formula = k10_12_Weeks ~ 
+        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+        family = gaussian(link = "log"))
+    k10_ls$GLM_GSN_INV_4_mdl <- glm(formula = k10_12_Weeks ~ 
+        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
+    k10_ls$GLM_GMA_5_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+        family = Gamma())
+    k10_ls$GLM_GMA_LOG_6_mdl <- glm(formula = k10_12_Weeks ~ 
+        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
+    k10_ls$GLM_GMA_INV_7_mdl <- glm(formula = k10_12_Weeks ~ 
+        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
+    k10_ls$GLM_ING_8_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+        family = inverse.gaussian())
+    k10_ls$GLM_ING_INV_9_mdl <- glm(formula = k10_12_Weeks ~ 
+        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "inverse"))
+    k10_ls$GLM_ING_SQT_10_mdl <- glm(formula = k10_12_Weeks ~ 
+        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+        data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "1/mu^2"))
+    return(k10_ls)
+}
+#' Make project 1 parameters tibble
+#' @description make_project_1_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 1 parameters tibble. The function returns Parameters (a tibble).
+
+#' @return Parameters (a tibble)
+#' @rdname make_project_1_params_tb
+#' @export 
+#' @importFrom tibble tribble tibble
+#' @importFrom serious update_for_price_year
+#' @importFrom stats setNames
+#' @importFrom dplyr pull
+#' @keywords internal
+make_project_1_params_tb <- function () 
+{
+    params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, 
+        "K10ChangeHeadspaceLow", -0.8, 0.4/1.96, sqrt(round(27298 * 
+            0.1, 0)) * 0.4/1.96, "K10ChangeHeadspaceModerate", 
+        1.1, 0.2/1.96, sqrt(round(27298 * 0.2, 0)) * 0.2/1.96, 
+        "K10ChangeHeadspaceHigh", 1.3, 0.1/1.96, sqrt(round(27298 * 
+            0.3, 0)) * 0.1/1.96, "K10ChangeHeadspaceVeryHigh", 
+        2, 0.1/1.96, sqrt(round(27298 * 0.4, 0)) * 0.1/1.96, 
+        "K10ChangeSpecialistFemale", 3.5, 7.8/sqrt(385), 7.8, 
+        "K10ChangeSpecialistMale", 2.9, 8.2/sqrt(233), 8.2, "K10ChangeSpecialistAll", 
+        3.3, 8/sqrt(620), 8, "RTM_Q1", 0.8, 0.02, sqrt(round(215578/5, 
+            0)) * 0.02, "RTM_Q2", -0.3, 0.02, sqrt(round(215578/5, 
+            0)) * 0.02, "RTM_Q3", -1.1, 0.02, sqrt(round(215578/5, 
+            0)) * 0.02, "RTM_Q4", -1.8, 0.02, sqrt(round(215578/5, 
+            0)) * 0.02, "RTM_Q5", -2.9, 0.03, sqrt(round(215578/5, 
+            0)) * 0.03, "EDOOSCost", 848, 0, 0, "HeadspaceOOSCost", 
+        serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
+            Cost = 230), price_indices_dbl = c(91.4, 93.3, 96, 
+            100, 100 * 102.5514/100.7796) %>% stats::setNames(paste0("FY ", 
+            2020:2024)), price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% 
+            as.vector(), 0, 0, "SpecialistOOSCost", serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
+            Cost = 439), price_indices_dbl = c(91.4, 93.3, 96, 
+            100, 100 * 102.5514/100.7796) %>% stats::setNames(paste0("FY ", 
+            2020:2024)), price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% 
+            as.vector(), 0, 0)
+    return(params_tb)
 }
 #' Make project activity dataset
 #' @description make_project_activity_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project activity dataset. The function returns Activity (a tibble).
@@ -841,6 +1049,57 @@ make_project_chu9d_mdls <- function (X_Ready4useDyad)
         Age + gender + CHU9D + k10 + k10_change + Minutes_12_Weeks, 
         data = Y_Ready4useDyad@ds_tb, link = "logit")
     return(chu9d_ls)
+}
+#' Make project comparison
+#' @description make_project_cmprsn() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project comparison. The function returns Comparison (an output object of multiple potential types).
+#' @param model_data_ls Model data (a list)
+#' @param by_1L_chr By (a character vector of length one)
+#' @param include_chr Include (a character vector)
+#' @param what_1L_chr What (a character vector of length one), Default: 'X'
+#' @param digits_1L_int Digits (an integer vector of length one), Default: 2
+#' @param labels_ls Labels (a list), Default: NULL
+#' @param tfmn_fn Transformation (a function), Default: identity
+#' @param tfmn_1_fn Transformation 1 (a function), Default: identity
+#' @param tfmn_2_fn Transformation 2 (a function), Default: identity
+#' @param type_1L_chr Type (a character vector of length one), Default: c("unimputed", "imputed", "combined")
+#' @return Comparison (an output object of multiple potential types)
+#' @rdname make_project_cmprsn
+#' @export 
+#' @importFrom purrr pluck
+#' @importFrom dplyr bind_rows mutate select
+#' @importFrom tidyselect all_of
+#' @importFrom gtsummary tbl_summary all_continuous all_categorical add_p
+#' @keywords internal
+make_project_cmprsn <- function (model_data_ls, by_1L_chr, include_chr, what_1L_chr = "X", 
+    digits_1L_int = 2L, labels_ls = NULL, tfmn_fn = identity, 
+    tfmn_1_fn = identity, tfmn_2_fn = identity, type_1L_chr = c("unimputed", 
+        "imputed", "combined")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (type_1L_chr == "combined") {
+        additional_tb <- model_data_ls$unimputed_ls$X_Ready4useDyad@ds_tb %>% 
+            tfmn_1_fn() %>% tfmn_fn()
+        element_1L_chr <- paste0("imputed", "_ls")
+    }
+    else {
+        additional_tb <- NULL
+        element_1L_chr <- paste0(type_1L_chr, "_ls")
+    }
+    data_ls <- model_data_ls %>% purrr::pluck(element_1L_chr)
+    data_tb <- data_ls %>% purrr::pluck(intersect(names(data_ls), 
+        paste0(what_1L_chr, c("", "_xx", "_Ready4useDyad", "_r4")))[1]) %>% 
+        procureSlot("ds_tb") %>% tfmn_2_fn() %>% tfmn_fn()
+    if (!is.null(additional_tb)) {
+        data_tb <- dplyr::bind_rows(data_tb %>% dplyr::mutate(Data = "Imputed"), 
+            additional_tb %>% dplyr::select(tidyselect::all_of(intersect(names(data_tb), 
+                names(additional_tb)))) %>% dplyr::mutate(Data = "Unimputed"))
+    }
+    comparison_xx <- data_tb %>% gtsummary::tbl_summary(by = tidyselect::all_of(by_1L_chr), 
+        include = tidyselect::all_of(include_chr), label = labels_ls, 
+        statistic = list(gtsummary::all_continuous() ~ "{mean} ({sd})", 
+            gtsummary::all_categorical() ~ "{n} ({p}%)"), digits = list(gtsummary::all_continuous() ~ 
+            c(digits_1L_int, digits_1L_int))) %>% gtsummary::add_p()
+    return(comparison_xx)
 }
 #' Make project consolidated dataset
 #' @description make_project_consolidated_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project consolidated dataset. The function is called for its side effects and does not return a value.
@@ -1442,6 +1701,101 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
     }
     return(project_xx)
 }
+#' Make project imputations
+#' @description make_project_imputations() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project imputations. The function returns Model data (a list).
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param add_cumulatives_1L_lgl Add cumulatives (a logical vector of length one), Default: FALSE
+#' @param characteristics_chr Characteristics (a character vector), Default: c("Diagnosis", "Employment")
+#' @param date_vars_chr Date variables (a character vector), Default: 'Date'
+#' @param extras_chr Extras (a character vector), Default: character(0)
+#' @param ignore_x_chr Ignore x (a character vector), Default: character(0)
+#' @param ignore_y_chr Ignore y (a character vector), Default: character(0)
+#' @param imputations_1L_int Imputations (an integer vector of length one), Default: 5
+#' @param max_iterations_1L_int Maximum iterations (an integer vector of length one), Default: 2
+#' @param method_1L_chr Method (a character vector of length one), Default: 'rf'
+#' @param post_imputation_fn Post imputation (a function), Default: identity
+#' @param uid_var_1L_chr Unique identifier variable (a character vector of length one), Default: 'UID'
+#' @return Model data (a list)
+#' @rdname make_project_imputations
+#' @export 
+#' @importFrom ready4use Ready4useDyad add_from_lup_prototype
+#' @importFrom dplyr select mutate across arrange left_join
+#' @importFrom tidyselect all_of
+#' @importFrom mice mice complete
+#' @importFrom tidyr any_of
+#' @importFrom tibble as_tibble
+#' @importFrom serious add_cumulatives
+#' @importFrom stringr str_remove
+#' @keywords internal
+make_project_imputations <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
+    add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("Diagnosis", 
+        "Employment"), date_vars_chr = "Date", extras_chr = character(0), 
+    ignore_x_chr = character(0), ignore_y_chr = character(0), 
+    imputations_1L_int = 5, max_iterations_1L_int = 2, method_1L_chr = "rf", 
+    post_imputation_fn = identity, uid_var_1L_chr = "UID") 
+{
+    model_data_ls <- list(imputed_ls = list(), unimputed_ls = list())
+    model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% 
+        update_mds_modelling_ds())
+    if (!identical(ignore_x_chr, character(0))) {
+        A_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::all_of(c(uid_var_1L_chr, 
+                date_vars_chr, ignore_x_chr) %>% unique())))
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::all_of(c(ignore_x_chr, 
+                date_vars_chr) %>% unique())))
+    }
+    imputed_xx <- mice::mice(X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(tidyr::any_of(c(characteristics_chr, 
+        extras_chr)), ~as.factor(.x))), method = method_1L_chr, 
+        m = imputations_1L_int, maxit = max_iterations_1L_int)
+    Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", mice::complete(imputed_xx, 
+        action = "long") %>% tibble::as_tibble() %>% dplyr::mutate(dplyr::across(tidyr::any_of(c(characteristics_chr, 
+        extras_chr)), ~as.character(.x))))
+    if (!identical(Y_Ready4useDyad, ready4use::Ready4useDyad())) {
+        if (!identical(ignore_y_chr, character(0))) {
+            B_Ready4useDyad <- Y_Ready4useDyad
+            Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
+                Y_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::all_of(ignore_y_chr)))
+        }
+        Z_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
+            ready4use::add_from_lup_prototype(Y_Ready4useDyad@ds_tb, 
+                lup_prototype_tb = Z_Ready4useDyad@ds_tb, match_var_nm_1L_chr = uid_var_1L_chr, 
+                type_1L_chr = c("self"), vars_chr = intersect(characteristics_chr, 
+                  names(X_Ready4useDyad@ds_tb))) %>% dplyr::arrange(UID, 
+                Date))
+    }
+    if (!identical(extras_chr, character(0))) {
+        imputed_2_xx <- mice::mice(Z_Ready4useDyad@ds_tb %>% 
+            dplyr::mutate(dplyr::across(tidyr::any_of(extras_chr), 
+                ~as.factor(.x))), method = method_1L_chr, m = 1, 
+            maxit = 1)
+        Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+            mice::complete(imputed_2_xx) %>% tibble::as_tibble() %>% 
+                dplyr::mutate(dplyr::across(tidyr::any_of(extras_chr), 
+                  ~as.character(.x))))
+    }
+    if (!identical(ignore_x_chr, character(0))) {
+        Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+            Z_Ready4useDyad@ds_tb %>% dplyr::left_join(A_Ready4useDyad@ds_tb))
+    }
+    if (!identical(ignore_y_chr, character(0))) {
+        Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+            Z_Ready4useDyad@ds_tb %>% dplyr::left_join(B_Ready4useDyad@ds_tb))
+    }
+    if (add_cumulatives_1L_lgl) {
+        cumulatives_chr <- setdiff(names(Z_Ready4useDyad@ds_tb)[startsWith(names(Z_Ready4useDyad@ds_tb), 
+            "Cumulative")], c(ignore_x_chr, ignore_y_chr))
+        Z_Ready4useDyad <- serious::add_cumulatives(Z_Ready4useDyad, 
+            metrics_chr = cumulatives_chr %>% stringr::str_remove("Cumulative"), 
+            group_by_1L_chr = uid_var_1L_chr)
+    }
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", Z_Ready4useDyad@ds_tb %>% 
+        post_imputation_fn())
+    model_data_ls$imputed_ls$Z_Ready4useDyad <- Z_Ready4useDyad
+    model_data_ls$imputed_ls$imputed_xx <- imputed_xx
+    return(model_data_ls)
+}
 #' Make project joiners dataset
 #' @description make_project_joiners_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project joiners dataset. The function returns Data (an output object of multiple potential types).
 #' @param processed_ls Processed (a list)
@@ -1494,41 +1848,14 @@ make_project_joiners_ds <- function (processed_ls, as_dyad_1L_lgl = T)
 #' Make project K10 models
 #' @description make_project_k10_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project k10 models. The function returns K10 (a list).
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param make_with_fn Make with (a function), Default: make_project_1_k10_mdls
 #' @return K10 (a list)
 #' @rdname make_project_k10_mdls
 #' @export 
 #' @keywords internal
-make_project_k10_mdls <- function (X_Ready4useDyad) 
+make_project_k10_mdls <- function (X_Ready4useDyad, make_with_fn = make_project_1_k10_mdls) 
 {
-    k10_ls <- list(OLS_1_mdl = lm(formula = k10_12_Weeks ~ AQoL6D + 
-        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
-    k10_ls$GLM_GSN_2_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
-        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
-        family = gaussian())
-    k10_ls$GLM_GSN_LOG_3_mdl <- glm(formula = k10_12_Weeks ~ 
-        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
-        family = gaussian(link = "log"))
-    k10_ls$GLM_GSN_INV_4_mdl <- glm(formula = k10_12_Weeks ~ 
-        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-        data = X_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
-    k10_ls$GLM_GMA_5_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
-        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
-        family = Gamma())
-    k10_ls$GLM_GMA_LOG_6_mdl <- glm(formula = k10_12_Weeks ~ 
-        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-        data = X_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
-    k10_ls$GLM_GMA_INV_7_mdl <- glm(formula = k10_12_Weeks ~ 
-        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-        data = X_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
-    k10_ls$GLM_ING_8_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
-        CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
-        family = inverse.gaussian())
-    k10_ls$GLM_ING_INV_9_mdl <- glm(formula = k10_12_Weeks ~ 
-        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-        data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "inverse"))
-    k10_ls$GLM_ING_SQT_10_mdl <- glm(formula = k10_12_Weeks ~ 
-        AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-        data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "1/mu^2"))
+    k10_ls <- X_Ready4useDyad %>% make_with_fn()
     return(k10_ls)
 }
 #' Make project keys
@@ -2046,41 +2373,14 @@ make_project_overview_ds <- function (raw_data_ls, demographics_tb)
 }
 #' Make project parameters tibble
 #' @description make_project_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project parameters tibble. The function returns Parameters (a tibble).
-
+#' @param make_with_fn Make with (a function), Default: make_project_1_params_tb
 #' @return Parameters (a tibble)
 #' @rdname make_project_params_tb
 #' @export 
-#' @importFrom tibble tribble tibble
-#' @importFrom serious update_for_price_year
-#' @importFrom stats setNames
-#' @importFrom dplyr pull
 #' @keywords internal
-make_project_params_tb <- function () 
+make_project_params_tb <- function (make_with_fn = make_project_1_params_tb) 
 {
-    params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, 
-        "K10ChangeHeadspaceLow", -0.8, 0.4/1.96, sqrt(round(27298 * 
-            0.1, 0)) * 0.4/1.96, "K10ChangeHeadspaceModerate", 
-        1.1, 0.2/1.96, sqrt(round(27298 * 0.2, 0)) * 0.2/1.96, 
-        "K10ChangeHeadspaceHigh", 1.3, 0.1/1.96, sqrt(round(27298 * 
-            0.3, 0)) * 0.1/1.96, "K10ChangeHeadspaceVeryHigh", 
-        2, 0.1/1.96, sqrt(round(27298 * 0.4, 0)) * 0.1/1.96, 
-        "K10ChangeSpecialistFemale", 3.5, 7.8/sqrt(385), 7.8, 
-        "K10ChangeSpecialistMale", 2.9, 8.2/sqrt(233), 8.2, "K10ChangeSpecialistAll", 
-        3.3, 8/sqrt(620), 8, "RTM_Q1", 0.8, 0.02, sqrt(round(215578/5, 
-            0)) * 0.02, "RTM_Q2", -0.3, 0.02, sqrt(round(215578/5, 
-            0)) * 0.02, "RTM_Q3", -1.1, 0.02, sqrt(round(215578/5, 
-            0)) * 0.02, "RTM_Q4", -1.8, 0.02, sqrt(round(215578/5, 
-            0)) * 0.02, "RTM_Q5", -2.9, 0.03, sqrt(round(215578/5, 
-            0)) * 0.03, "EDOOSCost", 848, 0, 0, "HeadspaceOOSCost", 
-        serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
-            Cost = 230), price_indices_dbl = c(91.4, 93.3, 96, 
-            100, 100 * 102.5514/100.7796) %>% stats::setNames(paste0("FY ", 
-            2020:2024)), price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% 
-            as.vector(), 0, 0, "SpecialistOOSCost", serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
-            Cost = 439), price_indices_dbl = c(91.4, 93.3, 96, 
-            100, 100 * 102.5514/100.7796) %>% stats::setNames(paste0("FY ", 
-            2020:2024)), price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% 
-            as.vector(), 0, 0)
+    params_tb <- make_with_fn()
     return(params_tb)
 }
 #' Make project recode lookup table
@@ -2642,6 +2942,9 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' Make regression report
 #' @description make_regression_report() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make regression report. The function returns Report (an output object of multiple potential types).
 #' @param regressions_ls Regressions (a list)
+#' @param what_1L_chr What (a character vector of length one)
+#' @param digits_1L_int Digits (an integer vector of length one), Default: integer(0)
+#' @param drop_chr Drop (a character vector), Default: character(0)
 #' @param exclude_int Exclude (an integer vector), Default: integer(0)
 #' @param model_1L_int Model (an integer vector of length one), Default: integer(0)
 #' @param part_1L_int Part (an integer vector of length one), Default: integer(0)
@@ -2650,8 +2953,6 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @param rank_1L_lgl Rank (a logical vector of length one), Default: TRUE
 #' @param residual_1L_chr Residual (a character vector of length one), Default: 'normal'
 #' @param type_1L_chr Type (a character vector of length one), Default: c("candidates", "tests", "models")
-#' @param what_1L_chr What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-#'    "Tx_Treatment", "Tx_Discharged")
 #' @param var_1L_chr Variable (a character vector of length one), Default: character(0)
 #' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
 #' @return Report (an output object of multiple potential types)
@@ -2661,20 +2962,21 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @importFrom purrr map
 #' @importFrom stats setNames
 #' @importFrom performance check_model compare_performance test_performance
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr rename select mutate across where
+#' @importFrom tidyselect any_of
 #' @importFrom stringr str_remove
 #' @importFrom broom tidy
 #' @keywords internal
-make_regression_report <- function (regressions_ls, exclude_int = integer(0), model_1L_int = integer(0), 
+make_regression_report <- function (regressions_ls, what_1L_chr, digits_1L_int = integer(0), 
+    drop_chr = character(0), exclude_int = integer(0), model_1L_int = integer(0), 
     part_1L_int = integer(0), report_1L_chr = c("all", "main", 
         "check", "compare", "confusion", "estimates", "test"), 
     rank_1L_lgl = TRUE, residual_1L_chr = "normal", type_1L_chr = c("candidates", 
-        "tests", "models"), what_1L_chr = c("AQoL6D", "CHU9D", 
-        "K10", "Minutes", "Treatments", "Tx_Waitlist", "Tx_Treatment", 
-        "Tx_Discharged"), var_1L_chr = character(0), X_Ready4useDyad = ready4use::Ready4useDyad()) 
+        "tests", "models"), var_1L_chr = character(0), X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     report_1L_chr <- match.arg(report_1L_chr)
     type_1L_chr <- match.arg(type_1L_chr)
-    what_1L_chr <- match.arg(what_1L_chr)
     if (report_1L_chr %in% c("all", "main")) {
         if (report_1L_chr == "all") {
             use_int <- 1:5
@@ -2706,7 +3008,16 @@ make_regression_report <- function (regressions_ls, exclude_int = integer(0), mo
             else {
                 report_xx <- performance::compare_performance(get_regression(regressions_ls, 
                   part_1L_int = part_1L_int, type_1L_chr = type_1L_chr, 
-                  what_1L_chr = what_1L_chr), rank = rank_1L_lgl)
+                  what_1L_chr = what_1L_chr), rank = rank_1L_lgl) %>% 
+                  tibble::as_tibble() %>% dplyr::rename(`R2 Nagelkerke` = R2_Nagelkerke, 
+                  `Performance Score` = Performance_Score)
+                if (!identical(drop_chr, character(0))) {
+                  report_xx <- report_xx %>% dplyr::select(-tidyselect::any_of(drop_chr))
+                }
+                if (!identical(digits_1L_int, integer(0))) {
+                  report_xx <- report_xx %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                    ~round(.x, digits = digits_1L_int)))
+                }
             }
         }
         if (report_1L_chr == "confusion") {
@@ -2749,20 +3060,24 @@ make_regression_report <- function (regressions_ls, exclude_int = integer(0), mo
 }
 #' Make regressions list
 #' @description make_regressions_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make regressions list. The function returns Regressions (a list).
-
+#' @param prototype_ls_ls Prototype (a list of lists), Default: list(AQoL6D_ls = list(), CHU9D_ls = list(), k10_ls = list(), 
+#'    Minutes_ls = list(), Treatments_ls = list(Waitlist_ls = list(), 
+#'        Treatment_ls = list(), Discharged_ls = list()))
+#' @param prototype_mdls_ls Prototype models (a list), Default: list(AQoL6D_mdl = NULL, CHU9D_mdl = NULL, k10_mdl = NULL, Minutes_mdl = NULL, 
+#'    Treatments_ls = list(Waitlist_mdl = NULL, Treatment_mdl = NULL, 
+#'        Discharged_mdl = NULL))
 #' @return Regressions (a list)
 #' @rdname make_regressions_ls
 #' @export 
 #' @keywords internal
-make_regressions_ls <- function () 
+make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), CHU9D_ls = list(), 
+    k10_ls = list(), Minutes_ls = list(), Treatments_ls = list(Waitlist_ls = list(), 
+        Treatment_ls = list(), Discharged_ls = list())), prototype_mdls_ls = list(AQoL6D_mdl = NULL, 
+    CHU9D_mdl = NULL, k10_mdl = NULL, Minutes_mdl = NULL, Treatments_ls = list(Waitlist_mdl = NULL, 
+        Treatment_mdl = NULL, Discharged_mdl = NULL))) 
 {
-    assessments_ls <- candidates_ls <- tests_ls <- list(AQoL6D_ls = list(), 
-        CHU9D_ls = list(), k10_ls = list(), Minutes_ls = list(), 
-        Treatments_ls = list(Waitlist_ls = list(), Treatment_ls = list(), 
-            Discharged_ls = list()))
-    models_ls <- list(AQoL6D_mdl = NULL, CHU9D_mdl = NULL, k10_mdl = NULL, 
-        Minutes_mdl = NULL, Treatments_ls = list(Waitlist_mdl = NULL, 
-            Treatment_mdl = NULL, Discharged_mdl = NULL))
+    assessments_ls <- candidates_ls <- tests_ls <- prototype_ls_ls
+    models_ls <- prototype_mdls_ls
     regressions_ls <- list(candidates_ls = candidates_ls, assessments_ls = assessments_ls, 
         models_ls = models_ls, tests_ls = tests_ls)
     return(regressions_ls)
@@ -3043,6 +3358,7 @@ make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1
 #' @param group_by_chr Group by (a character vector), Default: character(0)
 #' @param min_cell_size_1L_int Minimum cell size (an integer vector of length one), Default: 1
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @return Results summary (a list)
 #' @rdname make_results_summary
 #' @export 
@@ -3051,7 +3367,8 @@ make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1
 #' @importFrom purrr map_dfr
 #' @keywords internal
 make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = character(0), 
-    min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000) 
+    min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
+        "CHU9D")) 
 {
     D <- X_Ready4useDyad
     E <- renewSlot(D, "ds_tb", D@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
@@ -3067,7 +3384,8 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
     ab_tb <- AB@ds_tb
     x_tb <- E@ds_tb
     y_tb <- D@ds_tb %>% dplyr::filter(Data == "Difference")
-    z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
+    z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, 
+        utilities_chr = utilities_chr)
     E <- renewSlot(E, "ds_tb", z_tb)
     ab_tb <- ab_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
         group_by_chr))))
@@ -3089,7 +3407,8 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
         startsWith("CE_")])
     x_tb <- x_tb %>% dplyr::left_join(y_tb) %>% dplyr::ungroup() %>% 
         dplyr::left_join(z_tb)
-    x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
+    x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, 
+        utilities_chr = utilities_chr)
     x_tb <- dplyr::bind_rows(x_tb, ab_tb %>% dplyr::left_join(ab_tb$Data %>% 
         unique() %>% purrr::map_dfr(~y_tb %>% dplyr::mutate(Data = .x))))
     E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::bind_rows(AB@ds_tb))
@@ -3110,6 +3429,8 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #'    "employment_status")
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
 #' @param results_ls Results (a list), Default: NULL
+#' @param severity_fn Severity (a function), Default: make_k10_severity_cuts
+#' @param severity_var_1L_chr Severity variable (a character vector of length one), Default: 'k10_start'
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
 #' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
 #' @param Z_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
@@ -3118,14 +3439,16 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' @export 
 #' @importFrom ready4use Ready4useDyad
 #' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
 #' @keywords internal
 make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", 
     "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
     "treatment_start"), exclude_suffixes_chr = c("_change", "_date", 
     "_previous", "52_Weeks"), keep_chr = c("platform", "clinic_state", 
     "clinic_type", "Age", "gender", "employment_status"), modifiable_chr = character(0), 
-    results_ls = NULL, type_1L_chr = c("D", "AB", "C"), Y_Ready4useDyad = ready4use::Ready4useDyad(), 
-    Z_Ready4useDyad = ready4use::Ready4useDyad()) 
+    results_ls = NULL, severity_fn = make_k10_severity_cuts, 
+    severity_var_1L_chr = "k10_start", type_1L_chr = c("D", "AB", 
+        "C"), Y_Ready4useDyad = ready4use::Ready4useDyad(), Z_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (!is.null(results_ls)) {
@@ -3138,16 +3461,16 @@ make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE,
         keep_chr = keep_chr, modifiable_chr = modifiable_chr, 
         type_1L_chr = type_1L_chr)
     if (add_severity_1L_lgl) {
-        severity_ls <- make_k10_severity_cuts()
+        severity_ls <- severity_fn()
         A_Ready4useDyad <- renewSlot(A_Ready4useDyad, "ds_tb", 
-            A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(k10_start) >= 
-                severity_ls$Low[1] & as.numeric(k10_start) <= 
-                severity_ls$Low[2] ~ "Low", as.numeric(k10_start) >= 
-                severity_ls$Moderate[1] & as.numeric(k10_start) <= 
-                severity_ls$Moderate[2] ~ "Moderate", as.numeric(k10_start) >= 
-                severity_ls$High[1] & as.numeric(k10_start) <= 
-                severity_ls$High[2] ~ "High", as.numeric(k10_start) >= 
-                severity_ls$VeryHigh[1] & as.numeric(k10_start) <= 
+            A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$Low[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$Low[2] ~ "Low", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$Moderate[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$Moderate[2] ~ "Moderate", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$High[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$High[2] ~ "High", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$VeryHigh[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
                 severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
     }
     return(A_Ready4useDyad)
@@ -3188,17 +3511,49 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 }
 #' Make structural variables
 #' @description make_structural_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make structural variables. The function returns Structural (a character vector).
-
+#' @param data_1L_chr Data (a character vector of length one), Default: 'Data'
+#' @param uid_1L_chr Unique identifier (a character vector of length one), Default: character(0)
 #' @return Structural (a character vector)
 #' @rdname make_structural_vars
 #' @export 
 #' @keywords internal
-make_structural_vars <- function () 
+make_structural_vars <- function (data_1L_chr = "Data", uid_1L_chr = character(0)) 
 {
-    structural_chr <- c("Iteration", "InModel", "Arm", "Data", 
-        "StartDate", "CurrentDate", "EndDate", "CurrentEvent", 
+    structural_chr <- c("Iteration", uid_1L_chr, "InModel", "Arm", 
+        data_1L_chr, "StartDate", "CurrentDate", "EndDate", "CurrentEvent", 
         "NextEvent", "ScheduledFor")
     return(structural_chr)
+}
+#' Make suffix
+#' @description make_suffix() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make suffix. The function returns Suffix (a character vector of length one).
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
+#' @param follow_up_1L_int Follow up (an integer vector of length one), Default: integer(0)
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Function", "Project")
+#' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
+#' @return Suffix (a character vector of length one)
+#' @rdname make_suffix
+#' @export 
+#' @keywords internal
+make_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), 
+    sensitivities_ls = make_sensitivities_ls(), type_1L_chr = c("Model", 
+        "Function", "Project"), update_1L_int = integer(0)) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (!identical(update_1L_int, integer(0))) {
+        suffix_1L_chr <- paste0("_Update_", update_1L_int)
+    }
+    else {
+        if (type_1L_chr == "Project") {
+            suffix_1L_chr <- paste0("_", names(sensitivities_ls$outcomes_ls)[1])
+        }
+        else {
+            suffix_1L_chr <- make_weeks_suffix(X_Ready4useDyad, 
+                adjustment_1L_dbl = adjustment_1L_dbl, follow_up_1L_int = follow_up_1L_int)
+        }
+    }
+    return(suffix_1L_chr)
 }
 #' Make synthetic data
 #' @description make_synthetic_data() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make synthetic data. The function returns Output (a list).
@@ -3267,6 +3622,7 @@ make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L
 #' @description make_synthetic_tests() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make synthetic tests. The function returns Synthetic tests (a list).
 #' @param population_ls Population (a list)
 #' @param model_data_ls Model data (a list), Default: NULL
+#' @param original_tb Original (a tibble), Default: NULL
 #' @param comparison_1L_chr Comparison (a character vector of length one), Default: c("OutcomesJoinersImputed", "Joiners", "OutcomesJoiners", "Outcomes")
 #' @param ... Additional arguments
 #' @return Synthetic tests (a list)
@@ -3276,21 +3632,24 @@ make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L
 #' @importFrom tidyselect all_of
 #' @importFrom synthpop compare
 #' @keywords internal
-make_synthetic_tests <- function (population_ls, model_data_ls = NULL, comparison_1L_chr = c("OutcomesJoinersImputed", 
-    "Joiners", "OutcomesJoiners", "Outcomes"), ...) 
+make_synthetic_tests <- function (population_ls, model_data_ls = NULL, original_tb = NULL, 
+    comparison_1L_chr = c("OutcomesJoinersImputed", "Joiners", 
+        "OutcomesJoiners", "Outcomes"), ...) 
 {
     comparison_1L_chr <- match.arg(comparison_1L_chr)
-    if (comparison_1L_chr == "Joiners") {
-        original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
-            dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == 
-                "Other" ~ NA_character_, T ~ treatment_status) %>% 
-                as.factor())
-    }
-    if (comparison_1L_chr == "OutcomesJoinersImputed") {
-        original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb
-    }
-    if (comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")) {
-        original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb
+    if (is.null(original_tb)) {
+        if (comparison_1L_chr == "Joiners") {
+            original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
+                dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == 
+                  "Other" ~ NA_character_, T ~ treatment_status) %>% 
+                  as.factor())
+        }
+        if (comparison_1L_chr == "OutcomesJoinersImputed") {
+            original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb
+        }
+        if (comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")) {
+            original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb
+        }
     }
     original_tb <- dplyr::select(original_tb, intersect(names(original_tb), 
         names(population_ls$fully_synthetic_ls$Synthetic_r4@ds_tb)))
@@ -3412,6 +3771,35 @@ make_tx_mdl_confusion <- function (X_Ready4useDyad = ready4use::Ready4useDyad(),
         data_tb) %>% dplyr::pull(.pred_class), data_tb %>% dplyr::pull(!!rlang::sym(treatment_vars_chr[2])))
     return(confusion_ls)
 }
+#' Make utility functions list
+#' @description make_utility_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make utility functions list. The function returns Utility functions (a list).
+#' @param add_to_ls Add to (a list), Default: NULL
+#' @param aqol8d_fn Assessment of Quality of Life Eight Dimension (a function), Default: add_aqol8d_from_k10
+#' @param eq5d_fn EQ5D (a function), Default: add_eq5d_from_draws
+#' @param sf6d_fn Short Form - Six Dimension (a function), Default: add_sf6d_from_draws
+#' @param utilities_chr Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "SF6D")
+#' @return Utility functions (a list)
+#' @rdname make_utility_fns_ls
+#' @export 
+#' @importFrom purrr keep_at
+#' @keywords internal
+make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k10, 
+    eq5d_fn = add_eq5d_from_draws, sf6d_fn = add_sf6d_from_draws, 
+    utilities_chr = c("AQoL8D", "EQ5D", "SF6D")) 
+{
+    utility_fns_ls <- list(AQoL8D = aqol8d_fn, EQ5D = eq5d_fn, 
+        EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, 
+            source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, 
+            type_1L_chr = "external", var_1L_chr = var_1L_chr), 
+        SF6D = sf6d_fn, SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, 
+            source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, 
+            type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>% 
+        purrr::keep_at(utilities_chr)
+    if (!is.null(add_to_ls)) {
+        utility_fns_ls <- append(utility_fns_ls, add_to_ls)
+    }
+    return(utility_fns_ls)
+}
 #' Make utility predictions dataset
 #' @description make_utility_predictions_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make utility predictions dataset. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
@@ -3524,4 +3912,21 @@ make_weeks_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up
             X_Ready4useDyad@ds_tb$StartDate[1]))/7, 0), "_Weeks")
     }
     return(suffix_1L_chr)
+}
+#' Make worker types
+#' @description make_worker_types() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make worker types. The function returns Worker types (a character vector).
+#' @param type_1L_chr Type (a character vector of length one), Default: c("all", "medical")
+#' @return Worker types (a character vector)
+#' @rdname make_worker_types
+#' @export 
+#' @keywords internal
+make_worker_types <- function (type_1L_chr = c("all", "medical")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    worker_types_chr <- c("ClinicalPsychologist", "Psychiatrist", 
+        "GP", "OtherMedical", "Nurse", "Other")
+    if (type_1L_chr == "medical") {
+        worker_types_chr <- worker_types_chr[c(2:4)]
+    }
+    return(worker_types_chr)
 }

@@ -4,12 +4,14 @@
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_current_date
 #' @export 
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate case_when
+#' @importFrom lubridate NA_Date_
 #' @keywords internal
 update_current_date <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(CurrentDate = ScheduledFor))
+        dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor > 
+            EndDate ~ lubridate::NA_Date_, T ~ ScheduledFor)))
     return(X_Ready4useDyad)
 }
 #' Update current event
@@ -18,12 +20,13 @@ update_current_date <- function (X_Ready4useDyad)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_current_event
 #' @export 
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate case_when
 #' @keywords internal
 update_current_event <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(CurrentEvent = NextEvent))
+        dplyr::mutate(CurrentEvent = dplyr::case_when(is.na(CurrentDate) ~ 
+            NA_character_, T ~ NextEvent)))
     return(X_Ready4useDyad)
 }
 #' Update gender
@@ -115,15 +118,32 @@ update_mismatched_vars <- function (model_dyad_ls = make_model_dyad_ls, type_1L_
 #' Update order
 #' @description update_order() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update order. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param structural_chr Structural (a character vector), Default: make_structural_vars(data_1L_chr = character(0), uid_1L_chr = "UID")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("rows", "columns")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_order
 #' @export 
-#' @importFrom dplyr arrange
+#' @importFrom dplyr arrange select
+#' @importFrom tidyselect any_of
 #' @keywords internal
-update_order <- function (X_Ready4useDyad) 
+update_order <- function (X_Ready4useDyad, structural_chr = make_structural_vars(data_1L_chr = character(0), 
+    uid_1L_chr = "UID"), type_1L_chr = c("rows", "columns")) 
 {
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::arrange(Iteration, UID))
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (type_1L_chr %in% c("both", "rows")) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::arrange(Iteration, 
+                UID))
+    }
+    if (type_1L_chr %in% c("both", "columns")) {
+        params_chr <- names(X_Ready4useDyad@ds_tb)[startsWith(names(X_Ready4useDyad@ds_tb), 
+            "Param")] %>% sort()
+        main_chr <- setdiff(names(X_Ready4useDyad@ds_tb), c(structural_chr, 
+            params_chr)) %>% sort()
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::any_of(c(structural_chr, 
+                main_chr, params_chr))))
+    }
     return(X_Ready4useDyad)
 }
 #' Update population classes
@@ -133,13 +153,16 @@ update_order <- function (X_Ready4useDyad)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_population_classes
 #' @export 
-#' @importFrom purrr reduce
+#' @importFrom purrr keep_at reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @keywords internal
 update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL) 
 {
-    if (!is.null(tfmn_ls)) {
+    tfmn_ls <- tfmn_ls %>% purrr::keep_at(intersect(names(tfmn_ls), 
+        names(X_Ready4useDyad@ds_tb)))
+    if (!is.null(tfmn_ls) & !identical(tfmn_ls, purrr::keep_at(list(X = NULL), 
+        "Y"))) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             purrr::reduce(1:length(tfmn_ls), .init = X_Ready4useDyad@ds_tb, 
                 ~{
@@ -149,6 +172,79 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
                 }))
     }
     return(X_Ready4useDyad)
+}
+#' Update population list
+#' @description update_population_ls() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update population list. The function returns Population (a list).
+#' @param population_ls Population (a list), Default: NULL
+#' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("split", "join", "form")
+#' @param use_1L_chr Use (a character vector of length one), Default: c("Y", "Z")
+#' @return Population (a list)
+#' @rdname update_population_ls
+#' @export 
+#' @importFrom ready4use Ready4useDyad
+#' @importFrom dplyr filter bind_rows mutate across where arrange
+#' @keywords internal
+update_population_ls <- function (population_ls = NULL, X_Ready4useDyad = ready4use::Ready4useDyad(), 
+    type_1L_chr = c("split", "join", "form"), use_1L_chr = c("Y", 
+        "Z")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    use_1L_chr <- match.arg(use_1L_chr)
+    if (type_1L_chr == "form") {
+        population_ls <- list(X_Ready4useDyad = X_Ready4useDyad, 
+            Y_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb", 
+                X_Ready4useDyad@ds_tb %>% dplyr::filter(F)), 
+            Z_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb", 
+                X_Ready4useDyad@ds_tb %>% dplyr::filter(F)))
+    }
+    if (type_1L_chr == "split") {
+        if (use_1L_chr == "Y") {
+            population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, 
+                "ds_tb", dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
+                  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                    ~as.numeric(.x))), population_ls$X_Ready4useDyad@ds_tb %>% 
+                  dplyr::filter(is.na(CurrentDate)) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~as.numeric(.x)))))
+        }
+        if (use_1L_chr == "Z") {
+            population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, 
+                "ds_tb", dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
+                  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                    ~as.numeric(.x))), population_ls$X_Ready4useDyad@ds_tb %>% 
+                  dplyr::filter(is.na(CurrentDate)) %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~as.numeric(.x)))))
+        }
+        population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, 
+            "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% 
+                dplyr::filter(!is.na(CurrentDate)))
+    }
+    if (type_1L_chr == "join") {
+        if (use_1L_chr == "Y") {
+            data_tb <- population_ls$Y_Ready4useDyad@ds_tb
+        }
+        if (use_1L_chr == "Z") {
+            data_tb <- population_ls$Z_Ready4useDyad@ds_tb
+        }
+        population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, 
+            "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~as.numeric(.x))) %>% dplyr::bind_rows(data_tb %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                  ~as.numeric(.x)))) %>% dplyr::arrange(Iteration, 
+                UID))
+        if (use_1L_chr == "Y") {
+            population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, 
+                "ds_tb", population_ls$Y_Ready4useDyad@ds_tb %>% 
+                  dplyr::filter(F))
+        }
+        if (use_1L_chr == "Z") {
+            population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, 
+                "ds_tb", population_ls$Z_Ready4useDyad@ds_tb %>% 
+                  dplyr::filter(F))
+        }
+    }
+    return(population_ls)
 }
 #' Update predictions dataset
 #' @description update_predictions_ds() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update predictions dataset. The function is called for its side effects and does not return a value.
@@ -160,7 +256,7 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tfmn_1L_chr Transformation (a character vector of length one), Default: 'NTF'
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
-#' @param utility_1L_chr Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")
+#' @param utility_1L_chr Utility (a character vector of length one), Default: c("AQoL6D")
 #' @param var_1L_chr Variable (a character vector of length one), Default: character(0)
 #' @param with_1L_chr With (a character vector of length one), Default: '_sim_mean'
 #' @return Y (A dataset and data dictionary pair.)
@@ -173,10 +269,10 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @keywords internal
 update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_int = 1:5, 
     follow_up_1L_int = 12L, maintain_for_1L_int = 0L, sensitivities_ls = make_sensitivities_ls(), 
-    tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(), utility_1L_chr = c("AQoL6D", 
-        "CHU9D"), var_1L_chr = character(0), with_1L_chr = "_sim_mean") 
+    tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(), utility_1L_chr = c("AQoL6D"), 
+    var_1L_chr = character(0), with_1L_chr = "_sim_mean") 
 {
-    utility_1L_chr <- match.arg(utility_1L_chr)
+    utility_1L_chr <- utility_1L_chr[1]
     var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, 
         fup_var_1L_chr = var_1L_chr, type_1L_chr = "fup")
     if (1 %in% do_int) {
@@ -249,13 +345,14 @@ update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_in
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_previous
 #' @export 
-#' @importFrom dplyr mutate across
+#' @importFrom dplyr mutate across all_of
 #' @keywords internal
 update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pattern_1L_chr = "{col}_previous") 
 {
+    modifiable_chr <- intersect(modifiable_chr, names(X_Ready4useDyad@ds_tb))
     if (!identical(modifiable_chr, character(0))) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(modifiable_chr, 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::all_of(modifiable_chr), 
                 ~.x, .names = pattern_1L_chr)))
     }
     return(X_Ready4useDyad)
@@ -364,16 +461,18 @@ update_scenario_names <- function (forecasts_tb, after_1L_chr = character(0), be
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param increment_1L_int Increment (an integer vector of length one), Default: integer(0)
 #' @param target_1L_int Target (an integer vector of length one), Default: integer(0)
+#' @param variable_1L_chr Variable (a character vector of length one), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("End", "Day")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_scheduled_date
 #' @export 
 #' @importFrom dplyr mutate across select
+#' @importFrom rlang sym
 #' @importFrom assertthat assert_that
 #' @importFrom lubridate time_length days
 #' @keywords internal
 update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0), target_1L_int = integer(0), 
-    type_1L_chr = c("End", "Day")) 
+    variable_1L_chr = character(0), type_1L_chr = c("End", "Day")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "End") {
@@ -383,12 +482,18 @@ update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0
     }
     if (type_1L_chr == "Day") {
         if (identical(increment_1L_int, integer(0))) {
-            assertthat::assert_that(!identical(target_1L_int, 
-                integer(0)))
-            X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = target_1L_int - 
-                  (lubridate::time_length((CurrentDate - StartDate), 
-                    "days"))))
+            if (!identical(variable_1L_chr, character(0))) {
+                X_Ready4useDyad <- renewSlot(X_Ready4useDyad, 
+                  "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = !!rlang::sym(variable_1L_chr)))
+            }
+            else {
+                assertthat::assert_that(!identical(target_1L_int, 
+                  integer(0)))
+                X_Ready4useDyad <- renewSlot(X_Ready4useDyad, 
+                  "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = target_1L_int - 
+                    (lubridate::time_length((CurrentDate - StartDate), 
+                      "days"))))
+            }
         }
         else {
             X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -461,59 +566,81 @@ update_test_ds <- function (X_Ready4useDyad, modifiable_chr, pattern_1L_chr = "{
 #' Update treatment start end
 #' @description update_tx_start_end() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update treatment start end. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'treatment'
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_tx_start_end
 #' @export 
 #' @importFrom lubridate weeks NA_Date_ as.period
 #' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
 #' @importFrom purrr map_vec map2_vec
 #' @keywords internal
-update_tx_start_end <- function (X_Ready4useDyad, tx_duration_dtm = lubridate::weeks(12)) 
+update_tx_start_end <- function (X_Ready4useDyad, prefix_1L_chr = "treatment", tx_duration_dtm = lubridate::weeks(12)) 
 {
-    if (!"treatment_change" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_change") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_change = NA_character_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_change")), NA_character_)))
     }
-    if (!"treatment_count" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_count") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_count = 0))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_count")), 0)))
     }
-    if (!"treatment_start" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_start") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_start = lubridate::NA_Date_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_start")), lubridate::NA_Date_)))
     }
-    if (!"treatment_measurement" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_measurement") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_measurement = lubridate::NA_Date_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_measurement")), lubridate::NA_Date_)))
     }
-    if (!"treatment_fraction" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_fraction") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_fraction = NA_real_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_fraction")), NA_real_)))
     }
-    if (!"treatment_status_previous" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_status_previous") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_status_previous = NA_character_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_status_previous")), NA_character_)))
     }
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(treatment_count = dplyr::case_when(as.character(treatment_change) == 
-            "Start" ~ treatment_count + 1, as.character(treatment_change) == 
-            "End" & as.character(treatment_status_previous) == 
-            "Waitlist" ~ treatment_count + 1, T ~ treatment_count), 
-            treatment_start = dplyr::case_when(!is.na(treatment_start) ~ 
-                treatment_start, is.na(treatment_start) & as.character(treatment_status) == 
-                "Treatment" ~ purrr::map_vec(CurrentDate, ~{
+        dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_count")), dplyr::case_when(as.character(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_change"))) == "Start" ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_count")) + 1, as.character(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_change"))) == "End" & as.character(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_status_previous"))) == "Waitlist" ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_count")) + 1, T ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_count")))), `:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_start")), dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_start"))) ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_start")), is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_start"))) & as.character(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_status"))) == "Treatment" ~ purrr::map_vec(CurrentDate, 
+            ~{
                 sample(seq(.x - tx_duration_dtm, .x, by = "day"), 
                   1)
-            }), T ~ lubridate::NA_Date_), treatment_measurement = dplyr::case_when(!is.na(treatment_measurement) ~ 
-                treatment_measurement, is.na(treatment_measurement) & 
-                !is.na(treatment_start) ~ treatment_start + tx_duration_dtm, 
-                T ~ lubridate::NA_Date_), treatment_fraction = dplyr::case_when(!is.na(treatment_fraction) ~ 
-                treatment_fraction, treatment_start >= StartDate & 
-                treatment_measurement <= EndDate ~ 1, T ~ lubridate::as.period(purrr::map2_vec(EndDate, 
-                treatment_measurement, ~as.Date(ifelse(is.na(.y), 
-                  lubridate::NA_Date_, min(.x, .y, na.rm = T)))) - 
-                CurrentDate)/tx_duration_dtm)))
+            }), T ~ lubridate::NA_Date_)), `:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_measurement")), dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_measurement"))) ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_measurement")), is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_measurement"))) & !is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+            "_start"))) ~ !!rlang::sym(paste0(prefix_1L_chr, 
+            "_start")) + tx_duration_dtm, T ~ lubridate::NA_Date_)), 
+            `:=`(!!rlang::sym(paste0(prefix_1L_chr, "_fraction")), 
+                dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+                  "_fraction"))) ~ !!rlang::sym(paste0(prefix_1L_chr, 
+                  "_fraction")), !!rlang::sym(paste0(prefix_1L_chr, 
+                  "_start")) >= StartDate & !!rlang::sym(paste0(prefix_1L_chr, 
+                  "_measurement")) <= EndDate ~ 1, T ~ lubridate::as.period(purrr::map2_vec(EndDate, 
+                  !!rlang::sym(paste0(prefix_1L_chr, "_measurement")), 
+                  ~as.Date(ifelse(is.na(.y), lubridate::NA_Date_, 
+                    min(.x, .y, na.rm = T)))) - CurrentDate)/tx_duration_dtm))))
     return(X_Ready4useDyad)
 }
 #' Update with imputed

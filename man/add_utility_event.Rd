@@ -10,6 +10,7 @@ add_utility_event(
   add_sensitivity_1L_lgl = FALSE,
   adjustment_1L_dbl = 0,
   follow_up_1L_int = integer(0),
+  utility_fns_ls = NULL,
   iterations_int = 1:100L,
   maintain_for_1L_int = 0L,
   models_ls = NULL,
@@ -18,8 +19,10 @@ add_utility_event(
   simulate_1L_lgl = TRUE,
   tfmn_ls = NULL,
   tidy_1L_lgl = TRUE,
-  utilities_chr = c("AQoL6D", "CHU9D"),
-  type_1L_chr = c("Model", "Project"),
+  tidy_cols_1L_lgl = FALSE,
+  update_1L_int = integer(0),
+  utilities_chr = c("CHU9D", "AQoL6D"),
+  type_1L_chr = c("Model", "Function", "Project"),
   what_1L_chr = c("old", "new")
 )
 }
@@ -33,6 +36,8 @@ add_utility_event(
 \item{adjustment_1L_dbl}{Adjustment (a double vector of length one), Default: 0}
 
 \item{follow_up_1L_int}{Follow up (an integer vector of length one), Default: integer(0)}
+
+\item{utility_fns_ls}{Utility functions (a list), Default: NULL}
 
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
@@ -50,9 +55,13 @@ add_utility_event(
 
 \item{tidy_1L_lgl}{Tidy (a logical vector of length one), Default: TRUE}
 
-\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+\item{tidy_cols_1L_lgl}{Tidy columns (a logical vector of length one), Default: FALSE}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project")}
+\item{update_1L_int}{Update (an integer vector of length one), Default: integer(0)}
+
+\item{utilities_chr}{Utilities (a character vector), Default: c("CHU9D", "AQoL6D")}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Function", "Project")}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("old", "new")}
 }

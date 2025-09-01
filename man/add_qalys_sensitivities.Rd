@@ -9,7 +9,7 @@ add_qalys_sensitivities(
   end_var_1L_chr = character(0),
   sensitivities_ls = make_sensitivities_ls(),
   start_var_1L_chr = character(0),
-  utility_1L_chr = c("AQoL6D", "CHU9D"),
+  utility_1L_chr = c("AQoL6D"),
   type_1L_chr = c("main", "legacy")
 )
 }
@@ -22,7 +22,7 @@ add_qalys_sensitivities(
 
 \item{start_var_1L_chr}{Start variable (a character vector of length one), Default: character(0)}
 
-\item{utility_1L_chr}{Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")}
+\item{utility_1L_chr}{Utility (a character vector of length one), Default: c("AQoL6D")}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("main", "legacy")}
 }

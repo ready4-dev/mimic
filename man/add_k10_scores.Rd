@@ -9,10 +9,12 @@ add_k10_scores(
   k10_mdl = NULL,
   iterations_int = 1:100L,
   join_with_chr = character(0),
+  k10_draws_fn = add_project_1_k10_draws,
   k10_var_1L_chr = "k10",
   params_tb = make_project_params_tb(),
   sensitivities_ls = make_sensitivities_ls(),
   tfmn_ls = make_class_tfmns(T),
+  tx_prefix_1L_chr = "treatment",
   type_1L_chr = c("Model", "Project", "Table"),
   var_1L_chr = "k10_12_Weeks",
   what_1L_chr = c("old", "new")
@@ -27,6 +29,8 @@ add_k10_scores(
 
 \item{join_with_chr}{Join with (a character vector), Default: character(0)}
 
+\item{k10_draws_fn}{K10 draws (a function), Default: add_project_1_k10_draws}
+
 \item{k10_var_1L_chr}{K10 variable (a character vector of length one), Default: 'k10'}
 
 \item{params_tb}{Parameters (a tibble), Default: make_project_params_tb()}
@@ -34,6 +38,8 @@ add_k10_scores(
 \item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
+
+\item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: 'treatment'}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project", "Table")}
 

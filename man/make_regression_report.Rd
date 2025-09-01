@@ -6,6 +6,9 @@
 \usage{
 make_regression_report(
   regressions_ls,
+  what_1L_chr,
+  digits_1L_int = integer(0),
+  drop_chr = character(0),
   exclude_int = integer(0),
   model_1L_int = integer(0),
   part_1L_int = integer(0),
@@ -13,14 +16,18 @@ make_regression_report(
   rank_1L_lgl = TRUE,
   residual_1L_chr = "normal",
   type_1L_chr = c("candidates", "tests", "models"),
-  what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-    "Tx_Treatment", "Tx_Discharged"),
   var_1L_chr = character(0),
   X_Ready4useDyad = ready4use::Ready4useDyad()
 )
 }
 \arguments{
 \item{regressions_ls}{Regressions (a list)}
+
+\item{what_1L_chr}{What (a character vector of length one)}
+
+\item{digits_1L_int}{Digits (an integer vector of length one), Default: integer(0)}
+
+\item{drop_chr}{Drop (a character vector), Default: character(0)}
 
 \item{exclude_int}{Exclude (an integer vector), Default: integer(0)}
 
@@ -36,9 +43,6 @@ make_regression_report(
 \item{residual_1L_chr}{Residual (a character vector of length one), Default: 'normal'}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("candidates", "tests", "models")}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-"Tx_Treatment", "Tx_Discharged")}
 
 \item{var_1L_chr}{Variable (a character vector of length one), Default: character(0)}
 
