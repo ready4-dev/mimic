@@ -8,8 +8,9 @@ Y <- ingest(X)
 Y <- renewSlot(Y,
                new_val_xx = Ready4useIngest(objects_ls = list(
                  abbreviations_lup = Y@b_Ready4useIngest@objects_ls$abbreviations_lup %>% 
+                   # dplyr::distinct()
                    ready4fun::renew.ready4fun_abbreviations(short_name_chr = c("aqol8d","sf6d"), long_name_chr = c("Assessment of Quality of Life Eight Dimension",
-                                                                                                                   "Short Form - Six Dimension"), plural_lgl = FALSE) %>% 
+                                                                                                                   "Short Form - Six Dimension"), plural_lgl = FALSE) %>%
                    dplyr::arrange(short_name_chr)
                  # ,
                  # classes_bup_lup =  classes_bup_lup,
