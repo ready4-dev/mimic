@@ -12,3 +12,4 @@ Parameters (a tibble)
 \description{
 make_project_1_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 1 parameters tibble. The function returns Parameters (a tibble).
 }
+\keyword{internal}

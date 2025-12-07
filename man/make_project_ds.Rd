@@ -70,3 +70,4 @@ Project (an output object of multiple potential types)
 \description{
 make_project_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project dataset. The function returns Project (an output object of multiple potential types).
 }
+\keyword{internal}

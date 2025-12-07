@@ -35,3 +35,4 @@ EQ5D (a double vector of length one)
 \description{
 calculate_eq5d_from_k10() is a Calculate function that performs a numeric calculation. Specifically, this function implements an algorithm to calculate eq5d from k10. The function returns EQ5D (a double vector of length one).
 }
+\keyword{internal}

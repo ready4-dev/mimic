@@ -20,3 +20,4 @@ Disciplines (a character vector)
 \description{
 make_disciplines() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make disciplines. The function returns Disciplines (a character vector).
 }
+\keyword{internal}

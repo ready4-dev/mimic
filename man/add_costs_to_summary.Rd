@@ -46,3 +46,4 @@ Summaries (a list)
 \description{
 add_costs_to_summary() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add costs to summary. The function returns Summaries (a list).
 }
+\keyword{internal}

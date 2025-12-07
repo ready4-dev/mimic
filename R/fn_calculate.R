@@ -7,6 +7,7 @@
 #' @return an Assessment of Quality of Life Eight Dimension (a double vector of length one)
 #' @rdname calculate_aqol8d_from_k10
 #' @export 
+#' @keywords internal
 calculate_aqol8d_from_k10 <- function (age_1L_dbl, k10_1L_dbl, norway_1L_lgl = FALSE, source_1L_chr = c("10.1192/bjp.bp.113.136036")) 
 {
     aqol8d_1L_dbl <- exp(0.204665 + ((-3.617134) * (k10_1L_dbl/100)) + 
@@ -25,6 +26,7 @@ calculate_aqol8d_from_k10 <- function (age_1L_dbl, k10_1L_dbl, norway_1L_lgl = F
 #' @return EQ5D (a double vector of length one)
 #' @rdname calculate_eq5d_from_k10
 #' @export 
+#' @keywords internal
 calculate_eq5d_from_k10 <- function (age_1L_dbl, k10_1L_dbl, germany_1L_lgl = FALSE, beta_age_1L_dbl = -0.01382, 
     beta_constant_1L_dbl = 3.5222, beta_k10_1L_dbl = -0.06476, 
     source_1L_chr = c("10.1192/bjo.2018.21", "10.1192/bjp.bp.113.136036")) 
@@ -58,6 +60,7 @@ calculate_eq5d_from_k10 <- function (age_1L_dbl, k10_1L_dbl, germany_1L_lgl = FA
 #' @importFrom tidyselect all_of
 #' @importFrom rlang sym
 #' @importFrom stats setNames
+#' @keywords internal
 calculate_erp_for_areas <- function (raw_erp_tb = NULL, path_1L_chr = character(0), areas_chr, 
     count_1L_chr = character(0), name_1L_chr = character(0), 
     summarise_1L_lgl = TRUE, var_1L_chr = "LGA") 
@@ -98,6 +101,7 @@ calculate_erp_for_areas <- function (raw_erp_tb = NULL, path_1L_chr = character(
 #' @rdname calculate_offset_prob_proxy
 #' @export 
 #' @importFrom heemod rate_to_prob
+#' @keywords internal
 calculate_offset_prob_proxy <- function (area_erp_1L_dbl, exposed_1L_dbl, rate_1L_dbl, risk_1L_dbl, 
     denominator_1L_dbl = 1e+05, time_1L_dbl = 1) 
 {
@@ -130,6 +134,7 @@ calculate_offset_prob_proxy <- function (area_erp_1L_dbl, exposed_1L_dbl, rate_1
 #' @return a Short Form - Six Dimension (a double vector of length one)
 #' @rdname calculate_sf6d_from_k10
 #' @export 
+#' @keywords internal
 calculate_sf6d_from_k10 <- function (female_1L_lgl, k10_1L_dbl, beta_female_moderate_1L_dbl = -0.059, 
     beta_female_high_1L_dbl = -0.124, beta_male_moderate_1L_dbl = -0.055, 
     beta_male_high_1L_dbl = -0.123, beta_constant_1L_dbl = 0.805, 

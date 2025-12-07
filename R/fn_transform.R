@@ -7,6 +7,7 @@
 #' @importFrom purrr map_vec
 #' @importFrom lubridate NA_Date_
 #' @importFrom stringr str_sub
+#' @keywords internal
 transform_dates <- function (dates_chr) 
 {
     dates_dtm <- dates_chr %>% purrr::map_vec(~{
@@ -42,6 +43,7 @@ transform_dates <- function (dates_chr)
 #' @importFrom tidyselect any_of all_of
 #' @importFrom stringr str_sub
 #' @importFrom purrr map2 reduce map_lgl
+#' @keywords internal
 transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm = NULL, 
     key_vars_chr = make_project_keys(), max_periods_1L_int = integer(0), 
     max_tenure_1L_dbl = numeric(0), metric_var_1L_chr = "Minutes", 
@@ -100,6 +102,7 @@ transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm
 #' @export 
 #' @importFrom dplyr filter mutate case_when
 #' @importFrom lubridate years
+#' @keywords internal
 transform_project_2_model_ds <- function (data_tb, cut_off_date_1L_chr, intervention_1L_chr = "Intervention", 
     type_1L_chr = c("has_iar", "representation")) 
 {
@@ -139,6 +142,7 @@ transform_project_2_model_ds <- function (data_tb, cut_off_date_1L_chr, interven
 #' @importFrom purrr map2_int map2_chr reduce map2_dfr map_dfr
 #' @importFrom rlang sym
 #' @importFrom ready4use renew.ready4use_dictionary
+#' @keywords internal
 transform_project_outcomes_ds <- function (outcomes_xx, transform_gender_1L_lgl = F, follow_up_1L_int = 12, 
     minutes_chr = c("direct_mins", "indirect_mins", "Minutes")) 
 {
@@ -274,6 +278,7 @@ transform_project_outcomes_ds <- function (outcomes_xx, transform_gender_1L_lgl 
 #' @importFrom dplyr filter mutate select everything
 #' @importFrom rlang sym
 #' @importFrom tidyr all_of
+#' @keywords internal
 transform_to_long_results <- function (X_Ready4useDyad, var_1L_chr, add_means_1L_lgl = TRUE, 
     tidy_1L_lgl = TRUE) 
 {
@@ -321,6 +326,7 @@ transform_to_long_results <- function (X_Ready4useDyad, var_1L_chr, add_means_1L
 #' @export 
 #' @importFrom dplyr mutate across
 #' @importFrom purrr map_dbl
+#' @keywords internal
 transform_to_min_and_max <- function (X_Ready4useDyad, vars_chr, max_1L_dbl = 0.999999, min_1L_dbl = 1e-06) 
 {
     Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -339,6 +345,7 @@ transform_to_min_and_max <- function (X_Ready4useDyad, vars_chr, max_1L_dbl = 0.
 #' @importFrom dplyr sample_n ungroup pull group_by across mutate n case_when filter select bind_rows
 #' @importFrom rlang sym
 #' @importFrom tidyr all_of
+#' @keywords internal
 transform_to_remove_duplicates <- function (data_tb, group_by_chr = c("episode_key", "collection_occasion_date", 
     "reason_for_collection"), uid_1L_chr = "episode_key") 
 {
@@ -366,6 +373,7 @@ transform_to_remove_duplicates <- function (data_tb, group_by_chr = c("episode_k
 #' @export 
 #' @importFrom dplyr filter mutate
 #' @importFrom rlang sym
+#' @keywords internal
 transform_tx_factor <- function (data_tb, treatment_vars_chr = c("treatment_status", 
     "treatment_status_t2"), what_1L_chr = c("Waitlist", "Treatment", 
     "Discharged")) 
@@ -385,6 +393,7 @@ transform_tx_factor <- function (data_tb, treatment_vars_chr = c("treatment_stat
 #' @export 
 #' @importFrom dplyr filter mutate
 #' @importFrom rlang sym
+#' @keywords internal
 transform_tx_mdlng_ds <- function (data_tb, treatment_vars_chr = c("treatment_status", 
     "treatment_status_t2"), what_1L_chr = c("Waitlist", "Treatment", 
     "Discharged")) 

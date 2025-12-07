@@ -17,3 +17,4 @@ Data (an output object of multiple potential types)
 \description{
 make_project_joiners_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project joiners dataset. The function returns Data (an output object of multiple potential types).
 }
+\keyword{internal}

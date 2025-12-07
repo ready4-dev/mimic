@@ -15,3 +15,4 @@ Data (a tibble)
 \description{
 add_project_offset_logic() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project offset logic. The function returns Data (a tibble).
 }
+\keyword{internal}

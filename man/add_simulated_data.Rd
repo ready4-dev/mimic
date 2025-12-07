@@ -41,3 +41,4 @@ Y (A dataset and data dictionary pair.)
 \description{
 add_simulated_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add simulated data. The function is called for its side effects and does not return a value.
 }
+\keyword{internal}

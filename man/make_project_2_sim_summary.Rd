@@ -44,3 +44,4 @@ Summary (a tibble)
 \description{
 make_project_2_sim_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 sim summary. The function returns Summary (a tibble).
 }
+\keyword{internal}

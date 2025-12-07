@@ -38,3 +38,4 @@ a Short Form - Six Dimension (a double vector of length one)
 \description{
 calculate_sf6d_from_k10() is a Calculate function that performs a numeric calculation. Specifically, this function implements an algorithm to calculate short form - six dimension from k10. The function returns a Short Form - Six Dimension (a double vector of length one).
 }
+\keyword{internal}

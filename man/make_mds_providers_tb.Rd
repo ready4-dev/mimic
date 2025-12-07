@@ -17,3 +17,4 @@ Providers (a tibble)
 \description{
 make_mds_providers_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset providers tibble. The function returns Providers (a tibble).
 }
+\keyword{internal}

@@ -24,6 +24,7 @@
 #' @export 
 #' @importFrom rlang exec
 #' @importFrom ready4use Ready4useDyad
+#' @keywords internal
 write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_lgl, 
     drop_suffix_1L_chr, horizon_dtm, inputs_ls, intervention_fn, 
     iterations_ls, modifiable_chr, prior_batches_1L_int, scale_1L_int, 
@@ -82,6 +83,7 @@ write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_
 #' @importFrom purrr walk pluck walk2
 #' @importFrom ready4 procureSlot
 #' @importFrom stringr str_remove
+#' @keywords internal
 write_project_csvs <- function (model_data_ls, path_to_private_1L_chr, processed_dir_1L_chr, 
     divider_1L_chr = "\\") 
 {
@@ -109,6 +111,7 @@ write_project_csvs <- function (model_data_ls, path_to_private_1L_chr, processed
 #' @export 
 #' @importFrom stringr str_remove_all
 #' @importFrom purrr walk pluck walk2
+#' @keywords internal
 write_project_RDS <- function (data_ls, path_to_private_1L_chr, processed_dir_1L_chr, 
     divider_1L_chr = "\\", r_dir_1L_chr = "R") 
 {
@@ -151,6 +154,7 @@ write_project_RDS <- function (data_ls, path_to_private_1L_chr, processed_dir_1L
 #' @rdname write_project_ws
 #' @export 
 #' @importFrom purrr walk
+#' @keywords internal
 write_project_ws <- function (path_to_private_1L_chr, processed_dir_1L_chr, divider_1L_chr = "\\") 
 {
     if (!dir.exists(paste0(path_to_private_1L_chr, divider_1L_chr, 
@@ -196,6 +200,7 @@ write_project_ws <- function (path_to_private_1L_chr, processed_dir_1L_chr, divi
 #' @rdname write_raw_mds_data
 #' @export 
 #' @importFrom purrr walk2
+#' @keywords internal
 write_raw_mds_data <- function (raw_mds_data_ls, path_to_raw_dir_1L_chr, r_dir_1L_chr = "R") 
 {
     raw_mds_data_ls %>% purrr::walk2(names(raw_mds_data_ls), 

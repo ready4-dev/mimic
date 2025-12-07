@@ -23,3 +23,4 @@ Contacts (a tibble)
 \description{
 make_project_contacts_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project contacts dataset. The function returns Contacts (a tibble).
 }
+\keyword{internal}

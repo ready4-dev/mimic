@@ -26,3 +26,4 @@ Results (a matrix)
 \description{
 make_results_matrix() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results matrix. The function returns Results (a matrix).
 }
+\keyword{internal}

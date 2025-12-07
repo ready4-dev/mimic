@@ -56,3 +56,4 @@ X (A dataset and data dictionary pair.)
 \description{
 add_k10_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add k10 event. The function is called for its side effects and does not return a value.
 }
+\keyword{internal}

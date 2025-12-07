@@ -11,6 +11,7 @@
 #' @importFrom readxl read_xlsx
 #' @importFrom dplyr mutate across relocate
 #' @importFrom lubridate month year
+#' @keywords internal
 import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", areas_chr = c("Intervention", 
     "Matched"), divider_1L_chr = "\\") 
 {
@@ -56,6 +57,7 @@ import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", 
 #' @importFrom stats setNames
 #' @importFrom readxl read_xlsx
 #' @importFrom ready4use Ready4useDyad
+#' @keywords internal
 import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_chr = character(0), 
     r_dir_1L_chr = "R", divider_1L_chr = "\\", names_ls = NULL, 
     type_1L_chr = c("raw", "experts", "custom", "forecasts", 
@@ -172,6 +174,7 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_c
 #' @export 
 #' @importFrom purrr reduce
 #' @importFrom dplyr bind_rows
+#' @keywords internal
 import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr) 
 {
     files_chr <- list.files(dir_1L_chr, full.names = F)

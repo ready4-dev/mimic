@@ -51,3 +51,4 @@ Plot (a plot)
 \description{
 plot_economic_results() is a Plot function that plots data. Specifically, this function implements an algorithm to plot economic results. The function returns Plot (a plot).
 }
+\keyword{internal}

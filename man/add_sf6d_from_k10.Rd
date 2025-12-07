@@ -56,3 +56,4 @@ Data (an output object of multiple potential types)
 \description{
 add_sf6d_from_k10() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add short form - six dimension from k10. The function returns Data (an output object of multiple potential types).
 }
+\keyword{internal}

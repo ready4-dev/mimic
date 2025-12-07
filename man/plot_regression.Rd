@@ -53,3 +53,4 @@ Plot (a plot)
 \description{
 plot_regression() is a Plot function that plots data. Specifically, this function implements an algorithm to plot regression. The function returns Plot (a plot).
 }
+\keyword{internal}

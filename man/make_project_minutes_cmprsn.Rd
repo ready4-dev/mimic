@@ -32,3 +32,4 @@ Comparison (a tibble)
 \description{
 make_project_minutes_cmprsn() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project minutes comparison. The function returns Comparison (a tibble).
 }
+\keyword{internal}

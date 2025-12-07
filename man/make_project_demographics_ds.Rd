@@ -17,3 +17,4 @@ Demographics (a tibble)
 \description{
 make_project_demographics_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project demographics dataset. The function returns Demographics (a tibble).
 }
+\keyword{internal}

@@ -26,3 +26,4 @@ Population (a list)
 \description{
 update_population_ls() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update population list. The function returns Population (a list).
 }
+\keyword{internal}

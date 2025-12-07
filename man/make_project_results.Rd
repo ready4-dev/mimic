@@ -32,3 +32,4 @@ Sim results (a list)
 \description{
 make_project_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project results. The function returns Sim results (a list).
 }
+\keyword{internal}

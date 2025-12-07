@@ -15,3 +15,4 @@ Postcode (a lookup table)
 \description{
 make_postcode_lup() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make postcode lookup table. The function returns Postcode (a lookup table).
 }
+\keyword{internal}

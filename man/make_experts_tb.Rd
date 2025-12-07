@@ -19,3 +19,4 @@ Experts (a tibble)
 \description{
 make_experts_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make experts tibble. The function returns Experts (a tibble).
 }
+\keyword{internal}

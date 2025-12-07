@@ -15,3 +15,4 @@ Interactions (a tibble)
 \description{
 make_interactions_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make interactions summary. The function returns Interactions (a tibble).
 }
+\keyword{internal}

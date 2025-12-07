@@ -41,3 +41,4 @@ Data (a tibble)
 \description{
 add_cost_calculations() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost calculations. The function returns Data (a tibble).
 }
+\keyword{internal}

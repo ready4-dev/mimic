@@ -17,3 +17,4 @@ Results (a list)
 \description{
 import_results_batches() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import results batches. The function returns Results (a list).
 }
+\keyword{internal}

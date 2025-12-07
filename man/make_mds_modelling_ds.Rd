@@ -74,3 +74,4 @@ Model data (a list)
 \description{
 make_mds_modelling_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset modelling dataset. The function returns Model data (a list).
 }
+\keyword{internal}

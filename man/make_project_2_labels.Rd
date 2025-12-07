@@ -15,3 +15,4 @@ Labels (a list)
 \description{
 make_project_2_labels() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 labels. The function returns Labels (a list).
 }
+\keyword{internal}

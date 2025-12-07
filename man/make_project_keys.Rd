@@ -15,3 +15,4 @@ Keys (a character vector)
 \description{
 make_project_keys() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project keys. The function returns Keys (a character vector).
 }
+\keyword{internal}

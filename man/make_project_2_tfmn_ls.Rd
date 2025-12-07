@@ -15,3 +15,4 @@ Transformation (a list)
 \description{
 make_project_2_tfmn_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 transformation list. The function returns Transformation (a list).
 }
+\keyword{internal}

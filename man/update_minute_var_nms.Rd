@@ -17,3 +17,4 @@ Data (a tibble)
 \description{
 update_minute_var_nms() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update minute variable names. The function returns Data (a tibble).
 }
+\keyword{internal}

@@ -10,6 +10,7 @@
 #' @rdname print_cmprsns
 #' @export 
 #' @importFrom ready4show make_table_fn print_in_format make_table_fns_ls
+#' @keywords internal
 print_cmprsns <- function (data_xx, output_type_1L_chr = c("HTML", "PDF", "Word"), 
     what_1L_chr = c("gtsummary", "df", "null"), html_table_fn = NULL, 
     pdf_table_fn = NULL, word_table_fn = NULL) 
@@ -44,6 +45,7 @@ print_cmprsns <- function (data_xx, output_type_1L_chr = c("HTML", "PDF", "Word"
 #' @importFrom tidyselect any_of
 #' @importFrom ready4 make_list_phrase
 #' @importFrom assertthat assert_that
+#' @keywords internal
 print_errors <- function (X_Ready4useDyad, vars_chr, assert_1L_lgl = FALSE, invalid_fn = function(x) (is.na(x) | 
     is.nan(x) | is.null(x) | x == -Inf | x == Inf)) 
 {

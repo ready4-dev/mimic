@@ -17,3 +17,4 @@ Structural (a character vector)
 \description{
 make_structural_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make structural variables. The function returns Structural (a character vector).
 }
+\keyword{internal}

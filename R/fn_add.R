@@ -6,6 +6,7 @@
 #' @rdname add_activity
 #' @export 
 #' @importFrom dplyr mutate case_when
+#' @keywords internal
 add_activity <- function (data_tb, neither_1L_chr = "ERROR") 
 {
     data_tb <- data_tb %>% dplyr::mutate(Activity = dplyr::case_when(SignedUp == 
@@ -31,6 +32,7 @@ add_activity <- function (data_tb, neither_1L_chr = "ERROR")
 #' @importFrom lubridate interval years
 #' @importFrom ready4use add_dictionary ready4use_dictionary renew.ready4use_dictionary
 #' @importFrom tidyselect all_of
+#' @keywords internal
 add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_lgl = FALSE, 
     date_of_birth_1L_chr = "date_of_birth", index_date_1L_chr = "onboarding_date", 
     what_chr = c("contacts", "outcomes", "overview")) 
@@ -90,6 +92,7 @@ add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_
 #' @importFrom dplyr filter mutate
 #' @importFrom rlang sym
 #' @importFrom purrr map_dbl
+#' @keywords internal
 add_aqol8d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
     norway_1L_lgl = FALSE, source_1L_chr = c("10.1192/bjp.bp.113.136036"), 
     tidy_cols_1L_lgl = FALSE, var_1L_chr = "AQoL8D") 
@@ -129,6 +132,7 @@ add_aqol8d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready
 #' @export 
 #' @importFrom flextable theme_box
 #' @importFrom ready4show add_tfmn_for_fmt make_table_fns_ls
+#' @keywords internal
 add_box_conditionally <- function (table_xx, html_table_fn = identity, output_type_1L_chr = c("HTML", 
     "PDF", "Word"), pdf_table_fn = identity, word_table_fn = flextable::theme_box) 
 {
@@ -151,6 +155,7 @@ add_box_conditionally <- function (table_xx, html_table_fn = identity, output_ty
 #' @importFrom purrr reduce map_chr map2_chr
 #' @importFrom stringr str_extract str_remove
 #' @importFrom rlang sym
+#' @keywords internal
 add_clients_to_summary <- function (summaries_ls, onboarded_tb, arrange_1L_chr = character(0), 
     reference_1L_chr = "Status quo") 
 {
@@ -191,6 +196,7 @@ add_clients_to_summary <- function (summaries_ls, onboarded_tb, arrange_1L_chr =
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE, add_logic_fn = identity, 
     add_offsets_1L_lgl = FALSE, add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, 
     offsets_chr = character(0), variable_unit_1L_chr = "Minutes") 
@@ -245,6 +251,7 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
 #' @importFrom dplyr mutate select
 #' @importFrom rlang sym
 #' @importFrom purrr map2_dbl pmap_dbl
+#' @keywords internal
 add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_chr = character(0), 
     effect_1L_chr = "QALYs", icer_1L_chr = character(0), suffix_1L_chr = "", 
     threshold_1L_dbl = 96000) 
@@ -275,6 +282,7 @@ add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_
 #' @rdname add_cost_effectiveness_stats
 #' @export 
 #' @importFrom purrr reduce
+#' @keywords internal
 add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
     "CHU9D")) 
 {
@@ -360,6 +368,7 @@ add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, uti
 #' @importFrom rlang sym
 #' @importFrom tibble tibble
 #' @importFrom tidyselect all_of
+#' @keywords internal
 add_cost_offsets <- function (data_tb, inputs_ls, offsets_chr, add_logic_fn = identity, 
     base_for_rates_int = 1L) 
 {
@@ -436,6 +445,7 @@ add_cost_offsets <- function (data_tb, inputs_ls, offsets_chr, add_logic_fn = id
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_costs_event
 #' @export 
+#' @keywords internal
 add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity, 
     add_offsets_1L_lgl = FALSE, base_for_rates_int = 1L, offsets_chr = character(0), 
     type_1L_chr = c("variable", "fixed", "both", "zero"), variable_unit_1L_chr = "Minutes") 
@@ -482,6 +492,7 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity
 #' @importFrom rlang sym
 #' @importFrom lubridate weeks
 #' @importFrom tibble tibble add_case
+#' @keywords internal
 add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 26, arrange_1L_chr = character(0), 
     bind_to_tb = NULL, cost_tfmn_fn = identity, reference_1L_chr = "Status quo", 
     tfmn_fn = identity, type_1L_chr = c("change_scenario", "change_scen_sq", 
@@ -690,6 +701,7 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @importFrom purrr map2_chr
+#' @keywords internal
 add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
     suffix_1L_chr = "") 
 {
@@ -720,6 +732,7 @@ add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs
 #' @importFrom lubridate years weeks NA_Date_
 #' @importFrom dplyr mutate select everything inner_join
 #' @importFrom purrr map_dfr reduce pluck
+#' @keywords internal
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
     default_fn = NULL, derive_fn_ls = NULL, iterations_int = 1:100L, 
     modifiable_chr = character(0), start_dtm = Sys.Date(), tidy_cols_1L_lgl = FALSE, 
@@ -789,6 +802,7 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
 #' @importFrom purrr pluck reduce
 #' @importFrom lubridate days
 #' @importFrom tidyselect all_of
+#' @keywords internal
 add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_ls, 
     iterations_int, sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
     utilities_chr, utility_fns_ls, episode_end_1L_chr = "EpisodeEnd_mdl", 
@@ -866,6 +880,7 @@ add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate time_length
 #' @importFrom purrr map2_int map2_dbl
+#' @keywords internal
 add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, iterations_int = 1:100L, 
     treatment_1L_chr = character(0)) 
 {
@@ -914,6 +929,7 @@ add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, itera
 #' @rdname add_episode_start
 #' @export 
 #' @importFrom dplyr mutate
+#' @keywords internal
 add_episode_start <- function (X_Ready4useDyad) 
 {
     if (!"Episode" %in% names(X_Ready4useDyad@ds_tb)) {
@@ -936,6 +952,7 @@ add_episode_start <- function (X_Ready4useDyad)
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom rlang sym
+#' @keywords internal
 add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, iterations_int = 1:100L, 
     type_1L_chr = c("first", "repeat"), treatment_1L_chr = character(0)) 
 {
@@ -999,6 +1016,7 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
 #' @rdname add_eq5d_from_draws
 #' @export 
 #' @importFrom ready4show ready4show_correspondences
+#' @keywords internal
 add_eq5d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4show::ready4show_correspondences(), 
     prefix_1L_chr = "ParamEQ5DBeta", value_with_fn = add_eq5d_from_k10, 
     var_1L_chr = "EQ5D") 
@@ -1032,6 +1050,7 @@ add_eq5d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4sho
 #' @importFrom rlang sym
 #' @importFrom tidyselect all_of
 #' @importFrom purrr pmap_dbl map2_dbl
+#' @keywords internal
 add_eq5d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
     beta_age_1L_dbl = -0.01382, beta_constant_1L_dbl = 3.5222, 
     beta_k10_1L_dbl = -0.06476, germany_1L_lgl = FALSE, prefix_1L_chr = "ParamEQ5DBeta", 
@@ -1100,6 +1119,7 @@ add_eq5d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4s
 #' @importFrom purrr map reduce
 #' @importFrom dplyr filter pull arrange
 #' @importFrom tibble add_case
+#' @keywords internal
 add_iar_params <- function (params_tb, comparator_int, model_data_ls, processed_ls, 
     raw_mds_data_ls, test_1L_chr, comparator_1L_chr = "Comparator", 
     comparator_filter_fn = identity, cost_1L_dbl = 0, intervention_1L_chr = "Intervention", 
@@ -1147,6 +1167,7 @@ add_iar_params <- function (params_tb, comparator_int, model_data_ls, processed_
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_icer <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
     suffix_1L_chr = "") 
 {
@@ -1179,6 +1200,7 @@ add_icer <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs",
 #' @importFrom tibble as_tibble
 #' @importFrom serious add_cumulatives
 #' @importFrom stringr str_remove
+#' @keywords internal
 add_imputed_data <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("platform", 
         "clinic_type", "gender", "employment_status", "clinic_state", 
@@ -1271,6 +1293,7 @@ add_imputed_data <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Read
 #' @importFrom purrr map reduce
 #' @importFrom dplyr filter arrange
 #' @importFrom rlang exec
+#' @keywords internal
 add_iteration_values_set <- function (X_Ready4useDyad, value_with_fn, value_with_args_ls = NULL, 
     tidy_cols_1L_lgl = TRUE) 
 {
@@ -1305,6 +1328,7 @@ add_iteration_values_set <- function (X_Ready4useDyad, value_with_fn, value_with
 #' @export 
 #' @importFrom dplyr filter select left_join
 #' @importFrom tidyselect any_of
+#' @keywords internal
 add_joiners_outcomes_ds <- function (model_data_ls, keys_chr = c("platform", "clinic_type", 
     "Age", "gender", "employment_status", "clinic_state", "treatment_stage"), 
     outcomes_chr = c("treatment_status", "gad7", "k10", "phq9", 
@@ -1344,6 +1368,7 @@ add_joiners_outcomes_ds <- function (model_data_ls, keys_chr = c("platform", "cl
 #' @importFrom purrr reduce pluck
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_k10_event <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, defaults_ls = list(Minutes = 0), 
     k10_draws_fn = add_project_1_k10_draws, k10_mdl = NULL, k10_var_1L_chr = "k10", 
     iterations_int = 1:100L, params_tb = make_project_params_tb(), 
@@ -1420,6 +1445,7 @@ add_k10_event <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, defaults_ls =
 #' @importFrom purrr map_int
 #' @importFrom youthvars youthvars_k10_aus
 #' @importFrom rlang sym
+#' @keywords internal
 add_k10_scores <- function (X_Ready4useDyad, k10_mdl = NULL, iterations_int = 1:100L, 
     join_with_chr = character(0), k10_draws_fn = add_project_1_k10_draws, 
     k10_var_1L_chr = "k10", params_tb = make_project_params_tb(), 
@@ -1464,6 +1490,7 @@ add_k10_scores <- function (X_Ready4useDyad, k10_mdl = NULL, iterations_int = 1:
 #' @rdname add_leave_model_event
 #' @export 
 #' @importFrom dplyr mutate
+#' @keywords internal
 add_leave_model_event <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -1479,6 +1506,7 @@ add_leave_model_event <- function (X_Ready4useDyad)
 #' @rdname add_mds_minutes_totals
 #' @export 
 #' @importFrom dplyr mutate across
+#' @keywords internal
 add_mds_minutes_totals <- function (services_tb, add_chr = c("Contacts", "Use"), type_1L_chr = c("both", 
     "total", "prop")) 
 {
@@ -1522,6 +1550,7 @@ add_mds_minutes_totals <- function (services_tb, add_chr = c("Contacts", "Use"),
 #' @export 
 #' @importFrom dplyr mutate left_join
 #' @importFrom stringr str_sub
+#' @keywords internal
 add_mds_org_vars <- function (data_tb, provider_lup_tb, phn_code_1L_chr = "PHN_code", 
     phn_name_1L_chr = "PHN_area_name") 
 {
@@ -1551,6 +1580,7 @@ add_mds_org_vars <- function (data_tb, provider_lup_tb, phn_code_1L_chr = "PHN_c
 #' @importFrom dplyr left_join mutate case_when select
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr map_lgl
+#' @keywords internal
 add_mds_program_vars <- function (data_tb, processed_ls, program_services_lup, program_true_chr, 
     program_type_ls, provider_lup_tb, add_start_date_1L_lgl = TRUE, 
     filter_fn = identity, mature_after_dtm = lubridate::years(1)) 
@@ -1626,6 +1656,7 @@ add_mds_program_vars <- function (data_tb, processed_ls, program_services_lup, p
 #' @importFrom tidyr pivot_wider all_of
 #' @importFrom stringr str_remove_all str_remove
 #' @importFrom assertthat assert_that
+#' @keywords internal
 add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad, 
     end_dtm = NULL, period_dtm = lubridate::years(1), start_at_1L_int = -2L, 
     weeks_dbl = c(14, 53)) 
@@ -1752,6 +1783,7 @@ add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4u
 #' @importFrom rlang sym
 #' @importFrom purrr map_int
 #' @importFrom assertthat assert_that
+#' @keywords internal
 add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minutes_mdl = NULL, 
     iterations_int = 1:100L, fraction_1L_dbl = numeric(0), var_1L_chr = "Minutes") 
 {
@@ -1829,6 +1861,7 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 #' @importFrom ggplot2 ggplot aes geom_abline geom_point theme_classic
 #' @importFrom tune coord_obs_pred
 #' @importFrom tidyr pivot_longer
+#' @keywords internal
 add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_1L_chr = character(0), 
     colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
         type_1L_chr = "unicol")[c(1, 9)], imputed_1L_lgl = T, 
@@ -1968,6 +2001,7 @@ add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate NA_Date_
+#' @keywords internal
 add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0)) 
 {
     if (identical(arms_for_non_helpseeking_chr, character(0))) {
@@ -1992,6 +2026,7 @@ add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr =
 #' @rdname add_non_iar
 #' @export 
 #' @importFrom dplyr mutate case_when select
+#' @keywords internal
 add_non_iar <- function (X_Ready4useDyad, arms_for_iar_adjustment_chr = character(0)) 
 {
     if (!identical(arms_for_iar_adjustment_chr, character(0))) {
@@ -2015,6 +2050,7 @@ add_non_iar <- function (X_Ready4useDyad, arms_for_iar_adjustment_chr = characte
 #' @export 
 #' @importFrom lubridate weeks
 #' @importFrom dplyr mutate case_when
+#' @keywords internal
 add_outcome_change_schedule <- function (X_Ready4useDyad, step_dtm = lubridate::weeks(0)) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -2034,6 +2070,7 @@ add_outcome_change_schedule <- function (X_Ready4useDyad, step_dtm = lubridate::
 #' @export 
 #' @importFrom purrr pluck reduce
 #' @importFrom rlang exec
+#' @keywords internal
 add_outcome_sensitivity <- function (X_Ready4useDyad, outcome_1L_chr, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_fn = NULL, tfmn_ls = make_class_tfmns(T)) 
 {
@@ -2064,6 +2101,7 @@ add_outcome_sensitivity <- function (X_Ready4useDyad, outcome_1L_chr, sensitivit
 #' @importFrom lubridate weeks years days
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustments_1L_lgl = FALSE, 
     fup_var_1L_chr = character(0), follow_up_1L_int = integer(0), 
     maintain_for_1L_int = 0L) 
@@ -2127,6 +2165,7 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @importFrom dplyr filter mutate bind_rows arrange
 #' @importFrom rlang sym
 #' @importFrom purrr reduce map_lgl pluck
+#' @keywords internal
 add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensitivity_1L_lgl = FALSE, 
     adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_draws_fn = add_project_1_k10_draws, 
     k10_method_1L_chr = c("Model", "Table"), k10_var_1L_chr = "k10", 
@@ -2234,6 +2273,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
 #' @rdname add_outcomes_update
 #' @export 
 #' @importFrom lubridate days weeks
+#' @keywords internal
 add_outcomes_update <- function (X_Ready4useDyad, assert_1L_lgl, k10_mdl, k10_var_1L_chr, 
     iterations_int, params_tb, sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
     update_1L_int, utilities_chr, utility_fns_ls, types_chr = c("Model", 
@@ -2284,6 +2324,7 @@ add_outcomes_update <- function (X_Ready4useDyad, assert_1L_lgl, k10_mdl, k10_va
 #' @importFrom purrr map map2_dfr reduce
 #' @importFrom tidyselect all_of
 #' @importFrom stats setNames
+#' @keywords internal
 add_project_1_k10_draws <- function (X_Ready4useDyad, iterations_int = 1:100L, k10_var_1L_chr = "k10", 
     k10_vars_chr = character(0), prefix_1L_chr = "treatment", 
     sensitivities_ls = make_sensitivities_ls(), severity_ls = make_k10_severity_cuts(), 
@@ -2392,6 +2433,7 @@ add_project_1_k10_draws <- function (X_Ready4useDyad, iterations_int = 1:100L, k
 #' @export 
 #' @importFrom dplyr rowwise mutate across ungroup case_when
 #' @importFrom rlang sym
+#' @keywords internal
 add_project_2_cost_sa_1 <- function (X_Ready4useDyad, arms_for_intervention_costs_chr = "Intervention", 
     disciplines_chr = make_disciplines(), suffix_1L_chr = "_S1", 
     ...) 
@@ -2428,6 +2470,7 @@ add_project_2_cost_sa_1 <- function (X_Ready4useDyad, arms_for_intervention_cost
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate case_when rowwise across ungroup
 #' @importFrom rlang sym
+#' @keywords internal
 add_project_2_cost_sa_2 <- function (X_Ready4useDyad, arms_for_intervention_costs_chr = "Intervention", 
     disciplines_chr = make_disciplines(), suffix_1L_chr = "_S2", 
     ...) 
@@ -2462,6 +2505,7 @@ add_project_2_cost_sa_2 <- function (X_Ready4useDyad, arms_for_intervention_cost
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate case_when rowwise across ungroup
 #' @importFrom rlang sym
+#' @keywords internal
 add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
     disciplines_chr = make_disciplines(), intervention_1L_chr = "Intervention", 
     sensitivities_ls = make_project_2_sensitivities_ls(), total_1L_lgl = T) 
@@ -2528,6 +2572,7 @@ add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_ch
 #' @importFrom purrr reduce map_dbl
 #' @importFrom dplyr filter bind_rows mutate case_when first
 #' @importFrom rlang sym
+#' @keywords internal
 add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = make_k10_severity_cuts(), 
     k10_var_1L_chr = "K10", scale_1L_dbl = 1, var_1L_chr = "K10", 
     ...) 
@@ -2574,6 +2619,7 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @rdname add_project_2_model_data
 #' @export 
 #' @importFrom dplyr filter mutate across where group_by arrange lag ungroup
+#' @keywords internal
 add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_chr = "Intervention", 
     cut_off_date_1L_chr = "2025-01-01") 
 {
@@ -2625,6 +2671,7 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_
 #' @importFrom lubridate days
 #' @importFrom purrr map
 #' @importFrom stats setNames
+#' @keywords internal
 add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
     disciplines_chr, inputs_ls, iterations_int, sensitivities_ls, 
     tfmn_ls, tx_prefix_1L_chr, utilities_chr) 
@@ -2674,6 +2721,7 @@ add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_
 #' @rdname add_project_2_offsets
 #' @export 
 #' @importFrom dplyr mutate case_when select
+#' @keywords internal
 add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = character(0)) 
 {
     if (identical(arms_for_offsets_chr, character(0))) {
@@ -2724,6 +2772,7 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 #' @importFrom tidyr pivot_longer
 #' @importFrom ready4 get_from_lup_obj
 #' @importFrom purrr reduce map_dbl
+#' @keywords internal
 add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, comparator_1L_chr = character(0), 
     comparator_filter_fn = identity, comparator_int = integer(0), 
     comparator_share_1L_dbl = 1, cost_1L_dbl = numeric(0), data_ls = NULL, 
@@ -2834,6 +2883,7 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @importFrom purrr pluck map assign_in
 #' @importFrom stats setNames
 #' @importFrom stringr str_remove
+#' @keywords internal
 add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
     style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
     5)], confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
@@ -2892,6 +2942,7 @@ add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = 
 #' @rdname add_project_offset_logic
 #' @export 
 #' @importFrom dplyr mutate case_when
+#' @keywords internal
 add_project_offset_logic <- function (data_tb) 
 {
     data_tb <- data_tb %>% dplyr::mutate(OffsetLogicHeadspace = dplyr::case_when(as.character(clinic_type) == 
@@ -2908,6 +2959,7 @@ add_project_offset_logic <- function (data_tb)
 #' @rdname add_project_outcomes_data
 #' @export 
 #' @importFrom youthu get_mdls_lup get_ttu_dv_dss
+#' @keywords internal
 add_project_outcomes_data <- function (model_data_ls, processed_ls, mdls_lup = NULL) 
 {
     if (is.null(mdls_lup)) {
@@ -2959,6 +3011,7 @@ add_project_outcomes_data <- function (model_data_ls, processed_ls, mdls_lup = N
 #' @export 
 #' @importFrom dplyr mutate case_when group_by lag ungroup arrange
 #' @importFrom rlang sym
+#' @keywords internal
 add_project_treatment_change <- function (ds_tb, arrange_by_id_lgl = T, change_var_nm_1L_chr = "treatment_change", 
     suffix_1L_chr = "_previous", timepoint_1L_chr = "MeasurementWeek", 
     timepoint_bl_1L_chr = "Week0", uid_1L_chr = "UID", var_nm_1L_chr = "treatment_status", 
@@ -3044,6 +3097,7 @@ add_project_treatment_change <- function (ds_tb, arrange_by_id_lgl = T, change_v
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_projected_decay <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, proportion_1L_dbl = 1, 
     tfmn_fn = identity, ...) 
 {
@@ -3068,6 +3122,7 @@ add_projected_decay <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr,
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_projected_growth <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, proportion_1L_dbl = 0.2, 
     tfmn_fn = identity, ...) 
 {
@@ -3091,6 +3146,7 @@ add_projected_growth <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_projected_maintenance <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, tfmn_fn = identity, 
     ...) 
 {
@@ -3114,6 +3170,7 @@ add_projected_maintenance <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1
 #' @importFrom purrr pluck map_dbl reduce
 #' @importFrom dplyr mutate arrange
 #' @importFrom rlang sym
+#' @keywords internal
 add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character(0), sensitivities_ls = make_sensitivities_ls(), 
     start_var_1L_chr = character(0), utility_1L_chr = c("AQoL6D"), 
     type_1L_chr = c("main", "legacy")) 
@@ -3175,6 +3232,7 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_regression_to_mean
 #' @export 
+#' @keywords internal
 add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, k10_draws_fn, 
     add_sensitivity_1L_lgl = FALSE, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_ls = make_class_tfmns(), tx_prefix_1L_chr = "Treatment", 
@@ -3213,6 +3271,7 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
 #' @importFrom rlang exec
 #' @importFrom purrr assign_in map
 #' @importFrom stringr str_remove
+#' @keywords internal
 add_regressions <- function (regressions_ls, what_1L_chr, model_1L_int = integer(0), 
     fn_args_ls = list(), model_fn = NULL, named_1L_lgl = FALSE, 
     X_Ready4useDyad = ready4use::Ready4useDyad(), type_1L_chr = c("candidates", 
@@ -3283,6 +3342,7 @@ add_regressions <- function (regressions_ls, what_1L_chr, model_1L_int = integer
 #' @rdname add_sf6d_from_draws
 #' @export 
 #' @importFrom ready4show ready4show_correspondences
+#' @keywords internal
 add_sf6d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4show::ready4show_correspondences(), 
     female_values_chr = c("Female", "female", "F", "f", "FEMALE"), 
     male_values_chr = c("Male", "male", "M", "m", "MALE"), prefix_1L_chr = "ParamSF6DBeta", 
@@ -3321,6 +3381,7 @@ add_sf6d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4sho
 #' @importFrom rlang sym
 #' @importFrom tidyselect all_of
 #' @importFrom purrr pmap_dbl map2_dbl
+#' @keywords internal
 add_sf6d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
     beta_female_moderate_1L_dbl = -0.059, beta_female_high_1L_dbl = -0.124, 
     beta_male_moderate_1L_dbl = -0.055, beta_male_high_1L_dbl = -0.123, 
@@ -3399,6 +3460,7 @@ add_sf6d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4s
 #' @importFrom tibble as_tibble
 #' @importFrom specific calculate_depnt_var_tfmn
 #' @importFrom tidyselect any_of
+#' @keywords internal
 add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iterations_int = 1:100L, 
     join_with_chr = character(0), rewind_chr = character(0), 
     tfmn_1L_chr = "NTF", type_1L_chr = c("first", "second", "third", 
@@ -3546,6 +3608,7 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
 #' @importFrom tidyselect any_of
 #' @importFrom stats predict
 #' @importFrom tibble as_tibble
+#' @keywords internal
 add_simulated_treatments <- function (treatment_mdls_ls, Y_Ready4useDyad, bl_week_1L_dbl = 0, 
     change_var_1L_chr = "treatment_change", iterations_int = 1:100L, 
     status_var_1L_chr = "treatment_status", tidy_1L_lgl = FALSE) 
@@ -3603,6 +3666,7 @@ add_simulated_treatments <- function (treatment_mdls_ls, Y_Ready4useDyad, bl_wee
 #' @importFrom lubridate days
 #' @importFrom dplyr mutate
 #' @importFrom rlang exec
+#' @keywords internal
 add_time_to_event <- function (X_Ready4useDyad, event_1L_chr, schedule_args_ls = list(), 
     schedule_fn = NULL, step_dtm = lubridate::days(0)) 
 {
@@ -3637,6 +3701,7 @@ add_time_to_event <- function (X_Ready4useDyad, event_1L_chr, schedule_args_ls =
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_replace_all
+#' @keywords internal
 add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_dbl = -2, 
     bl_week_1L_dbl = 0, iterations_int = 1:100L, measurement_1L_int = integer(0), 
     prefix_1L_chr = "treatment", tx_duration_dtm = lubridate::weeks(12)) 
@@ -3694,6 +3759,7 @@ add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_db
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr
 #' @importFrom ready4use add_dictionary renew.ready4use_dictionary
+#' @keywords internal
 add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "name"), 
     ctg_1L_chr = "Service", group_by_1L_chr = character(0), source_vars_chr = c("treatment_stage", 
         "stage_of_treatment"), three_levels_1L_lgl = FALSE, type_1L_int = 1L:2L, 
@@ -3759,6 +3825,7 @@ add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "na
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0) 
 {
     need_to_set_chr <- setdiff(var_names_chr, names(data_tb))
@@ -3796,6 +3863,7 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @importFrom dplyr mutate across
 #' @importFrom rlang sym
 #' @importFrom tidyselect any_of
+#' @keywords internal
 add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_sensitivity_1L_lgl = FALSE, 
     adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), utility_fns_ls = NULL, 
     iterations_int = 1:100L, maintain_for_1L_int = 0L, models_ls = NULL, 

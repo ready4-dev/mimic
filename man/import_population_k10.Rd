@@ -26,3 +26,4 @@ Population K10 (a tibble)
 \description{
 import_population_k10() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import population k10. The function returns Population K10 (a tibble).
 }
+\keyword{internal}

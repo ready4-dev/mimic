@@ -26,3 +26,4 @@ Data (a tibble)
 \description{
 add_mds_org_vars() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add minimum dataset organisation variables. The function returns Data (a tibble).
 }
+\keyword{internal}

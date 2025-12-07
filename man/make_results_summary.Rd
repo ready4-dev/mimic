@@ -32,3 +32,4 @@ Results summary (a list)
 \description{
 make_results_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results summary. The function returns Results summary (a list).
 }
+\keyword{internal}

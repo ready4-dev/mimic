@@ -41,3 +41,4 @@ Costs (a tibble)
 \description{
 make_project_costs_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project costs dataset. The function returns Costs (a tibble).
 }
+\keyword{internal}

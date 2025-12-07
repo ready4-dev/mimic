@@ -26,3 +26,4 @@ Outcomes (an output object of multiple potential types)
 \description{
 transform_project_outcomes_ds() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform project outcomes dataset. The function returns Outcomes (an output object of multiple potential types).
 }
+\keyword{internal}

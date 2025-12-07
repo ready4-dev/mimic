@@ -42,3 +42,4 @@ Scatter (a plot)
 \description{
 plot_test_scatter() is a Plot function that plots data. Specifically, this function implements an algorithm to plot test scatter. The function returns Scatter (a plot).
 }
+\keyword{internal}

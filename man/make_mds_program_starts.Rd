@@ -38,3 +38,4 @@ Start up (a lookup table)
 \description{
 make_mds_program_starts() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset program starts. The function returns Start up (a lookup table).
 }
+\keyword{internal}

@@ -35,3 +35,4 @@ Outcomes (a character vector)
 \description{
 make_outcomes_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make outcomes variables. The function returns Outcomes (a character vector).
 }
+\keyword{internal}

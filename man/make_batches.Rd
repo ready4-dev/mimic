@@ -17,3 +17,4 @@ Batches (a list)
 \description{
 make_batches() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make batches. The function returns Batches (a list).
 }
+\keyword{internal}

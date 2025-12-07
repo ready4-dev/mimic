@@ -29,3 +29,4 @@ Table (an output object of multiple potential types)
 \description{
 add_box_conditionally() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add box conditionally. The function returns Table (an output object of multiple potential types).
 }
+\keyword{internal}

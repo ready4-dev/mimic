@@ -29,3 +29,4 @@ Plot (a plot)
 \description{
 plot_pooled() is a Plot function that plots data. Specifically, this function implements an algorithm to plot pooled. The function returns Plot (a plot).
 }
+\keyword{internal}

@@ -30,3 +30,4 @@ Synthetic tests (a list)
 \description{
 make_synthetic_tests() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make synthetic tests. The function returns Synthetic tests (a list).
 }
+\keyword{internal}

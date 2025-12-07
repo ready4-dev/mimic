@@ -63,3 +63,4 @@ Data (an output object of multiple potential types)
 \description{
 make_report_data() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make report data. The function returns Data (an output object of multiple potential types).
 }
+\keyword{internal}

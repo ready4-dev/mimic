@@ -59,3 +59,4 @@ Report (an output object of multiple potential types)
 \description{
 make_regression_report() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make regression report. The function returns Report (an output object of multiple potential types).
 }
+\keyword{internal}

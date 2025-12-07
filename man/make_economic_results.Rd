@@ -19,3 +19,4 @@ Economic results (a list)
 \description{
 make_economic_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make economic results. The function returns Economic results (a list).
 }
+\keyword{internal}

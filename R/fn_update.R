@@ -6,6 +6,7 @@
 #' @export 
 #' @importFrom dplyr mutate case_when
 #' @importFrom lubridate NA_Date_
+#' @keywords internal
 update_current_date <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -20,6 +21,7 @@ update_current_date <- function (X_Ready4useDyad)
 #' @rdname update_current_event
 #' @export 
 #' @importFrom dplyr mutate case_when
+#' @keywords internal
 update_current_event <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -38,6 +40,7 @@ update_current_event <- function (X_Ready4useDyad)
 #' @export 
 #' @importFrom dplyr mutate case_when
 #' @importFrom rlang sym
+#' @keywords internal
 update_episodes_lup <- function (episodes_lup_tb, dates_chr, part_one_1L_chr, program_true_1L_chr) 
 {
     episodes_lup_tb <- episodes_lup_tb %>% dplyr::mutate(`:=`(!!rlang::sym(program_true_1L_chr), 
@@ -56,6 +59,7 @@ update_episodes_lup <- function (episodes_lup_tb, dates_chr, part_one_1L_chr, pr
 #' @rdname update_gender
 #' @export 
 #' @importFrom dplyr mutate case_when
+#' @keywords internal
 update_gender <- function (data_tb) 
 {
     data_tb <- data_tb %>% dplyr::mutate(gender = dplyr::case_when(gender %in% 
@@ -74,6 +78,7 @@ update_gender <- function (data_tb)
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @importFrom stringr str_replace_all
+#' @keywords internal
 update_intervention_name <- function (data_tb, new_1L_chr = "Comparator", old_1L_chr = "FlexPsych", 
     var_nm_1L_chr = "Intervention") 
 {
@@ -90,6 +95,7 @@ update_intervention_name <- function (data_tb, new_1L_chr = "Comparator", old_1L
 #' @rdname update_k10_event_schedule
 #' @export 
 #' @importFrom dplyr mutate across case_when
+#' @keywords internal
 update_k10_event_schedule <- function (X_Ready4useDyad, type_1L_chr = c("Model", "Table")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -113,6 +119,7 @@ update_k10_event_schedule <- function (X_Ready4useDyad, type_1L_chr = c("Model",
 #' @importFrom dplyr filter group_by arrange summarise first left_join mutate rename case_when lag lead ungroup bind_rows
 #' @importFrom lubridate years NA_Date_
 #' @importFrom purrr reduce
+#' @keywords internal
 update_mds_modelling_ds <- function (X_Ready4useDyad, imputations_int = 1, sample_ls = NULL, 
     filter_true_1L_chr = "FlexPsych") 
 {
@@ -179,6 +186,7 @@ update_mds_modelling_ds <- function (X_Ready4useDyad, imputations_int = 1, sampl
 #' @export 
 #' @importFrom dplyr rename_with
 #' @importFrom stringr str_replace_all
+#' @keywords internal
 update_minute_var_nms <- function (data_tb, type_1L_chr = c("undo", "do")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -213,6 +221,7 @@ update_minute_var_nms <- function (data_tb, type_1L_chr = c("undo", "do"))
 #' @importFrom purrr map_chr map2_chr reduce
 #' @importFrom dplyr rename select any_of
 #' @importFrom rlang sym
+#' @keywords internal
 update_mismatched_vars <- function (model_dyad_ls = make_model_dyad_ls, type_1L_chr = c("drop", 
     "rename")) 
 {
@@ -263,6 +272,7 @@ update_mismatched_vars <- function (model_dyad_ls = make_model_dyad_ls, type_1L_
 #' @export 
 #' @importFrom dplyr arrange select
 #' @importFrom tidyselect any_of
+#' @keywords internal
 update_order <- function (X_Ready4useDyad, structural_chr = make_structural_vars(data_1L_chr = character(0), 
     uid_1L_chr = "UID"), type_1L_chr = c("rows", "columns")) 
 {
@@ -299,6 +309,7 @@ update_order <- function (X_Ready4useDyad, structural_chr = make_structural_vars
 #' @importFrom purrr map flatten_chr reduce
 #' @importFrom rlang exec
 #' @importFrom stringr str_sub
+#' @keywords internal
 update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), update_fn = function(X_Ready4useDyad) {
     identity(X_Ready4useDyad)
 }, combined_suffixes_chr = c("", "S01", "S02", "S10", "S11", 
@@ -350,6 +361,7 @@ update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad()
 #' @importFrom purrr keep_at reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
+#' @keywords internal
 update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL) 
 {
     tfmn_ls <- tfmn_ls %>% purrr::keep_at(intersect(names(tfmn_ls), 
@@ -377,6 +389,7 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @export 
 #' @importFrom ready4use Ready4useDyad
 #' @importFrom dplyr filter bind_rows mutate across where arrange
+#' @keywords internal
 update_population_ls <- function (population_ls = NULL, X_Ready4useDyad = ready4use::Ready4useDyad(), 
     type_1L_chr = c("split", "join", "form"), use_1L_chr = c("Y", 
         "Z")) 
@@ -458,6 +471,7 @@ update_population_ls <- function (population_ls = NULL, X_Ready4useDyad = ready4
 #' @importFrom rlang sym
 #' @importFrom purrr map_dbl
 #' @importFrom tidyselect any_of
+#' @keywords internal
 update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_int = 1:5, 
     follow_up_1L_int = 12L, maintain_for_1L_int = 0L, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(), utility_1L_chr = c("AQoL6D"), 
@@ -537,6 +551,7 @@ update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_in
 #' @rdname update_previous
 #' @export 
 #' @importFrom dplyr mutate across all_of
+#' @keywords internal
 update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pattern_1L_chr = "{col}_previous") 
 {
     modifiable_chr <- intersect(modifiable_chr, names(X_Ready4useDyad@ds_tb))
@@ -556,6 +571,7 @@ update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pat
 #' @rdname update_processed_tb
 #' @export 
 #' @importFrom dplyr filter group_by summarise first
+#' @keywords internal
 update_processed_tb <- function (data_tb, first_eight_1L_lgl = NA, program_1L_chr = NA_character_) 
 {
     if (!is.na(program_1L_chr)) {
@@ -582,6 +598,7 @@ update_processed_tb <- function (data_tb, first_eight_1L_lgl = NA, program_1L_ch
 #' @export 
 #' @importFrom dplyr mutate case_when arrange
 #' @importFrom stringr str_replace str_replace_all
+#' @keywords internal
 update_project_2_param_names <- function (params_tb) 
 {
     params_tb <- params_tb %>% dplyr::mutate(Parameter = Parameter %>% 
@@ -615,6 +632,7 @@ update_project_2_param_names <- function (params_tb)
 #' @export 
 #' @importFrom dplyr filter mutate arrange
 #' @importFrom stringr str_replace_all
+#' @keywords internal
 update_project_test_cmprsns <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -640,6 +658,7 @@ update_project_test_cmprsns <- function (X_Ready4useDyad)
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr
+#' @keywords internal
 update_providers_tb <- function (providers_tb, var_1L_chr = "practitioner_category") 
 {
     providers_tb <- providers_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
@@ -673,6 +692,7 @@ update_providers_tb <- function (providers_tb, var_1L_chr = "practitioner_catego
 #' @importFrom dplyr mutate select
 #' @importFrom rlang sym
 #' @importFrom tidyselect any_of
+#' @keywords internal
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
     follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(), 
     tidy_1L_lgl = FALSE, utilities_chr = c("CHU9D", "AQoL6D")) 
@@ -719,6 +739,7 @@ update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjus
 #' @importFrom scales percent
 #' @importFrom dplyr mutate case_when
 #' @importFrom stringr str_remove_all
+#' @keywords internal
 update_scenario_names <- function (forecasts_tb, after_1L_chr = character(0), before_1L_chr = character(0), 
     prefix_1L_chr = "scenario_", reference_1L_chr = "Status quo", 
     others_chr = character(0), tfmn_1_fn = as.numeric, tfmn_2_fn = scales::percent) 
@@ -743,6 +764,7 @@ update_scenario_names <- function (forecasts_tb, after_1L_chr = character(0), be
 #' @importFrom rlang sym
 #' @importFrom assertthat assert_that
 #' @importFrom lubridate time_length days
+#' @keywords internal
 update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0), target_1L_int = integer(0), 
     variable_1L_chr = character(0), type_1L_chr = c("End", "Day")) 
 {
@@ -793,6 +815,7 @@ update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0
 #' @importFrom dplyr mutate
 #' @importFrom purrr reduce
 #' @importFrom rlang sym
+#' @keywords internal
 update_test_ds <- function (X_Ready4useDyad, modifiable_chr, pattern_1L_chr = "{col}_1_year", 
     period_dtm = lubridate::years(1), type_1L_chr = c("all", 
         "main", "change", "zero")) 
@@ -846,6 +869,7 @@ update_test_ds <- function (X_Ready4useDyad, modifiable_chr, pattern_1L_chr = "{
 #' @importFrom dplyr mutate case_when
 #' @importFrom rlang sym
 #' @importFrom purrr map_vec map2_vec
+#' @keywords internal
 update_tx_start_end <- function (X_Ready4useDyad, prefix_1L_chr = "treatment", tx_duration_dtm = lubridate::weeks(12)) 
 {
     if (!paste0(prefix_1L_chr, "_change") %in% names(X_Ready4useDyad@ds_tb)) {
@@ -933,6 +957,7 @@ update_tx_start_end <- function (X_Ready4useDyad, prefix_1L_chr = "treatment", t
 #' @importFrom purrr map2 map_int discard
 #' @importFrom dplyr mutate across pull filter case_when
 #' @importFrom rlang sym
+#' @keywords internal
 update_with_imputed <- function (project_dss_ls, age_1L_chr = "Age", employment_1L_chr = "employment_status", 
     gender_1L_chr = "gender", imputation_args_ls = NULL, imputations_fn = mice::mice, 
     platform_1L_chr = "platform", recode_lup_r3 = make_project_recode_lup(), 

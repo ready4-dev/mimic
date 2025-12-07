@@ -38,3 +38,4 @@ Data (a tibble)
 \description{
 make_cost_per_mins_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make cost per minimums tibble. The function returns Data (a tibble).
 }
+\keyword{internal}

@@ -17,3 +17,4 @@ K10 (a list)
 \description{
 make_project_k10_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project k10 models. The function returns K10 (a list).
 }
+\keyword{internal}

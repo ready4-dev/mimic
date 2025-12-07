@@ -17,3 +17,4 @@ Activity (a tibble)
 \description{
 make_project_activity_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project activity dataset. The function returns Activity (a tibble).
 }
+\keyword{internal}

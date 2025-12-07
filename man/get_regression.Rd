@@ -40,3 +40,4 @@ Model (an output object of multiple potential types)
 \description{
 get_regression() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get regression. The function returns Model (an output object of multiple potential types).
 }
+\keyword{internal}

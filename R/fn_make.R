@@ -14,6 +14,7 @@
 #' @importFrom lubridate NA_Date_
 #' @importFrom purrr map_dfr flatten_chr map2 map_int
 #' @importFrom tsibble as_tsibble
+#' @keywords internal
 make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_dtm = NULL, 
     date_start_dtm = NULL, date_var_1L_chr = make_temporal_vars(), 
     periods_1L_int = integer(0)) 
@@ -76,6 +77,7 @@ make_actives_tb <- function (model_data_ls, as_tsibble_1L_lgl = FALSE, date_end_
 #' @export 
 #' @importFrom serious add_temporal_vars
 #' @importFrom dplyr group_by select summarise across where
+#' @keywords internal
 make_annual_overview <- function (processed_ls) 
 {
     annual_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
@@ -91,6 +93,7 @@ make_annual_overview <- function (processed_ls)
 #' @return Price indices (a double vector)
 #' @rdname make_aus_price_years
 #' @export 
+#' @keywords internal
 make_aus_price_years <- function (start_1L_chr = "2021-22", end_1L_chr = "2024-25") 
 {
     price_indices_dbl <- c(`2020-21` = 91.4, `2021-22` = 93.3, 
@@ -106,6 +109,7 @@ make_aus_price_years <- function (start_1L_chr = "2021-22", end_1L_chr = "2024-2
 #' @return Batches (a list)
 #' @rdname make_batches
 #' @export 
+#' @keywords internal
 make_batches <- function (n_1L_int = 50, of_1L_int = 20) 
 {
     batches_ls <- unname(split(1:(n_1L_int * of_1L_int), cut(1:(n_1L_int * 
@@ -120,6 +124,7 @@ make_batches <- function (n_1L_int = 50, of_1L_int = 20)
 #' @export 
 #' @importFrom youthvars youthvars_k10_aus youthvars_aqol6d_adol youthvars_chu9d_adolaus
 #' @importFrom purrr map_int map_dbl
+#' @keywords internal
 make_class_tfmns <- function (force_1L_lgl = FALSE) 
 {
     if (force_1L_lgl) {
@@ -153,6 +158,7 @@ make_class_tfmns <- function (force_1L_lgl = FALSE)
 #' @importFrom rlang sym
 #' @importFrom tidyr pivot_wider
 #' @importFrom purrr map_int
+#' @keywords internal
 make_clinic_summary <- function (processed_ls, type_1L_chr = serious::make_temporal_vars()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -184,6 +190,7 @@ make_clinic_summary <- function (processed_ls, type_1L_chr = serious::make_tempo
 #' @importFrom tidyselect any_of
 #' @importFrom stringr str_remove_all
 #' @importFrom rlang sym
+#' @keywords internal
 make_composite_results <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDyad, 
     exclude_chr = character(0), exclude_suffixes_chr = character(0), 
     keep_chr = character(0), modifiable_chr = character(0), start_suffix_1L_chr = "_start", 
@@ -240,6 +247,7 @@ make_composite_results <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4us
 #' @rdname make_conditional_vars
 #' @export 
 #' @importFrom lubridate weeks years
+#' @keywords internal
 make_conditional_vars <- function (outcome_1L_chr, follow_up_1L_int = integer(0), fup_var_1L_chr = character(0), 
     type_1L_chr = c("end", "fup", "start", "years")) 
 {
@@ -287,6 +295,7 @@ make_conditional_vars <- function (outcome_1L_chr, follow_up_1L_int = integer(0)
 #' @importFrom dplyr pull rename mutate
 #' @importFrom yardstick conf_mat
 #' @importFrom ggplot2 autoplot scale_fill_gradient
+#' @keywords internal
 make_confusion_ls <- function (regressions_ls, X_Ready4useDyad, var_1L_chr, high_1L_chr = "#2E86C1", 
     low_1L_chr = "#D6EAF8", model_1L_int = integer(0), named_1L_lgl = FALSE, 
     part_1L_int = integer(0), plot_1L_lgl = FALSE, tfmn_fn = identity, 
@@ -322,6 +331,7 @@ make_confusion_ls <- function (regressions_ls, X_Ready4useDyad, var_1L_chr, high
 #' @rdname make_contacters_series
 #' @export 
 #' @importFrom dplyr filter pull mutate case_when
+#' @keywords internal
 make_contacters_series <- function (model_data_ls) 
 {
     end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% 
@@ -348,6 +358,7 @@ make_contacters_series <- function (model_data_ls)
 #' @importFrom dplyr group_by summarise mutate
 #' @importFrom rlang sym
 #' @importFrom tsibble as_tsibble
+#' @keywords internal
 make_contacters_summary <- function (processed_ls, as_tsibble_1L_lgl = FALSE, type_1L_chr = serious::make_temporal_vars()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -378,6 +389,7 @@ make_contacters_summary <- function (processed_ls, as_tsibble_1L_lgl = FALSE, ty
 #' @importFrom stats setNames
 #' @importFrom dplyr select filter mutate case_when group_by summarise nth first left_join
 #' @importFrom stringr str_replace
+#' @keywords internal
 make_cost_per_mins_tb <- function (mbs_tb = NULL, cost_types_chr = character(0), path_1L_chr = character(0), 
     mbs_fl_nm_1L_chr = character(0), mbs_sheet_1L_chr = "Table EXP.14", 
     mbs_skip_1L_int = 4, unit_cost_fl_nm_1L_chr = character(0), 
@@ -446,6 +458,7 @@ make_cost_per_mins_tb <- function (mbs_tb = NULL, cost_types_chr = character(0),
 #' @return Disciplines (a character vector)
 #' @rdname make_disciplines
 #' @export 
+#' @keywords internal
 make_disciplines <- function (arrange_1L_chr = c("default", "semi", "ordered"), exclude_chr = character(0)) 
 {
     arrange_1L_chr <- match.arg(arrange_1L_chr)
@@ -483,6 +496,7 @@ make_disciplines <- function (arrange_1L_chr = c("default", "semi", "ordered"), 
 #' @importFrom purrr reduce
 #' @importFrom rlang sym
 #' @importFrom stringr str_remove
+#' @keywords internal
 make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
     iterations_int = 1:100, scale_1L_int = 1L, seed_1L_int = integer(0)) 
 {
@@ -538,6 +552,7 @@ make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1
 #' @export 
 #' @importFrom purrr map
 #' @importFrom stats setNames
+#' @keywords internal
 make_economic_results <- function (sim_results_ls, intervention_1L_chr, utilities_chr) 
 {
     economic_results_ls <- utilities_chr %>% purrr::map(~{
@@ -562,6 +577,7 @@ make_economic_results <- function (sim_results_ls, intervention_1L_chr, utilitie
 #' @importFrom purrr pluck
 #' @importFrom dplyr filter
 #' @importFrom BCEA bcea
+#' @keywords internal
 make_economic_summary <- function (sim_results_ls, correspondences_r3 = ready4show::ready4show_correspondences(), 
     costs_1L_chr = "Cost", effects_1L_chr = "QALYs", reference_1L_chr = "Intervention", 
     threshold_1L_dbl = 96000, what_1L_chr = "total") 
@@ -592,6 +608,7 @@ make_economic_summary <- function (sim_results_ls, correspondences_r3 = ready4sh
 #' @export 
 #' @importFrom purrr map pluck
 #' @importFrom stats setNames
+#' @keywords internal
 make_enhanced_pool <- function (pooled_fits_ls, arguments_ls) 
 {
     pooled_ls <- names(pooled_fits_ls) %>% purrr::map(~list(model_ls = pooled_fits_ls %>% 
@@ -621,6 +638,7 @@ make_enhanced_pool <- function (pooled_fits_ls, arguments_ls)
 #' @importFrom dplyr filter select distinct pull left_join bind_rows mutate
 #' @importFrom rlang sym
 #' @importFrom tidyselect all_of any_of
+#' @keywords internal
 make_episodes_lup <- function (processed_ls, provider_lup_tb, add_programs_int = integer(0), 
     distinct_orgs_1L_lgl = TRUE, drop_chr = character(0), filter_1L_lgl = TRUE, 
     filter_fn = identity, keep_chr = c("client_key", "program_type", 
@@ -691,6 +709,7 @@ make_episodes_lup <- function (processed_ls, provider_lup_tb, add_programs_int =
 #' @importFrom stringr str_sub
 #' @importFrom rlang sym
 #' @importFrom ready4show ready4show_correspondences renew.ready4show_correspondences manufacture.ready4show_correspondences
+#' @keywords internal
 make_experts_tb <- function (experts_ls, anonymise_1L_lgl = T, prefix_1L_chr = "Expert ") 
 {
     experts_tb <- experts_ls %>% purrr::map2_dfr(names(experts_ls), 
@@ -748,6 +767,7 @@ make_experts_tb <- function (experts_ls, anonymise_1L_lgl = T, prefix_1L_chr = "
 #' @importFrom rlang sym
 #' @importFrom tibble as_tibble
 #' @importFrom stats na.omit
+#' @keywords internal
 make_iar_params <- function (processed_ls, raw_mds_data_ls, test_1L_chr, comparator_1L_chr = "Comparator", 
     comparator_int = integer(0), intervention_1L_chr = "Intervention", 
     type_1L_chr = c(intervention_1L_chr, comparator_1L_chr), 
@@ -795,6 +815,7 @@ make_iar_params <- function (processed_ls, raw_mds_data_ls, test_1L_chr, compara
 #' @export 
 #' @importFrom serious add_temporal_vars
 #' @importFrom dplyr filter group_by select summarise across where
+#' @keywords internal
 make_interactions_summary <- function (processed_ls) 
 {
     interactions_tb <- processed_ls$overview@ds_tb %>% serious::add_temporal_vars(date_var_1L_chr = "onboarding_date") %>% 
@@ -810,6 +831,7 @@ make_interactions_summary <- function (processed_ls)
 #' @rdname make_joiners_series
 #' @export 
 #' @importFrom dplyr select filter
+#' @keywords internal
 make_joiners_series <- function (model_data_ls) 
 {
     end_dtm <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb$Date %>% 
@@ -827,6 +849,7 @@ make_joiners_series <- function (model_data_ls)
 #' @rdname make_k10_change_tb
 #' @export 
 #' @importFrom dplyr group_by summarise nth first
+#' @keywords internal
 make_k10_change_tb <- function (population_k10_tb) 
 {
     k10_change_tb <- population_k10_tb %>% dplyr::group_by(Area, 
@@ -844,6 +867,7 @@ make_k10_change_tb <- function (population_k10_tb)
 #' @return Severity cuts (a list)
 #' @rdname make_k10_severity_cuts
 #' @export 
+#' @keywords internal
 make_k10_severity_cuts <- function (mild_int = c(10, 15), moderate_int = c(16, 21), high_int = c(22, 
     29), very_high_int = c(30, 50)) 
 {
@@ -859,6 +883,7 @@ make_k10_severity_cuts <- function (mild_int = c(10, 15), moderate_int = c(16, 2
 #' @export 
 #' @importFrom tibble tribble
 #' @importFrom dplyr arrange
+#' @keywords internal
 make_mapping_params_tb <- function () 
 {
     mapping_params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, 
@@ -884,6 +909,7 @@ make_mapping_params_tb <- function ()
 #' @importFrom dplyr mutate case_when select
 #' @importFrom purrr map_chr
 #' @importFrom tibble as_tibble
+#' @keywords internal
 make_mds_clients_tb <- function (raw_mds_data_ls) 
 {
     mds_clients_tb <- raw_mds_data_ls$clients %>% dplyr::mutate(date_of_birth = transform_integer_dates(date_of_birth), 
@@ -914,6 +940,7 @@ make_mds_clients_tb <- function (raw_mds_data_ls)
 #' @importFrom purrr map_chr
 #' @importFrom tidyselect all_of
 #' @importFrom tibble as_tibble
+#' @keywords internal
 make_mds_collection_tb <- function (raw_mds_data_ls, drop_chr = c("collection_occasion_tags", 
     "X.covid19")) 
 {
@@ -953,6 +980,7 @@ make_mds_collection_tb <- function (raw_mds_data_ls, drop_chr = c("collection_oc
 #' @importFrom rlang sym
 #' @importFrom collapse na_omit
 #' @importFrom ready4use Ready4useDyad add_dictionary
+#' @keywords internal
 make_mds_costing_ds <- function (processed_ls, expenditure_tb, params_tb, provider_lup_tb, 
     add_programs_int = integer(0), comparator_1L_chr = "Comp", 
     disciplines_chr = make_disciplines(), end_dtm = as.Date("2024-06-30"), 
@@ -1045,6 +1073,7 @@ make_mds_costing_ds <- function (processed_ls, expenditure_tb, params_tb, provid
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr mutate across case_when group_by summarise left_join
 #' @importFrom tidyselect all_of
+#' @keywords internal
 make_mds_episodes_tb <- function (raw_mds_data_ls, processed_ls) 
 {
     episodes_tb <- raw_mds_data_ls$episodes %>% tibble::as_tibble() %>% 
@@ -1078,6 +1107,7 @@ make_mds_episodes_tb <- function (raw_mds_data_ls, processed_ls)
 #' @importFrom dplyr filter pull select mutate summarise bind_rows rename
 #' @importFrom rlang sym
 #' @importFrom serious update_for_price_year
+#' @keywords internal
 make_mds_expenditure_tb <- function (raw_expenditure_tb = NULL, path_to_param_data_1L_chr = character(0), 
     file_nm_1L_chr = character(0), program_1L_chr, sheet_1L_chr = character(0), 
     skip_1L_int = 0, additional_tb = NULL, price_indices_dbl = make_aus_price_years("2021-22"), 
@@ -1139,6 +1169,7 @@ make_mds_expenditure_tb <- function (raw_expenditure_tb = NULL, path_to_param_da
 #' @importFrom tibble tibble
 #' @importFrom ready4use Ready4useDyad add_dictionary
 #' @importFrom purrr map flatten_chr
+#' @keywords internal
 make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_lup, provider_lup_tb, 
     after_dtm = as.Date("2022-07-01"), add_programs_int = c(1, 
         4), age_max_1L_int = integer(0), age_min_1L_int = integer(0), 
@@ -1250,6 +1281,7 @@ make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_l
 #' @importFrom purrr map pluck reduce flatten_chr
 #' @importFrom tidyselect any_of all_of
 #' @importFrom tidyr pivot_wider
+#' @keywords internal
 make_mds_outcomes_tb <- function (raw_mds_data_ls, processed_ls, provider_lup_tb, add_start_date_1L_lgl, 
     filter_fn = identity, program_services_lup, program_true_chr, 
     program_type_ls, as_wide_1L_lgl = FALSE, frequencies_chr = paste0("k10p_item", 
@@ -1345,6 +1377,7 @@ make_mds_outcomes_tb <- function (raw_mds_data_ls, processed_ls, provider_lup_tb
 #' @rdname make_mds_processed_ls
 #' @export 
 #' @importFrom lubridate years days
+#' @keywords internal
 make_mds_processed_ls <- function (raw_mds_data_ls, add_start_date_1L_lgl, program_services_lup, 
     program_true_chr, program_type_ls, provider_lup_tb, filter_fn = identity, 
     frequencies_chr = c(paste0("k10p_item", c(1:10, 14))), integers_chr = c("k10p_score", 
@@ -1374,6 +1407,7 @@ make_mds_processed_ls <- function (raw_mds_data_ls, add_start_date_1L_lgl, progr
 #' @rdname make_mds_program_lup
 #' @export 
 #' @importFrom tibble tibble
+#' @keywords internal
 make_mds_program_lup <- function () 
 {
     program_lup <- tibble::tibble(program_type = c(1:5, 7), program_name = c("Flexible Funding Pool", 
@@ -1397,6 +1431,7 @@ make_mds_program_lup <- function ()
 #' @importFrom lubridate years
 #' @importFrom dplyr select bind_rows filter group_by summarise
 #' @importFrom rlang sym
+#' @keywords internal
 make_mds_program_starts <- function (processed_ls, filter_fn, program_services_lup, program_true_chr, 
     program_type_ls, provider_lup_tb, add_start_date_1L_lgl = FALSE, 
     mature_after_dtm = lubridate::years(1)) 
@@ -1427,6 +1462,7 @@ make_mds_program_starts <- function (processed_ls, filter_fn, program_services_l
 #' @importFrom dplyr left_join select filter group_by summarise distinct
 #' @importFrom tidyselect any_of
 #' @importFrom tibble as_tibble
+#' @keywords internal
 make_mds_providers_tb <- function (raw_mds_data_ls, additional_chr = character(0)) 
 {
     providers_tb <- raw_mds_data_ls$service_contact_practitioners %>% 
@@ -1451,6 +1487,7 @@ make_mds_providers_tb <- function (raw_mds_data_ls, additional_chr = character(0
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr mutate
 #' @importFrom purrr map_dbl
+#' @keywords internal
 make_mds_service_contacts <- function (raw_mds_data_ls) 
 {
     data_tb <- raw_mds_data_ls$service_contacts %>% tibble::as_tibble()
@@ -1474,6 +1511,7 @@ make_mds_service_contacts <- function (raw_mds_data_ls)
 #' @importFrom dplyr filter left_join select mutate case_when rename across starts_with group_by summarise where
 #' @importFrom purrr map map_int map2_lgl
 #' @importFrom stringr str_replace_all
+#' @keywords internal
 make_mds_services_tb <- function (processed_ls, end_dtm = lubridate::NA_Date_, episode_keys_chr = character(0), 
     start_dtm = lubridate::NA_Date_, summarise_1L_lgl = FALSE) 
 {
@@ -1596,6 +1634,7 @@ make_mds_services_tb <- function (processed_ls, end_dtm = lubridate::NA_Date_, e
 #' @importFrom purrr map flatten_chr
 #' @importFrom collapse na_omit
 #' @importFrom tidyselect all_of any_of
+#' @keywords internal
 make_mds_unique_measures <- function (data_tb, episodes_tb, review_target_dtm = lubridate::days(90), 
     prefixes_chr = c("k10p_", "iar_dst_")) 
 {
@@ -1678,6 +1717,7 @@ make_mds_unique_measures <- function (data_tb, episodes_tb, review_target_dtm = 
 #' @rdname make_model_dyad_ls
 #' @export 
 #' @importFrom ready4use Ready4useDyad
+#' @keywords internal
 make_model_dyad_ls <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     model_dyad_ls <- list(X_Ready4useDyad = X_Ready4useDyad, 
@@ -1698,6 +1738,7 @@ make_model_dyad_ls <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_
 #' @export 
 #' @importFrom purrr reduce map_lgl
 #' @importFrom dplyr pull
+#' @keywords internal
 make_outcomes_vars <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDyad, 
     exclude_chr = character(0), exclude_suffixes_chr = character(0), 
     modifiable_chr = character(0), numeric_only_1L_lgl = FALSE) 
@@ -1732,6 +1773,7 @@ make_outcomes_vars <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDya
 #' @export 
 #' @importFrom parsnip multinom_reg fit
 #' @importFrom rlang exec
+#' @keywords internal
 make_parsnip_mdl <- function (data_tb, model_fn = parsnip::multinom_reg, model_args_ls = NULL, 
     x_chr, y_1L_chr, ...) 
 {
@@ -1759,6 +1801,7 @@ make_parsnip_mdl <- function (data_tb, model_fn = parsnip::multinom_reg, model_a
 #' @importFrom rlang sym
 #' @importFrom stringr str_sub
 #' @importFrom purrr map_chr
+#' @keywords internal
 make_phn_lup <- function (code_1L_chr = character(0), name_1L_chr = character(0), 
     jurisdiction_1L_chr = character(0)) 
 {
@@ -1821,6 +1864,7 @@ make_phn_lup <- function (code_1L_chr = character(0), name_1L_chr = character(0)
 #' @importFrom stats setNames
 #' @importFrom dplyr filter select
 #' @importFrom SHELF fitdist
+#' @keywords internal
 make_pooled_fit <- function (experts_tb, question_1L_chr = character(0)) 
 {
     if (identical(question_1L_chr, character(0))) {
@@ -1852,6 +1896,7 @@ make_pooled_fit <- function (experts_tb, question_1L_chr = character(0))
 #' @importFrom openxlsx read.xlsx
 #' @importFrom dplyr mutate
 #' @importFrom purrr map_int
+#' @keywords internal
 make_postcode_lup <- function (url_1L_chr = character(0)) 
 {
     if (identical(url_1L_chr, character(0))) {
@@ -1879,6 +1924,7 @@ make_postcode_lup <- function (url_1L_chr = character(0))
 #' @importFrom dplyr mutate inner_join select across
 #' @importFrom tidyr any_of all_of
 #' @importFrom tidyselect any_of
+#' @keywords internal
 make_predd_observed_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, consolidate_1L_chr = character(0), 
     join_with_chr = character(0), new_1L_chr = "Simulated", old_1L_chr = "Observed", 
     select_chr = character(0), slim_1L_lgl = FALSE) 
@@ -1912,6 +1958,7 @@ make_predd_observed_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, consolidat
 #' @return K10 (a list)
 #' @rdname make_project_1_k10_mdls
 #' @export 
+#' @keywords internal
 make_project_1_k10_mdls <- function (X_Ready4useDyad) 
 {
     k10_ls <- list(OLS_1_mdl = lm(formula = k10_12_Weeks ~ AQoL6D + 
@@ -1955,6 +2002,7 @@ make_project_1_k10_mdls <- function (X_Ready4useDyad)
 #' @importFrom serious update_for_price_year
 #' @importFrom stats setNames
 #' @importFrom dplyr pull
+#' @keywords internal
 make_project_1_params_tb <- function () 
 {
     params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, 
@@ -2003,6 +2051,7 @@ make_project_1_params_tb <- function ()
 #' @importFrom dplyr mutate case_when
 #' @importFrom rlang sym
 #' @importFrom stats setNames
+#' @keywords internal
 make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), family_2_1L_chr = "Gamma(link = 'log')", 
     link_1_1L_chr = "logit", max_1L_dbl = Inf, x_part_1_ls = NULL, 
     x_part_2_ls = NULL, y_1L_chr = "EpisodeDurationDays", use_1_int = integer(0), 
@@ -2047,6 +2096,7 @@ make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), f
 #' @rdname make_project_2_k10_change_mdls
 #' @export 
 #' @importFrom dplyr mutate
+#' @keywords internal
 make_project_2_k10_change_mdls <- function (X_Ready4useDyad, type_1L_chr = c("Intervention", "Jurisdiction")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -2164,6 +2214,7 @@ make_project_2_k10_change_mdls <- function (X_Ready4useDyad, type_1L_chr = c("In
 #' @return K10 (a list)
 #' @rdname make_project_2_k10_mdls
 #' @export 
+#' @keywords internal
 make_project_2_k10_mdls <- function (X_Ready4useDyad) 
 {
     K10_ls <- list()
@@ -2214,6 +2265,7 @@ make_project_2_k10_mdls <- function (X_Ready4useDyad)
 #' @return K10 (a list)
 #' @rdname make_project_2_k10_relapse_mdls
 #' @export 
+#' @keywords internal
 make_project_2_k10_relapse_mdls <- function (X_Ready4useDyad) 
 {
     K10_ls <- list(OLS_1_mdl = lm(formula = K10 ~ Intervention + 
@@ -2264,6 +2316,7 @@ make_project_2_k10_relapse_mdls <- function (X_Ready4useDyad)
 #' @return Labels (a list)
 #' @rdname make_project_2_labels
 #' @export 
+#' @keywords internal
 make_project_2_labels <- function (type_1L_chr = c("regression", "simulation")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -2310,6 +2363,7 @@ make_project_2_labels <- function (type_1L_chr = c("regression", "simulation"))
 #' @export 
 #' @importFrom purrr map2
 #' @importFrom stats setNames
+#' @keywords internal
 make_project_2_minutes_mdls <- function (X_Ready4useDyad, disciplines_chr = make_disciplines(), 
     family_2_1L_chr = "Gamma(link = 'log')", link_1_1L_chr = "logit", 
     x_part_1_ls = NULL, x_part_2_ls = NULL, y_1L_chr = "TotalUseMins_change", 
@@ -2359,6 +2413,7 @@ make_project_2_minutes_mdls <- function (X_Ready4useDyad, disciplines_chr = make
 #' @return Outcomes (a list)
 #' @rdname make_project_2_outcomes_ls
 #' @export 
+#' @keywords internal
 make_project_2_outcomes_ls <- function () 
 {
     outcomes_ls <- list(k10p = c("k10p_score", paste0("k10p_item", 
@@ -2372,6 +2427,7 @@ make_project_2_outcomes_ls <- function ()
 #' @return Regressions (a list)
 #' @rdname make_project_2_regressions_ls
 #' @export 
+#' @keywords internal
 make_project_2_regressions_ls <- function () 
 {
     regressions_ls <- list(EpisodeStart_ls = list(), EpisodeEnd_ls = list(), 
@@ -2410,6 +2466,7 @@ make_project_2_regressions_ls <- function ()
 #' @importFrom lubridate years
 #' @importFrom dplyr filter mutate arrange select ungroup
 #' @importFrom stringr str_detect str_replace_all
+#' @keywords internal
 make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, period_dtm = lubridate::years(1), 
     platform_1L_chr = "Intervention", processed_ls = NULL, regressions_ls = NULL, 
     select_1L_chr = character(0), sim_results_ls = NULL, timepoint_1L_chr = character(0), 
@@ -2481,6 +2538,7 @@ make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, pe
 #' @rdname make_project_2_results
 #' @export 
 #' @importFrom dplyr filter
+#' @keywords internal
 make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_chr = "Comparator", 
     intervention_1L_chr = "Intervention", min_cell_size_1L_int = 30L, 
     modifiable_chr = character(0), outcomes_chr = character(0), 
@@ -2536,6 +2594,7 @@ make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_ch
 #' @importFrom dplyr mutate across where filter select arrange case_when
 #' @importFrom rlang sym
 #' @importFrom tidyselect any_of
+#' @keywords internal
 make_project_2_results_synthesis <- function (inputs_ls, results_ls, comparator_1L_chr = "Comparator", 
     drop_chr = make_project_2_vars("drop"), keep_chr = make_project_2_vars("keep"), 
     intervention_1L_chr = "Intervention", modifiable_chr = make_project_2_vars("modify"), 
@@ -2596,6 +2655,7 @@ make_project_2_results_synthesis <- function (inputs_ls, results_ls, comparator_
 #' @importFrom rlang sym
 #' @importFrom purrr map_dfr map_chr pmap_chr reduce
 #' @importFrom scales dollar
+#' @keywords internal
 make_project_2_results_tb <- function (sim_results_ls, comparator_1L_chr, intervention_1L_chr, 
     params_tb, platform_1L_chr, digits_1L_int = 2, disciplines_chr = make_disciplines(), 
     drop_chr = character(0), filter_1L_lgl = TRUE, format_1L_lgl = TRUE, 
@@ -2695,6 +2755,7 @@ make_project_2_results_tb <- function (sim_results_ls, comparator_1L_chr, interv
 #' @return Sensitivities (a list)
 #' @rdname make_project_2_sensitivities_ls
 #' @export 
+#' @keywords internal
 make_project_2_sensitivities_ls <- function () 
 {
     sensitivities_ls <- make_sensitivities_ls()
@@ -2725,6 +2786,7 @@ make_project_2_sensitivities_ls <- function ()
 #' @importFrom stringr str_replace_all str_sub word str_replace
 #' @importFrom tibble tibble
 #' @importFrom scales dollar
+#' @keywords internal
 make_project_2_sim_summary <- function (sim_results_ls, arms_chr, element_1L_chr = "Z", groupings_chr = c("Diagnosis", 
     "Distress"), order_1L_lgl = TRUE, convert_1L_lgl = TRUE, 
     platform_1L_chr = "Intervention", select_1L_chr = "all", 
@@ -2876,6 +2938,7 @@ make_project_2_sim_summary <- function (sim_results_ls, arms_chr, element_1L_chr
 #' @importFrom dplyr filter select mutate row_number case_when everything as_tibble
 #' @importFrom synthpop syn
 #' @importFrom ready4use Ready4useDyad
+#' @keywords internal
 make_project_2_synthetic_pop <- function (model_data_ls, size_1L_int = 1000L) 
 {
     X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Modelling_r4, 
@@ -2907,6 +2970,7 @@ make_project_2_synthetic_pop <- function (model_data_ls, size_1L_int = 1000L)
 #' @export 
 #' @importFrom purrr map
 #' @importFrom stats setNames
+#' @keywords internal
 make_project_2_tfmn_ls <- function (type_1L_chr = "outcome") 
 {
     tfmn_ls <- 1:6 %>% purrr::map(~as.numeric) %>% stats::setNames(make_project_2_vars(type_1L_chr))
@@ -2919,6 +2983,7 @@ make_project_2_tfmn_ls <- function (type_1L_chr = "outcome")
 #' @rdname make_project_2_theme_fn
 #' @export 
 #' @importFrom ggplot2 theme element_text
+#' @keywords internal
 make_project_2_theme_fn <- function (output_1L_chr = c("Word", "PDF", "HTML")) 
 {
     output_1L_chr <- match.arg(output_1L_chr)
@@ -2949,6 +3014,7 @@ make_project_2_theme_fn <- function (output_1L_chr = c("Word", "PDF", "HTML"))
 #' @return Variables (a character vector)
 #' @rdname make_project_2_vars
 #' @export 
+#' @keywords internal
 make_project_2_vars <- function (type_1L_chr = c("drop", "clinical", "keep", "modify", 
     "outcome", "utility"), disciplines_chr = make_disciplines("semi"), 
     exclude_chr = character(0)) 
@@ -2993,6 +3059,7 @@ make_project_2_vars <- function (type_1L_chr = c("drop", "clinical", "keep", "mo
 #' @importFrom janitor row_to_names
 #' @importFrom tidyr fill
 #' @importFrom dplyr filter select rename
+#' @keywords internal
 make_project_activity_ds <- function (raw_data_ls, type_1L_chr = c("initial", "wip")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -3014,6 +3081,7 @@ make_project_activity_ds <- function (raw_data_ls, type_1L_chr = c("initial", "w
 #' @rdname make_project_aqol6d_mdls
 #' @export 
 #' @importFrom betareg betareg
+#' @keywords internal
 make_project_aqol6d_mdls <- function (X_Ready4useDyad) 
 {
     Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
@@ -3048,6 +3116,7 @@ make_project_aqol6d_mdls <- function (X_Ready4useDyad)
 #' @rdname make_project_chu9d_mdls
 #' @export 
 #' @importFrom betareg betareg
+#' @keywords internal
 make_project_chu9d_mdls <- function (X_Ready4useDyad) 
 {
     Y_Ready4useDyad <- transform_to_min_and_max(X_Ready4useDyad, 
@@ -3115,6 +3184,7 @@ make_project_chu9d_mdls <- function (X_Ready4useDyad)
 #' @importFrom dplyr bind_rows mutate select
 #' @importFrom tidyselect all_of
 #' @importFrom gtsummary tbl_summary all_continuous all_categorical add_p
+#' @keywords internal
 make_project_cmprsn <- function (model_data_ls, by_1L_chr, include_chr, what_1L_chr = "X", 
     digits_1L_int = 2L, labels_ls = NULL, tfmn_fn = identity, 
     tfmn_1_fn = identity, tfmn_2_fn = identity, type_1L_chr = c("unimputed", 
@@ -3157,6 +3227,7 @@ make_project_cmprsn <- function (model_data_ls, by_1L_chr, include_chr, what_1L_
 #' @export 
 #' @importFrom ready4use Ready4useDyad
 #' @importFrom dplyr filter group_by mutate n ungroup arrange
+#' @keywords internal
 make_project_consolidated_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDyad = ready4use::Ready4useDyad, 
     type_1L_chr = c("outcomes", "tx_status")) 
 {
@@ -3186,6 +3257,7 @@ make_project_consolidated_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Re
 #' @export 
 #' @importFrom dplyr inner_join mutate select
 #' @importFrom ready4show manufacture.ready4show_correspondences
+#' @keywords internal
 make_project_contacts_ds <- function (raw_data_ls, demographics_tb, recode_lup_r3 = make_project_recode_lup()) 
 {
     contacts_tb <- demographics_tb %>% dplyr::inner_join(raw_data_ls$contacts)
@@ -3207,6 +3279,7 @@ make_project_contacts_ds <- function (raw_data_ls, demographics_tb, recode_lup_r
 #' @importFrom dplyr filter select starts_with arrange mutate case_when
 #' @importFrom tidyr all_of any_of
 #' @importFrom lubridate years
+#' @keywords internal
 make_project_cost_mdlng_ds <- function (W_Ready4useDyad, X_Ready4useDyad, transform_gender_1L_lgl = T) 
 {
     Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -3270,6 +3343,7 @@ make_project_cost_mdlng_ds <- function (W_Ready4useDyad, X_Ready4useDyad, transf
 #' @importFrom stringr str_sub
 #' @importFrom lubridate ymd years days
 #' @importFrom rlang sym
+#' @keywords internal
 make_project_costs_ds <- function (dss_ls, end_dtm = NULL, financial_yrs_chr = c("FY 2021", 
     "FY 2022", "FY 2023", "FY 2024"), price_indices_dbl = c(97.2, 
     100, 100.7796, 102.5514), ref_1L_chr = "FY 2024", start_dtm = NULL, 
@@ -3381,6 +3455,7 @@ make_project_costs_ds <- function (dss_ls, end_dtm = NULL, financial_yrs_chr = c
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom serious add_new_uid
+#' @keywords internal
 make_project_demographics_ds <- function (raw_data_ls, uid_1L_chr = "UID") 
 {
     demographics_tb <- raw_data_ls$demographics %>% dplyr::mutate(clinic_postcode = as.character(clinic_postcode)) %>% 
@@ -3417,6 +3492,7 @@ make_project_demographics_ds <- function (raw_data_ls, uid_1L_chr = "UID")
 #' @importFrom tibble add_case
 #' @importFrom ready4use ready4use_dictionary renew.ready4use_dictionary
 #' @importFrom rlang sym
+#' @keywords internal
 make_project_dictionary <- function (raw_data_ls, platform_1L_chr, dss_ls = NULL, financial_yrs_chr = c("FY 2021", 
     "FY 2022", "FY 2023", "FY 2024"), gender_1L_chr = "gender", 
     index_date_1L_chr = "onboarding_date", outcomes_chr = c("gad2", 
@@ -3623,6 +3699,7 @@ make_project_dictionary <- function (raw_data_ls, platform_1L_chr, dss_ls = NULL
 #' @importFrom ready4show manufacture.ready4show_correspondences
 #' @importFrom tidyr any_of
 #' @importFrom tidyselect all_of
+#' @keywords internal
 make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", cleanse_1L_chr = c("itemdims", 
     "all", "none", "dims", "items"), drop_1L_lgl = TRUE, date_of_birth_1L_chr = "date_of_birth", 
     employment_1L_chr = "employment_status", financial_yrs_chr = c("FY 2021", 
@@ -3765,6 +3842,7 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
 #' @importFrom tibble as_tibble
 #' @importFrom serious add_cumulatives
 #' @importFrom stringr str_remove
+#' @keywords internal
 make_project_imputations <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("Diagnosis", 
         "Employment"), date_vars_chr = "Date", extras_chr = character(0), 
@@ -3845,6 +3923,7 @@ make_project_imputations <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4u
 #' @importFrom lubridate ymd
 #' @importFrom tidyr all_of pivot_longer
 #' @importFrom ready4use Ready4useDyad add_dictionary renew.ready4use_dictionary
+#' @keywords internal
 make_project_joiners_ds <- function (processed_ls, as_dyad_1L_lgl = T) 
 {
     X_Ready4useDyad <- processed_ls$overview
@@ -3888,6 +3967,7 @@ make_project_joiners_ds <- function (processed_ls, as_dyad_1L_lgl = T)
 #' @return K10 (a list)
 #' @rdname make_project_k10_mdls
 #' @export 
+#' @keywords internal
 make_project_k10_mdls <- function (X_Ready4useDyad, make_with_fn = make_project_1_k10_mdls) 
 {
     k10_ls <- X_Ready4useDyad %>% make_with_fn()
@@ -3899,6 +3979,7 @@ make_project_k10_mdls <- function (X_Ready4useDyad, make_with_fn = make_project_
 #' @return Keys (a character vector)
 #' @rdname make_project_keys
 #' @export 
+#' @keywords internal
 make_project_keys <- function (type_1L_chr = c("micro", "ts")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -3919,6 +4000,7 @@ make_project_keys <- function (type_1L_chr = c("micro", "ts"))
 #' @return Metrics (a character vector)
 #' @rdname make_project_metrics
 #' @export 
+#' @keywords internal
 make_project_metrics <- function (unit_costs_tb) 
 {
     cost_names_chr <- get_unit_cost_detail(unit_costs_tb, what_1L_chr = "names")
@@ -3940,6 +4022,7 @@ make_project_metrics <- function (unit_costs_tb)
 #' @importFrom dplyr filter summarise mutate select everything across where
 #' @importFrom purrr map_dfr
 #' @importFrom rlang sym
+#' @keywords internal
 make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names_chr = character(0), 
     type_1L_chr = c("dataset", "prediction"), var_1L_chr = character(0), 
     weeks_chr = c("Week14", "Week53")) 
@@ -4016,6 +4099,7 @@ make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names
 #' @importFrom ready4use add_dictionary
 #' @importFrom stringr str_replace_all
 #' @importFrom Hmisc capitalize
+#' @keywords internal
 make_project_minutes_ds <- function (processed_ls, cut_weeks_int = c(14, 53), drop_1L_lgl = TRUE, 
     model_data_ls = NULL, period_dtm = lubridate::years(1) - 
         lubridate::days(1), type_1L_chr = c("imputed", "unimputed"), 
@@ -4132,6 +4216,7 @@ make_project_minutes_ds <- function (processed_ls, cut_weeks_int = c(14, 53), dr
 #' @export 
 #' @importFrom purrr map2
 #' @importFrom stats setNames
+#' @keywords internal
 make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma(link = 'inverse')", 
     link_1_1L_chr = "logit", x_part_1_ls = NULL, x_part_2_ls = NULL, 
     y_1L_chr = "Minutes_change", ...) 
@@ -4172,6 +4257,7 @@ make_project_minutes_mdls <- function (X_Ready4useDyad, family_2_1L_chr = "Gamma
 #' @rdname make_project_notes_ds
 #' @export 
 #' @importFrom dplyr filter select rename
+#' @keywords internal
 make_project_notes_ds <- function (raw_data_ls, financial_yrs_chr) 
 {
     notes_tb <- make_project_activity_ds(raw_data_ls, type_1L_chr = "wip") %>% 
@@ -4211,6 +4297,7 @@ make_project_notes_ds <- function (raw_data_ls, financial_yrs_chr)
 #' @importFrom youthvars youthvars_gad7 youthvars_k10_aus youthvars_phq9 youthvars_aqol6d_adol youthvars_chu9d_adolaus
 #' @importFrom youthu get_mdl_metadata make_predn_metadata_ls add_utl_predn add_qalys_to_ds add_change_in_ds_var
 #' @importFrom purrr reduce
+#' @keywords internal
 make_project_outcomes_ds <- function (data_ls, as_dyad_1L_lgl = T, cleanse_1L_chr = c("all", 
     "none", "dims", "items", "itemdims"), demographics_tb = tibble::tibble(), 
     complete_1L_lgl = TRUE, drop_1L_lgl = TRUE, drop_chr = character(0), 
@@ -4392,6 +4479,7 @@ make_project_outcomes_ds <- function (data_ls, as_dyad_1L_lgl = T, cleanse_1L_ch
 #' @rdname make_project_overview_ds
 #' @export 
 #' @importFrom dplyr inner_join
+#' @keywords internal
 make_project_overview_ds <- function (raw_data_ls, demographics_tb) 
 {
     overview_tb <- demographics_tb %>% dplyr::inner_join(raw_data_ls$chats) %>% 
@@ -4404,6 +4492,7 @@ make_project_overview_ds <- function (raw_data_ls, demographics_tb)
 #' @return Parameters (a tibble)
 #' @rdname make_project_params_tb
 #' @export 
+#' @keywords internal
 make_project_params_tb <- function (make_with_fn = make_project_1_params_tb) 
 {
     params_tb <- make_with_fn()
@@ -4416,6 +4505,7 @@ make_project_params_tb <- function (make_with_fn = make_project_1_params_tb)
 #' @rdname make_project_recode_lup
 #' @export 
 #' @importFrom ready4show ready4show_correspondences renew.ready4show_correspondences
+#' @keywords internal
 make_project_recode_lup <- function () 
 {
     recode_lup_r3 <- ready4show::ready4show_correspondences() %>% 
@@ -4448,6 +4538,7 @@ make_project_recode_lup <- function ()
 #' @rdname make_project_results
 #' @export 
 #' @importFrom dplyr filter
+#' @keywords internal
 make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_int = 30L, 
     modifiable_chr = character(0), outcomes_chr = character(0), 
     threshold_1L_dbl = 96000) 
@@ -4493,6 +4584,7 @@ make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_i
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname make_project_results_synthesis
 #' @export 
+#' @keywords internal
 make_project_results_synthesis <- function (inputs_ls, results_ls, modifiable_chr = c("treatment_status", 
     "Minutes", "k10", "AQoL6D", "CHU9D"), type_1L_chr = c("D", 
     "AB", "C")) 
@@ -4520,6 +4612,7 @@ make_project_results_synthesis <- function (inputs_ls, results_ls, modifiable_ch
 #' @importFrom serious add_temporal_vars make_temporal_vars add_tenure add_cumulatives add_episodes
 #' @importFrom purrr map_chr
 #' @importFrom rlang sym
+#' @keywords internal
 make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POSIXct("2024-10-25")) 
 {
     X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
@@ -4630,6 +4723,7 @@ make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POS
 #' @importFrom tidyr pivot_longer pivot_wider all_of
 #' @importFrom tibble tibble
 #' @importFrom scales dollar
+#' @keywords internal
 make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", groupings_chr = c("clinic_type", 
     "treatment_status_start", "Distress"), order_1L_lgl = TRUE, 
     convert_1L_lgl = TRUE, platform_1L_chr = "Intervention", 
@@ -4775,6 +4869,7 @@ make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", grou
 #' @rdname make_project_sunk_tb
 #' @export 
 #' @importFrom tibble tibble
+#' @keywords internal
 make_project_sunk_tb <- function (global_1L_dbl = numeric(0), content_dbl = 0.9, development_dbl = 0.75, 
     implementation_dbl = 0.25, infrastructure_dbl = 0, management_dbl = 0, 
     marketing_dbl = 0, onboarding_dbl = 0.1, reporting_dbl = 0.9) 
@@ -4805,6 +4900,7 @@ make_project_sunk_tb <- function (global_1L_dbl = numeric(0), content_dbl = 0.9,
 #' @importFrom dplyr group_by arrange mutate lag ungroup filter across
 #' @importFrom serious add_new_uid
 #' @importFrom tidyselect all_of
+#' @keywords internal
 make_project_test_ds <- function (model_data_ls, update_qalys_fn = identity) 
 {
     X_Ready4useDyad <- renewSlot(model_data_ls$unimputed_ls$OutcomesAllWide_r4, 
@@ -4846,6 +4942,7 @@ make_project_test_ds <- function (model_data_ls, update_qalys_fn = identity)
 #' @importFrom dplyr mutate
 #' @importFrom purrr map_int
 #' @importFrom tsibble fill_gaps
+#' @keywords internal
 make_project_ts_ds <- function (X_Ready4useDyad, processed_ls, index_1L_chr = "Date", 
     key_vars_chr = make_project_keys(type_1L_chr = "ts")) 
 {
@@ -4874,6 +4971,7 @@ make_project_ts_ds <- function (X_Ready4useDyad, processed_ls, index_1L_chr = "D
 #' @export 
 #' @importFrom dplyr select ends_with mutate everything arrange case_when lag group_by ungroup
 #' @importFrom rlang sym
+#' @keywords internal
 make_project_tx_mdlng_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4useDyad, 
     periods_chr = c(x = "-2 to 0 Weeks", y = "0 to 12 Weeks", 
         z = "12 to 24 Weeks"), periods_ls = list(x = c(-2, 0), 
@@ -4918,6 +5016,7 @@ make_project_tx_mdlng_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, Z_Ready4
 #' @export 
 #' @importFrom purrr map
 #' @importFrom stats setNames
+#' @keywords internal
 make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predictors_ls = NULL, 
     treatment_vars_chr = c("treatment_status", "treatment_status_t2"), 
     what_1L_chr = c("All", "Waitlist", "Treatment", "Discharged")) 
@@ -4985,6 +5084,7 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @importFrom tidyselect any_of
 #' @importFrom stringr str_remove
 #' @importFrom broom tidy
+#' @keywords internal
 make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
     style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
     5)], digits_1L_int = integer(0), drop_chr = character(0), 
@@ -5091,6 +5191,7 @@ make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = r
 #' @return Regressions (a list)
 #' @rdname make_regressions_ls
 #' @export 
+#' @keywords internal
 make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), CHU9D_ls = list(), 
     k10_ls = list(), Minutes_ls = list(), Treatments_ls = list(Waitlist_ls = list(), 
         Treatment_ls = list(), Discharged_ls = list())), prototype_mdls_ls = list(AQoL6D_mdl = NULL, 
@@ -5135,6 +5236,7 @@ make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), CHU9
 #' @importFrom stringr str_replace_all
 #' @importFrom purrr reduce
 #' @importFrom rlang sym
+#' @keywords internal
 make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2023-07-01"), 
     date_start_dtm = as.POSIXct("2023-06-01"), period_dtm = lubridate::years(1), 
     platform_1L_chr = "Intervention", processed_ls = NULL, regressions_ls = NULL, 
@@ -5360,6 +5462,7 @@ make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2
 #' @importFrom purrr reduce
 #' @importFrom dplyr filter pull
 #' @importFrom rlang sym
+#' @keywords internal
 make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1L_chr = "Cost") 
 {
     results_mat <- 1:length(names_chr) %>% purrr::reduce(.init = matrix(rep(NA_real_, 
@@ -5384,6 +5487,7 @@ make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1
 #' @importFrom dplyr group_by across summarise_at left_join summarise n ungroup filter starts_with rename_with bind_rows mutate
 #' @importFrom tidyr all_of
 #' @importFrom purrr map_dfr
+#' @keywords internal
 make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = character(0), 
     min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
         "CHU9D")) 
@@ -5458,6 +5562,7 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' @importFrom ready4use Ready4useDyad
 #' @importFrom dplyr mutate case_when
 #' @importFrom rlang sym
+#' @keywords internal
 make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", 
     "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
     "treatment_start"), exclude_suffixes_chr = c("_change", "_date", 
@@ -5498,6 +5603,7 @@ make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE,
 #' @return Sensitivities (a list)
 #' @rdname make_sensitivities_ls
 #' @export 
+#' @keywords internal
 make_sensitivities_ls <- function () 
 {
     sensitivities_ls <- list(costs_ls = list(), outcomes_ls = list(YR1 = add_projected_maintenance, 
@@ -5514,6 +5620,7 @@ make_sensitivities_ls <- function ()
 #' @rdname make_simulated_draws
 #' @export 
 #' @importFrom stats setNames
+#' @keywords internal
 make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, iterations_int = 1:100) 
 {
     iterations_1L_int <- length(unique(iterations_int))
@@ -5531,6 +5638,7 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 #' @return Structural (a character vector)
 #' @rdname make_structural_vars
 #' @export 
+#' @keywords internal
 make_structural_vars <- function (data_1L_chr = "Data", uid_1L_chr = character(0)) 
 {
     structural_chr <- c("Iteration", uid_1L_chr, "InModel", "Arm", 
@@ -5549,6 +5657,7 @@ make_structural_vars <- function (data_1L_chr = "Data", uid_1L_chr = character(0
 #' @return Suffix (a character vector of length one)
 #' @rdname make_suffix
 #' @export 
+#' @keywords internal
 make_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), 
     sensitivities_ls = make_sensitivities_ls(), type_1L_chr = c("Model", 
         "Function", "Project"), update_1L_int = integer(0)) 
@@ -5582,6 +5691,7 @@ make_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up_1L_in
 #' @importFrom dplyr group_by summarise across first mutate where rename select everything row_number case_when as_tibble
 #' @importFrom synthpop syn
 #' @importFrom ready4use Ready4useDyad
+#' @keywords internal
 make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L_int = 2001, 
     size_1L_int = 1000, transform_gender_1L_lgl = TRUE) 
 {
@@ -5643,6 +5753,7 @@ make_synthetic_data <- function (model_data_ls, imputations_1L_int = 5L, seed_1L
 #' @importFrom dplyr mutate case_when select across slice cross_join
 #' @importFrom tidyselect all_of
 #' @importFrom synthpop compare
+#' @keywords internal
 make_synthetic_tests <- function (population_ls, model_data_ls = NULL, original_tb = NULL, 
     comparison_1L_chr = c("OutcomesJoinersImputed", "Joiners", 
         "OutcomesJoiners", "Outcomes"), ...) 
@@ -5692,6 +5803,7 @@ make_synthetic_tests <- function (population_ls, model_data_ls = NULL, original_
 #' @importFrom ready4use Ready4useDyad add_dictionary
 #' @importFrom dplyr select mutate select_if group_by summarise across where filter left_join
 #' @importFrom tidyr any_of pivot_longer
+#' @keywords internal
 make_test_comparisons <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     type_1L_chr = c("full", "wsummary", "lsummary")) 
 {
@@ -5744,6 +5856,7 @@ make_test_comparisons <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use:
 #' @importFrom stringr str_remove
 #' @importFrom rlang sym
 #' @importFrom tidyselect all_of
+#' @keywords internal
 make_tfd_mds_outcomes_tb <- function (processed_ls, outcomes_ls, jurisdiction_1L_chr = "Jurisdiction", 
     missing_after_dtm = Sys.Date(), postcode_lup = NULL, referrals_1L_lgl = FALSE, 
     reviews_1L_lgl = FALSE) 
@@ -5902,6 +6015,7 @@ make_tfd_mds_outcomes_tb <- function (processed_ls, outcomes_ls, jurisdiction_1L
 #' @return Model (a model)
 #' @rdname make_two_part_mdl
 #' @export 
+#' @keywords internal
 make_two_part_mdl <- function (data_tb, family_2_1L_chr = "Gamma(link = 'inverse')", 
     link_1_1L_chr = "logit", x_part_1_chr, x_part_2_chr, y_1L_chr, 
     ...) 
@@ -5929,6 +6043,7 @@ make_two_part_mdl <- function (data_tb, family_2_1L_chr = "Gamma(link = 'inverse
 #' @importFrom stats predict
 #' @importFrom dplyr pull
 #' @importFrom rlang sym
+#' @keywords internal
 make_tx_mdl_confusion <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), tx_mdls_ls, 
     model_1L_int, treatment_vars_chr = c("treatment_status", 
         "treatment_status_t2"), what_1L_chr = c("Waitlist", "Treatment", 
@@ -5954,6 +6069,7 @@ make_tx_mdl_confusion <- function (X_Ready4useDyad = ready4use::Ready4useDyad(),
 #' @importFrom stringr str_replace
 #' @importFrom purrr reduce
 #' @importFrom tibble tibble
+#' @keywords internal
 make_unit_cost_params_tb <- function (cost_per_mins_tb, new_ls = NULL) 
 {
     unit_cost_params_tb <- cost_per_mins_tb %>% dplyr::mutate(Parameter = Provider %>% 
@@ -5989,6 +6105,7 @@ make_unit_cost_params_tb <- function (cost_per_mins_tb, new_ls = NULL)
 #' @rdname make_utility_fns_ls
 #' @export 
 #' @importFrom purrr keep_at
+#' @keywords internal
 make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k10, 
     eq5d_fn = add_eq5d_from_draws, sf6d_fn = add_sf6d_from_draws, 
     utilities_chr = c("AQoL8D", "EQ5D", "SF6D")) 
@@ -6030,6 +6147,7 @@ make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k
 #' @importFrom rlang sym
 #' @importFrom Hmisc capitalize
 #' @importFrom tidyr any_of
+#' @keywords internal
 make_utility_predictions_ds <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     Z_Ready4useDyad = ready4use::Ready4useDyad(), model_mdl, 
     utility_1L_chr = c("AQoL6D", "CHU9D"), follow_up_1L_int = 12, 
@@ -6106,6 +6224,7 @@ make_utility_predictions_ds <- function (X_Ready4useDyad = ready4use::Ready4useD
 #' @return Suffix (a character vector of length one)
 #' @rdname make_weeks_suffix
 #' @export 
+#' @keywords internal
 make_weeks_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up_1L_int = integer(0)) 
 {
     if (!identical(follow_up_1L_int, integer(0))) {
@@ -6123,6 +6242,7 @@ make_weeks_suffix <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, follow_up
 #' @return Worker types (a character vector)
 #' @rdname make_worker_types
 #' @export 
+#' @keywords internal
 make_worker_types <- function (type_1L_chr = c("all", "medical")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)

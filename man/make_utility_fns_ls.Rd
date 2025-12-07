@@ -29,3 +29,4 @@ Utility functions (a list)
 \description{
 make_utility_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make utility functions list. The function returns Utility functions (a list).
 }
+\keyword{internal}

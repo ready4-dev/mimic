@@ -38,3 +38,4 @@ Parameters (a double vector)
 \description{
 make_iar_params() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make initial assessment andeferral parameters. The function returns Parameters (a double vector).
 }
+\keyword{internal}

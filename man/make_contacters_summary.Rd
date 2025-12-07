@@ -23,3 +23,4 @@ Contacters (a tibble)
 \description{
 make_contacters_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make contacters summary. The function returns Contacters (a tibble).
 }
+\keyword{internal}

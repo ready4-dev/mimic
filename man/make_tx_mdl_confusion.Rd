@@ -29,3 +29,4 @@ Confusion (a list)
 \description{
 make_tx_mdl_confusion() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make treatment model confusion. The function returns Confusion (a list).
 }
+\keyword{internal}

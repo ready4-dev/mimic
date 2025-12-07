@@ -15,3 +15,4 @@ Dates (a date vector)
 \description{
 transform_integer_dates() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform integer dates. The function returns Dates (a date vector).
 }
+\keyword{internal}

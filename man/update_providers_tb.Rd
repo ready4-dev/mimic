@@ -17,3 +17,4 @@ Providers (a tibble)
 \description{
 update_providers_tb() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update providers tibble. The function returns Providers (a tibble).
 }
+\keyword{internal}

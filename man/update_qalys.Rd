@@ -38,3 +38,4 @@ X (A dataset and data dictionary pair.)
 \description{
 update_qalys() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update quality adjusted life years. The function is called for its side effects and does not return a value.
 }
+\keyword{internal}

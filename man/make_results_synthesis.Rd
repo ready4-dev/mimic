@@ -54,3 +54,4 @@ A (A dataset and data dictionary pair.)
 \description{
 make_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results synthesis. The function is called for its side effects and does not return a value.
 }
+\keyword{internal}

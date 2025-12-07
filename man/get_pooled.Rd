@@ -32,3 +32,4 @@ Predictions (an output object of multiple potential types)
 \description{
 get_pooled() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get pooled. The function returns Predictions (an output object of multiple potential types).
 }
+\keyword{internal}

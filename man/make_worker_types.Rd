@@ -15,3 +15,4 @@ Worker types (a character vector)
 \description{
 make_worker_types() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make worker types. The function returns Worker types (a character vector).
 }
+\keyword{internal}

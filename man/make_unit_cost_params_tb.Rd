@@ -17,3 +17,4 @@ Unit cost parameters (a tibble)
 \description{
 make_unit_cost_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make unit cost parameters tibble. The function returns Unit cost parameters (a tibble).
 }
+\keyword{internal}

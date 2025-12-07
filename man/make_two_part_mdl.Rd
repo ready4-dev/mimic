@@ -35,3 +35,4 @@ Model (a model)
 \description{
 make_two_part_mdl() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make two part model. The function returns Model (a model).
 }
+\keyword{internal}

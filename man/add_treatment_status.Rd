@@ -41,3 +41,4 @@ Data (an output object of multiple potential types)
 \description{
 add_treatment_status() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add treatment status. The function returns Data (an output object of multiple potential types).
 }
+\keyword{internal}

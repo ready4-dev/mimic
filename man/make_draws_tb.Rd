@@ -32,3 +32,4 @@ Draws (a tibble)
 \description{
 make_draws_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make draws tibble. The function returns Draws (a tibble).
 }
+\keyword{internal}

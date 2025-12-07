@@ -26,3 +26,4 @@ an Assessment of Quality of Life Eight Dimension (a double vector of length one)
 \description{
 calculate_aqol8d_from_k10() is a Calculate function that performs a numeric calculation. Specifically, this function implements an algorithm to calculate assessment of quality of life eight dimension from k10. The function returns an Assessment of Quality of Life Eight Dimension (a double vector of length one).
 }
+\keyword{internal}

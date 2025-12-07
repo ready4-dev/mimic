@@ -35,3 +35,4 @@ Estimatedesident Population for areas (a double vector)
 \description{
 calculate_erp_for_areas() is a Calculate function that performs a numeric calculation. Specifically, this function implements an algorithm to calculate estimatedesident population for areas. The function returns Estimatedesident Population for areas (a double vector).
 }
+\keyword{internal}
