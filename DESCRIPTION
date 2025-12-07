@@ -1,7 +1,7 @@
 Package: mimic
 Title: Implement Microsimulations to Economically Evaluate Mental Health
     Services
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Matthew", "Hamilton", , "matthew.hamilton1@monash.edu", role = c("aut", "cph", "cre"),
            comment = c(ORCID = "0000-0001-7407-9194"))
