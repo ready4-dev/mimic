@@ -20,6 +20,7 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Simple Microsimul
   custom_dmt_ls = ready4fun::make_custom_dmt_ls(user_manual_fns_chr = c("predict_comparator_pathway",
                                                                         "predict_digital_pathway",
                                                                         "predict_from_pool",
+                                                                        "predict_project_2_pathway",
                                                                         "predict_with_sim"
                                                                         #,
                                                                         # all other functions that you plan to include in the main manual are named here.

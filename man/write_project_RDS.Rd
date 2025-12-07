@@ -8,7 +8,8 @@ write_project_RDS(
   data_ls,
   path_to_private_1L_chr,
   processed_dir_1L_chr,
-  divider_1L_chr = "\\\\"
+  divider_1L_chr = "\\\\",
+  r_dir_1L_chr = "R"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ write_project_RDS(
 \item{processed_dir_1L_chr}{Processed directory (a character vector of length one)}
 
 \item{divider_1L_chr}{Divider (a character vector of length one), Default: '\'}
+
+\item{r_dir_1L_chr}{R directory (a character vector of length one), Default: 'R'}
 }
 \value{
 No return value, called for side effects.

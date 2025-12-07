@@ -6,41 +6,50 @@
 \usage{
 predict_with_sim(
   inputs_ls,
-  add_logic_fn = add_project_offset_logic,
-  base_for_rates_int = c(1000L, 1L, 1L),
-  comparator_fn = predict_comparator_pathway,
-  intervention_fn = predict_digital_pathway,
-  iterations_ls = list(1:100L),
-  horizon_dtm = lubridate::years(1),
   modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
+  utilities_chr = c("AQoL6D", "CHU9D"),
+  arms_chr = c("Intervention", "Comparator"),
+  comparator_fn = predict_comparator_pathway,
+  drop_missing_1L_lgl = FALSE,
+  drop_suffix_1L_chr = character(0),
+  intervention_fn = predict_digital_pathway,
+  iterations_ls = make_batch(5, of_1L_int = 20),
+  horizon_dtm = lubridate::years(1),
+  prior_batches_1L_int = 0,
   purge_1L_lgl = TRUE,
   scale_1L_int = 10L,
   seed_1L_int = 2001L,
   sensitivities_ls = make_sensitivities_ls(),
   start_dtm = Sys.Date(),
   tfmn_ls = make_class_tfmns(),
-  tx_duration_dtm = lubridate::weeks(12),
   type_1L_chr = c("D", "AB", "C", "NULL"),
-  utilities_chr = c("AQoL6D", "CHU9D"),
-  write_to_1L_chr = character(0)
+  unlink_1L_lgl = FALSE,
+  write_to_1L_chr = character(0),
+  ...
 )
 }
 \arguments{
 \item{inputs_ls}{Inputs (a list)}
 
-\item{add_logic_fn}{Add logic (a function), Default: add_project_offset_logic}
+\item{modifiable_chr}{Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")}
 
-\item{base_for_rates_int}{Base for rates (an integer vector), Default: c(1000L, 1L, 1L)}
+\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+
+\item{arms_chr}{Arms (a character vector), Default: c("Intervention", "Comparator")}
 
 \item{comparator_fn}{Comparator (a function), Default: predict_comparator_pathway}
 
+\item{drop_missing_1L_lgl}{Drop missing (a logical vector of length one), Default: FALSE}
+
+\item{drop_suffix_1L_chr}{Drop suffix (a character vector of length one), Default: character(0)}
+
 \item{intervention_fn}{Intervention (a function), Default: predict_digital_pathway}
 
-\item{iterations_ls}{Iterations (a list), Default: list(1:100L)}
+\item{iterations_ls}{Iterations (a list), Default: make_batch(5, of_1L_int = 20)}
 
 \item{horizon_dtm}{Horizon (a date vector), Default: lubridate::years(1)}
 
-\item{modifiable_chr}{Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")}
+\item{prior_batches_1L_int}{Prior batches (an integer vector of length one), Default: 0}
 
 \item{purge_1L_lgl}{Purge (a logical vector of length one), Default: TRUE}
 
@@ -54,17 +63,17 @@ predict_with_sim(
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns()}
 
-\item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
-
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C", "NULL")}
 
-\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
+\item{unlink_1L_lgl}{Unlink (a logical vector of length one), Default: FALSE}
 
 \item{write_to_1L_chr}{Write to (a character vector of length one), Default: character(0)}
+
+\item{...}{Additional arguments}
 }
 \value{
-X (A dataset and data dictionary pair.)
+Output (an output object of multiple potential types)
 }
 \description{
-predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function is called for its side effects and does not return a value.
+predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function returns Output (an output object of multiple potential types).
 }

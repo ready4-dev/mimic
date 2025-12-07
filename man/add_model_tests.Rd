@@ -7,24 +7,37 @@
 add_model_tests(
   model_data_ls,
   regressions_ls,
+  what_1L_chr,
+  colour_1L_chr = character(0),
+  colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr =
+    "unicol")[c(1, 9)],
   imputed_1L_lgl = T,
   iterations_1L_int = 100,
   join_with_chr = character(0),
   max_1L_dbl = numeric(0),
   min_1L_dbl = numeric(0),
   model_1L_int = integer(0),
+  plot_tfmn_fn = identity,
+  summary_1L_lgl = FALSE,
+  tfmn_fn = identity,
   type_1L_chr = c("models", "candidates"),
+  uid_1L_chr = "UID",
   use_1L_chr = character(0),
   var_1L_chr = character(0),
-  x_label_1L_chr = NA_character_,
-  what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-    "Tx_Treatment", "Tx_Discharged")
+  x_label_1L_chr = NA_character_
 )
 }
 \arguments{
 \item{model_data_ls}{Model data (a list)}
 
 \item{regressions_ls}{Regressions (a list)}
+
+\item{what_1L_chr}{What (a character vector of length one)}
+
+\item{colour_1L_chr}{Colour (a character vector of length one), Default: character(0)}
+
+\item{colours_chr}{Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")\link[=c(1, 
+9)]{c(1, 9)}}
 
 \item{imputed_1L_lgl}{Imputed (a logical vector of length one), Default: T}
 
@@ -38,16 +51,21 @@ add_model_tests(
 
 \item{model_1L_int}{Model (an integer vector of length one), Default: integer(0)}
 
+\item{plot_tfmn_fn}{Plot transformation (a function), Default: identity}
+
+\item{summary_1L_lgl}{Summary (a logical vector of length one), Default: FALSE}
+
+\item{tfmn_fn}{Transformation (a function), Default: identity}
+
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("models", "candidates")}
+
+\item{uid_1L_chr}{Unique identifier (a character vector of length one), Default: 'UID'}
 
 \item{use_1L_chr}{Use (a character vector of length one), Default: character(0)}
 
 \item{var_1L_chr}{Variable (a character vector of length one), Default: character(0)}
 
 \item{x_label_1L_chr}{X label (a character vector of length one), Default: 'NA'}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist",
-"Tx_Treatment", "Tx_Discharged")}
 }
 \value{
 Regressions (a list)

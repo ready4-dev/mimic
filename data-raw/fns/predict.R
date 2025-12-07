@@ -214,16 +214,206 @@ predict_from_pool <- function(pooled_xx,
   }
   return(predictions_xx)
 }
-predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic, base_for_rates_int = c(1000L, 1L, 1L), 
-                              comparator_fn = predict_comparator_pathway,
-                              intervention_fn = predict_digital_pathway,
-                              iterations_ls = list(1:100L), 
-                              horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
-                                                                                    "Minutes", "k10", "AQoL6D", "CHU9D"), purge_1L_lgl = TRUE, 
-                              scale_1L_int = 10L, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
-                              start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-                              type_1L_chr = c("D", "AB", "C","NULL"), utilities_chr = c("AQoL6D", 
-                                                                                        "CHU9D"), write_to_1L_chr = character(0)) 
+predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = identity, 
+                                       arms_for_intervention_costs_chr,
+                                       arms_for_offsets_chr = character(0), 
+                                       arms_for_non_helpseeking_chr = character(0), 
+                                       arms_for_iar_adjustment_chr = character(0), 
+                                       draws_tb = NULL, 
+                                       horizon_dtm = lubridate::years(1), 
+                                       iterations_int = 1:100L, 
+                                       modifiable_chr = make_project_2_vars("modify"),
+                                       seed_1L_int = 2001L, sensitivities_ls = make_project_2_sensitivities_ls(), 
+                                       start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), 
+                                       tx_duration_dtm = lubridate::weeks(12), 
+                                       treatment_ls = NULL,
+                                       utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
+) 
+{
+  ## Preliminary
+  if (is.null(draws_tb)) {
+    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
+                              drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean",
+                              seed_1L_int = seed_1L_int)
+  }
+  if(is.null(treatment_ls)){
+    treatment_1L_chr <- character(0)
+  }else{
+    treatment_1L_chr <-  treatment_ls %>% purrr::pluck(arm_1L_chr)
+  }
+  tx_prefix_1L_chr <- "Treatment"
+  utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
+  ## Enter model
+  population_ls <- add_enter_model_event(X_Ready4useDyad = inputs_ls$Synthetic_r4,
+                                         arm_1L_chr = arm_1L_chr, 
+                                         default_fn = function(X) renewSlot(X, "ds_tb", 
+                                                                            c("Episode",
+                                                                              "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
+                                                                              "Cost", "Cost_S1", "Cost_S2") %>%
+                                                                              purrr::reduce(.init = X@ds_tb,
+                                                                                            ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0))),
+                                         derive_fn_ls = utility_fns_ls,
+                                         draws_tb = draws_tb,
+                                         horizon_dtm = lubridate::years(1),
+                                         iterations_int = iterations_int, 
+                                         modifiable_chr = setdiff(modifiable_chr,
+                                                                  c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins")), 
+                                         start_dtm = start_dtm,  
+                                         tidy_cols_1L_lgl = T,
+                                         tfmn_ls = tfmn_ls, 
+                                         tx_duration_dtm = lubridate::weeks(12),
+                                         tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
+    update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+  ## Update population (if comparator)
+  population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad,
+                                                       arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr) 
+  population_ls$X_Ready4useDyad <- add_non_iar(population_ls$X_Ready4useDyad,
+                                               arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr)
+  
+  ### Remove those who are non helpseekers (for comparator only)
+  population_ls <- update_population_ls(population_ls)
+  ##
+  ## Schedule start of episode of care 
+  if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
+    population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "StartEpisode", 
+                                                       schedule_fn = add_episode_wait_time,
+                                                       schedule_args_ls = list(episode_start_mdl = inputs_ls$models_ls$EpisodeStart_mdl, 
+                                                                               iterations_int = iterations_int, treatment_1L_chr = treatment_1L_chr))
+    print_errors(population_ls$X_Ready4useDyad,
+                 vars_chr = c("WaitInDays"),
+                 assert_1L_lgl = FALSE,
+                 invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+    population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
+    population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+    ### Remove those who won't receive any episodes
+    population_ls <- update_population_ls(population_ls)
+  }
+  
+  ##
+  ## Add episode of care
+  if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
+    population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,
+                                                 assert_1L_lgl = FALSE,
+                                                 episode_1L_int = 1,
+                                                 inputs_ls = inputs_ls,
+                                                 iterations_int = iterations_int,
+                                                 k10_var_1L_chr = "K10",
+                                                 sensitivities_ls = sensitivities_ls,
+                                                 tfmn_ls = tfmn_ls,
+                                                 treatment_1L_chr = treatment_1L_chr,
+                                                 tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                                 utilities_chr = utilities_chr,
+                                                 utility_fns_ls = utility_fns_ls)
+    ## Schedule representation (new episode of care)
+    population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "Represent", 
+                                                       schedule_fn = add_episode_wait_time,
+                                                       schedule_args_ls = list(episode_start_mdl = inputs_ls$models_ls$Representation_mdl, iterations_int = iterations_int, 
+                                                                               type_1L_chr = "repeat", treatment_1L_chr = treatment_1L_chr))
+    print_errors(population_ls$X_Ready4useDyad,
+                 vars_chr = c("DaysToYearOneRepresentation"),
+                 assert_1L_lgl = FALSE,
+                 invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+    population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
+    population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+    ### Remove those who do not have a repeat presentation
+    population_ls <- update_population_ls(population_ls, use_1L_chr = "Z")
+  }
+  ##
+  ## Add episode of care for representers
+  if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
+    population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,
+                                                 assert_1L_lgl = FALSE,
+                                                 episode_1L_int = 2,
+                                                 inputs_ls = inputs_ls,
+                                                 iterations_int = iterations_int,
+                                                 k10_var_1L_chr = "K10",
+                                                 sensitivities_ls = sensitivities_ls,
+                                                 tfmn_ls = tfmn_ls,
+                                                 treatment_1L_chr = treatment_1L_chr,
+                                                 tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                                 utilities_chr = utilities_chr,
+                                                 utility_fns_ls = utility_fns_ls)
+  }
+  ### Return group who did not represent
+  if(nrow(population_ls$Z_Ready4useDyad@ds_tb)>0){
+    population_ls <- update_population_ls(population_ls, type_1L_chr = "join", use_1L_chr = "Z") 
+  }
+  ##
+  ## Apply regression to mean logic to group that did not receive any episode of care
+  if(nrow(population_ls$Y_Ready4useDyad@ds_tb)>0){
+    population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb",
+                                               population_ls$Y_Ready4useDyad@ds_tb  %>%
+                                                 dplyr::mutate(CurrentDate = EndDate)) %>%
+      add_regression_to_mean(sensitivities_ls = sensitivities_ls,
+                             k10_draws_fn = add_project_2_k10_draws,
+                             tfmn_ls = tfmn_ls,
+                             tx_prefix_1L_chr = tx_prefix_1L_chr,
+                             utilities_chr = utilities_chr,
+                             utility_fns_ls = utility_fns_ls)
+    ## Return group who did not receive an episode of care
+    population_ls <- update_population_ls(population_ls, type_1L_chr = "join")
+  }
+  ##
+  ## Model exit and wrap-up
+  population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "WrapUp", 
+                                                     schedule_fn = update_scheduled_date)
+  population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
+  population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+  population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad,
+                                                               arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
+                                                               arms_for_offsets_chr = arms_for_offsets_chr,
+                                                               disciplines_chr = make_disciplines(),  
+                                                               inputs_ls = inputs_ls,
+                                                               iterations_int = iterations_int,
+                                                               sensitivities_ls = sensitivities_ls,
+                                                               tfmn_ls = tfmn_ls,
+                                                               tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                                               utilities_chr = utilities_chr)  ##
+  
+  return(population_ls$X_Ready4useDyad)
+}
+transform_integer_dates <- function(dates_int){
+  if(!is.integer(dates_int)){
+    dates_dtm <- dates_int %>% ready4use::transform_dates()
+  }else{
+    dates_dtm <- dates_int %>% 
+      purrr::map_chr(~{
+        date_1L_chr <- ifelse(.x<10000000,paste0("0",as.integer(.x)),as.integer(.x))
+        paste0(stringr::str_sub(date_1L_chr,start=5, end=8),
+               "-",
+               stringr::str_sub(date_1L_chr,start=3, end=4),
+               "-",
+               stringr::str_sub(date_1L_chr,start=1, end=2))
+      }) %>% lubridate::as_date()
+  }
+  return(dates_dtm)
+}
+predict_with_sim <- function (inputs_ls, 
+                              modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), # Remove default
+                              utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
+                              arms_chr = c("Intervention", "Comparator"), 
+                              comparator_fn = predict_comparator_pathway, 
+                              drop_missing_1L_lgl = FALSE, 
+                              drop_suffix_1L_chr = character(0), 
+                              intervention_fn = predict_digital_pathway, 
+                              iterations_ls = make_batch(5, of_1L_int = 20), 
+                              horizon_dtm = lubridate::years(1), 
+                              prior_batches_1L_int = 0, 
+                              purge_1L_lgl = TRUE, 
+                              scale_1L_int = 10L, 
+                              seed_1L_int = 2001L, 
+                              sensitivities_ls = make_sensitivities_ls(), 
+                              start_dtm = Sys.Date(), 
+                              tfmn_ls = make_class_tfmns(),
+                              type_1L_chr = c("D", "AB", "C", "NULL"), 
+                              unlink_1L_lgl = FALSE, 
+                              write_to_1L_chr = character(0),
+                              # NEED TO MAKE EXPLICT CALLS TO THE BELOW FOR PROJECT ONE
+                              # add_logic_fn = add_project_offset_logic, # Make part of ...
+                              # base_for_rates_int = c(1000L, 1L, 1L), 
+                              # tx_duration_dtm = lubridate::weeks(12), 
+                              # variable_unit_1L_chr = "Minutes",
+                              ...) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
   if (!identical(seed_1L_int, integer(0))) {
@@ -232,53 +422,50 @@ predict_with_sim <- function (inputs_ls, add_logic_fn = add_project_offset_logic
   if (identical(write_to_1L_chr, character(0))) {
     write_to_1L_chr <- tempdir()
   }
-  1:length(iterations_ls) %>% purrr::walk(~{
-    iterations_int <- iterations_ls[[.x]]
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-                              scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
-                                .x)
-    if(!is.null(intervention_fn)){
-      Y_Ready4useDyad <- intervention_fn(inputs_ls, add_logic_fn = add_logic_fn, 
-                                         arm_1L_chr = "Intervention", base_for_rates_int = base_for_rates_int, 
-                                         draws_tb = draws_tb, iterations_int = iterations_int, 
-                                         horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                                         sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                                         tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + .x, 
-                                         start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                                         variable_unit_1L_chr = "Minutes")
-    }else{
-      Y_Ready4useDyad <- ready4use::Ready4useDyad()
-    }
-    if(!is.null(comparator_fn)){
-      Z_Ready4useDyad <- comparator_fn(inputs_ls, 
-                                       arm_1L_chr = "Comparator", add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
-                                       draws_tb = draws_tb, iterations_int = iterations_int, 
-                                       horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                                       sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-                                       tx_duration_dtm = tx_duration_dtm, seed_1L_int = seed_1L_int + .x, 
-                                       start_dtm = start_dtm, utilities_chr = utilities_chr, 
-                                       variable_unit_1L_chr = "Minutes")
-    }else{
-      Z_Ready4useDyad <- ready4use::Ready4useDyad()
-    }
-    
-    
-    saveRDS(list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad), 
-            paste0(write_to_1L_chr, "/SimBatch", .x, ".RDS"))
+  predict_safely_fn <- purrr::safely(.f = write_batch, quiet = FALSE)
+  if (unlink_1L_lgl) {
+    list.files(write_to_1L_chr)[endsWith(list.files(write_to_1L_chr), 
+                                         ".RDS")] %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
+                                                                                 "/", .x)))
+  }
+  extras_ls <- list(...)
+  output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
+    args_ls <- list(batch_1L_int = .x, 
+                    # add_logic_fn = add_logic_fn, 
+                    arms_chr = arms_chr, 
+                    # base_for_rates_int = base_for_rates_int, 
+                    comparator_fn = comparator_fn, 
+                    drop_missing_1L_lgl = drop_missing_1L_lgl, 
+                    drop_suffix_1L_chr = drop_suffix_1L_chr, 
+                    horizon_dtm = horizon_dtm, 
+                    inputs_ls = inputs_ls, 
+                    intervention_fn = intervention_fn, 
+                    iterations_ls = iterations_ls, 
+                    modifiable_chr = modifiable_chr, 
+                    prior_batches_1L_int = prior_batches_1L_int, 
+                    scale_1L_int = scale_1L_int, 
+                    seed_1L_int = seed_1L_int, 
+                    sensitivities_ls = sensitivities_ls, 
+                    start_dtm = start_dtm, 
+                    tfmn_ls = tfmn_ls, 
+                    # tx_duration_dtm  = tx_duration_dtm, 
+                    utilities_chr = utilities_chr, 
+                    # variable_unit_1L_chr = variable_unit_1L_chr, 
+                    write_to_1L_chr = write_to_1L_chr) %>%
+      append(extras_ls)
+    rlang::exec(predict_safely_fn, !!!args_ls)
   })
-  if(type_1L_chr != "NULL"){
-    results_ls <- import_results_batches(length(iterations_ls), 
-                                         dir_1L_chr = write_to_1L_chr)
+  if (type_1L_chr != "NULL") {
+    output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
   }
   if (purge_1L_lgl) {
     1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-                                                           "/SimBatch", .x, ".RDS")))
+                                                           "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
   }
-  if(type_1L_chr != "NULL"){
-    X_Ready4useDyad <- make_project_results_synthesis(inputs_ls, results_ls, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
-  }else{
-    X_Ready4useDyad <- NULL
+  if (type_1L_chr != "NULL") {
+    output_xx <- make_project_results_synthesis(inputs_ls, 
+                                                output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   }
-  return(X_Ready4useDyad)
+  return(output_xx)
 }
 

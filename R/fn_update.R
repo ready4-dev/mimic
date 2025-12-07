@@ -26,6 +26,29 @@ update_current_event <- function (X_Ready4useDyad)
         dplyr::mutate(CurrentEvent = NextEvent))
     return(X_Ready4useDyad)
 }
+#' Update episodes lookup table
+#' @description update_episodes_lup() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update episodes lookup table. The function returns Episodes lookup table (a tibble).
+#' @param episodes_lup_tb Episodes lookup table (a tibble)
+#' @param dates_chr Dates (a character vector)
+#' @param part_one_1L_chr Part one (a character vector of length one)
+#' @param program_true_1L_chr Program true (a character vector of length one)
+#' @return Episodes lookup table (a tibble)
+#' @rdname update_episodes_lup
+#' @export 
+#' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
+#' @keywords internal
+update_episodes_lup <- function (episodes_lup_tb, dates_chr, part_one_1L_chr, program_true_1L_chr) 
+{
+    episodes_lup_tb <- episodes_lup_tb %>% dplyr::mutate(`:=`(!!rlang::sym(program_true_1L_chr), 
+        dplyr::case_when(!!rlang::sym(part_one_1L_chr) & extra_logic & 
+            episode_end_date < as.Date(dates_chr[2]) & episode_end_date > 
+            as.Date(dates_chr[1]) ~ FALSE, !!rlang::sym(part_one_1L_chr) & 
+            extra_logic & episode_end_date > as.Date(dates_chr[3]) ~ 
+            FALSE, !!rlang::sym(part_one_1L_chr) & !extra_logic ~ 
+            FALSE, T ~ !!rlang::sym(program_true_1L_chr))))
+    return(episodes_lup_tb)
+}
 #' Update gender
 #' @description update_gender() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update gender. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)
@@ -38,6 +61,27 @@ update_gender <- function (data_tb)
 {
     data_tb <- data_tb %>% dplyr::mutate(gender = dplyr::case_when(gender %in% 
         c("Other", "Prefer not to say") ~ "OtherPNTS", T ~ gender))
+    return(data_tb)
+}
+#' Update intervention name
+#' @description update_intervention_name() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update intervention name. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param new_1L_chr New (a character vector of length one), Default: 'Comparator'
+#' @param old_1L_chr Old (a character vector of length one), Default: 'FlexPsych'
+#' @param var_nm_1L_chr Variable name (a character vector of length one), Default: 'Intervention'
+#' @return Data (a tibble)
+#' @rdname update_intervention_name
+#' @export 
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @importFrom stringr str_replace_all
+#' @keywords internal
+update_intervention_name <- function (data_tb, new_1L_chr = "Comparator", old_1L_chr = "FlexPsych", 
+    var_nm_1L_chr = "Intervention") 
+{
+    data_tb <- dplyr::mutate(data_tb, `:=`(!!rlang::sym(var_nm_1L_chr), 
+        !!rlang::sym(var_nm_1L_chr) %>% stringr::str_replace_all(old_1L_chr, 
+            new_1L_chr)))
     return(data_tb)
 }
 #' Update K10 event schedule
@@ -59,6 +103,109 @@ update_k10_event_schedule <- function (X_Ready4useDyad, type_1L_chr = c("Model",
                 1 ~ treatment_start, T ~ .x))))
     }
     return(X_Ready4useDyad)
+}
+#' Update Minimum Dataset modelling dataset
+#' @description update_mds_modelling_ds() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update minimum dataset modelling dataset. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param imputations_int Imputations (an integer vector), Default: 1
+#' @param sample_ls Sample (a list), Default: NULL
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname update_mds_modelling_ds
+#' @export 
+#' @importFrom dplyr filter group_by arrange summarise first left_join mutate rename case_when lag lead ungroup bind_rows
+#' @importFrom lubridate years NA_Date_
+#' @importFrom purrr reduce
+#' @keywords internal
+update_mds_modelling_ds <- function (X_Ready4useDyad, imputations_int = 1, sample_ls = NULL, 
+    filter_true_1L_chr = "FlexPsych") 
+{
+    if (".imp" %in% names(X_Ready4useDyad@ds_tb)) {
+        X_Ready4useDyad <- X_Ready4useDyad %>% renewSlot("ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::filter(.imp %in% 
+                imputations_int))
+    }
+    X_Ready4useDyad <- X_Ready4useDyad %>% renewSlot("ds_tb", 
+        X_Ready4useDyad@ds_tb %>% dplyr::group_by(UID) %>% dplyr::arrange(UID, 
+            Episode) %>% dplyr::summarise(OneYearCutOffDate = dplyr::first(first_service_date) + 
+            lubridate::years(1), TotalEpisodes = max(Episode)) %>% 
+            dplyr::left_join(X_Ready4useDyad@ds_tb) %>% dplyr::mutate(YearOne = (first_service_date <= 
+            OneYearCutOffDate)) %>% dplyr::rename(IARPractitioner = iar_dst_practitioner_level_of_care, 
+            Intervention = InterventionGroup) %>% dplyr::mutate(MedicalUseMins = GPUseMins + 
+            PsychiatristUseMins + OtherMedicalUseMins) %>% dplyr::mutate(EpisodeDurationCategory = dplyr::case_when(EpisodeDurationDays < 
+            100 ~ "Under 100 days", EpisodeDurationDays >= 100 & 
+            EpisodeDurationDays < 200 ~ "100-200 days", EpisodeDurationDays >= 
+            200 ~ "200 days or more", T ~ NA_character_) %>% 
+            as.factor()) %>% dplyr::mutate(SubthresholdDisorder = dplyr::case_when(Diagnosis == 
+            "Sub-syndromal" ~ T, is.na(Diagnosis) ~ NA, T ~ F)) %>% 
+            dplyr::mutate(referral_date = dplyr::case_when(referral_date > 
+                first_service_date ~ lubridate::NA_Date_, T ~ 
+                referral_date)) %>% dplyr::group_by(UID) %>% 
+            dplyr::arrange(UID, Episode) %>% dplyr::mutate(last_service_date_previous = dplyr::lag(last_service_date, 
+            default = lubridate::NA_Date_)) %>% dplyr::mutate(referral_date = dplyr::case_when(!is.na(last_service_date_previous) & 
+            !is.na(referral_date) & referral_date < last_service_date_previous ~ 
+            lubridate::NA_Date_, T ~ referral_date)) %>% dplyr::mutate(DaysToYearOneRepresentation = dplyr::case_when(is.na(referral_date) ~ 
+            NA_real_, !YearOne ~ NA_real_, T ~ as.numeric(first_service_date - 
+            last_service_date_previous))) %>% dplyr::mutate(DaysToYearOneRepresentation = dplyr::lead(DaysToYearOneRepresentation, 
+            default = NA_real_)) %>% dplyr::ungroup() %>% dplyr::mutate(WaitInDays = as.numeric(first_service_date - 
+            referral_date)) %>% dplyr::filter(InScope | Intervention == 
+            filter_true_1L_chr) %>% dplyr::mutate(Age = dplyr::case_when(Age > 
+            100 ~ 100, T ~ Age), IRSADQuintile = as.factor(IRSADQuintile), 
+            IARPractitioner = as.factor(IARPractitioner)))
+    if (!is.null(sample_ls)) {
+        X_Ready4useDyad <- X_Ready4useDyad %>% renewSlot("ds_tb", 
+            1:length(sample_ls) %>% purrr::reduce(.init = X_Ready4useDyad@ds_tb, 
+                ~{
+                  group_1L_chr <- names(sample_ls)[.y]
+                  use_1L_dbl <- sample_ls[[.y]]
+                  use_all_tb <- .x %>% dplyr::filter(Intervention != 
+                    group_1L_chr)
+                  sample_tb <- .x %>% dplyr::filter(Intervention == 
+                    group_1L_chr)
+                  samples_1L_int <- round(length(unique(sample_tb$UID)) * 
+                    use_1L_dbl, 0)
+                  keep_int <- sample(unique(sample_tb$UID), size = samples_1L_int, 
+                    replace = F)
+                  sample_tb <- sample_tb %>% dplyr::filter(UID %in% 
+                    keep_int)
+                  dplyr::bind_rows(use_all_tb, sample_tb) %>% 
+                    dplyr::arrange(UID, Episode)
+                }))
+    }
+    return(X_Ready4useDyad)
+}
+#' Update minute variable names
+#' @description update_minute_var_nms() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update minute variable names. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("undo", "do")
+#' @return Data (a tibble)
+#' @rdname update_minute_var_nms
+#' @export 
+#' @importFrom dplyr rename_with
+#' @importFrom stringr str_replace_all
+#' @keywords internal
+update_minute_var_nms <- function (data_tb, type_1L_chr = c("undo", "do")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    rename_chr <- c("ClinicalPsychologistUseMins", "PsychiatristUseMins", 
+        "GPUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins")
+    if (type_1L_chr == "undo") {
+        rename_chr <- paste0(rename_chr, "_change") %>% intersect(names(data_tb))
+    }
+    else {
+        rename_chr <- rename_chr %>% intersect(names(data_tb))
+    }
+    if (!identical(rename_chr, character(0))) {
+        if (type_1L_chr == "undo") {
+            data_tb <- data_tb %>% dplyr::rename_with(~stringr::str_replace_all(.x, 
+                "_change", ""), .cols = rename_chr)
+        }
+        else {
+            data_tb <- data_tb %>% dplyr::rename_with(~paste0(.x, 
+                "_change"), .cols = rename_chr)
+        }
+    }
+    return(data_tb)
 }
 #' Update mismatched variables
 #' @description update_mismatched_vars() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update mismatched variables. The function returns Model dyad (a list).
@@ -124,6 +271,64 @@ update_order <- function (X_Ready4useDyad)
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::arrange(Iteration, UID))
+    return(X_Ready4useDyad)
+}
+#' Update partial results
+#' @description update_partial_results() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update partial results. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param update_fn Update (a function), Default: function(X_Ready4useDyad) {
+#'    identity(X_Ready4useDyad)
+#'}
+#' @param combined_suffixes_chr Combined suffixes (a character vector), Default: c("", "S01", "S02", "S10", "S11", "S12")
+#' @param outcome_suffixes_chr Outcome suffixes (a character vector), Default: c("", "_YR1_S1", "_YR1_S2")
+#' @param ... Additional arguments
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname update_partial_results
+#' @export 
+#' @importFrom ready4use Ready4useDyad
+#' @importFrom purrr map flatten_chr reduce
+#' @importFrom rlang exec
+#' @importFrom stringr str_sub
+#' @keywords internal
+update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), update_fn = function(X_Ready4useDyad) {
+    identity(X_Ready4useDyad)
+}, combined_suffixes_chr = c("", "S01", "S02", "S10", "S11", 
+    "S12"), outcome_suffixes_chr = c("", "_YR1_S1", "_YR1_S2"), 
+    ...) 
+{
+    qalys_chr <- purrr::map(outcome_suffixes_chr, ~paste0(paste0(utilities_chr, 
+        "_QALYs"), .x)) %>% purrr::flatten_chr()
+    icers_chr <- purrr::map(combined_suffixes_chr, ~paste0(paste0("ICER_", 
+        utilities_chr), paste0(ifelse(.x == "", "", "_"), .x))) %>% 
+        purrr::flatten_chr()
+    ces_chr <- purrr::map(combined_suffixes_chr, ~paste0(paste0("CE_", 
+        utilities_chr), paste0(ifelse(.x == "", "", "_"), .x))) %>% 
+        purrr::flatten_chr()
+    extras_ls <- list(...)
+    args_ls <- list(X_Ready4useDyad = X_Ready4useDyad) %>% append(extras_ls)
+    X_Ready4useDyad <- rlang::exec(update_fn, !!!args_ls)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", combined_suffixes_chr %>% 
+        purrr::reduce(.init = X_Ready4useDyad@ds_tb, ~{
+            data_tb <- .x
+            cost_1L_chr <- ifelse(.y %in% c("", combined_suffixes_chr[combined_suffixes_chr %>% 
+                stringr::str_sub(start = 2, end = 2) == "0"]), 
+                "Cost", paste0("Cost_S", stringr::str_sub(.y, 
+                  start = 2, end = 2)))
+            effect_1L_chr <- ifelse(.y %in% c("", "S10"), "_QALYs", 
+                paste0("_QALYs_YR1_S", stringr::str_sub(.y, start = -1)))
+            last_1L_chr <- .y
+            purrr::reduce(utilities_chr, .init = data_tb, ~{
+                .x %>% add_dominated(effect_1L_chr = paste0(.y, 
+                  effect_1L_chr), cost_1L_chr = cost_1L_chr, 
+                  suffix_1L_chr = paste0("_", .y, last_1L_chr)) %>% 
+                  add_icer(effect_1L_chr = paste0(.y, effect_1L_chr), 
+                    cost_1L_chr = cost_1L_chr, suffix_1L_chr = paste0("_", 
+                      .y, last_1L_chr)) %>% add_cost_effectiveness(cost_1L_chr = cost_1L_chr, 
+                  effect_1L_chr = paste0(.y, effect_1L_chr), 
+                  suffix_1L_chr = paste0("_", .y, last_1L_chr), 
+                  threshold_1L_dbl = threshold_1L_dbl)
+            })
+        }))
     return(X_Ready4useDyad)
 }
 #' Update population classes
@@ -260,6 +465,68 @@ update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pat
     }
     return(X_Ready4useDyad)
 }
+#' Update processed tibble
+#' @description update_processed_tb() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update processed tibble. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param first_eight_1L_lgl First eight (a logical vector of length one), Default: NA
+#' @param program_1L_chr Program (a character vector of length one), Default: 'NA'
+#' @return Data (a tibble)
+#' @rdname update_processed_tb
+#' @export 
+#' @importFrom dplyr filter group_by summarise first
+#' @keywords internal
+update_processed_tb <- function (data_tb, first_eight_1L_lgl = NA, program_1L_chr = NA_character_) 
+{
+    if (!is.na(program_1L_chr)) {
+        data_tb <- data_tb %>% dplyr::filter(Program == program_1L_chr)
+    }
+    if (!is.na(first_eight_1L_lgl)) {
+        if (first_eight_1L_lgl) {
+            data_tb <- data_tb %>% dplyr::filter(FirstEight)
+        }
+        else {
+            data_tb <- data_tb %>% dplyr::filter(!FirstEight)
+        }
+    }
+    data_tb <- data_tb %>% dplyr::group_by(Report) %>% dplyr::summarise(Service = dplyr::first(Service), 
+        FirstEight = dplyr::first(FirstEight), Start = dplyr::first(Start), 
+        End = dplyr::first(End))
+    return(data_tb)
+}
+#' Update project 2 parameter names
+#' @description update_project_2_param_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update project 2 parameter names. The function returns Parameters (a tibble).
+#' @param params_tb Parameters (a tibble)
+#' @return Parameters (a tibble)
+#' @rdname update_project_2_param_names
+#' @export 
+#' @importFrom dplyr mutate case_when arrange
+#' @importFrom stringr str_replace str_replace_all
+#' @keywords internal
+update_project_2_param_names <- function (params_tb) 
+{
+    params_tb <- params_tb %>% dplyr::mutate(Parameter = Parameter %>% 
+        stringr::str_replace("AmbulanceOffset", "Ambulance attendance") %>% 
+        stringr::str_replace("ExcludedAdjustment", " adjustment (base case)") %>% 
+        stringr::str_replace("IARAdjustment", " adjustment for unmeasured IAR assessments") %>% 
+        stringr::str_replace("ClinicalPsychologist", "Clinical psychologist") %>% 
+        stringr::str_replace("OtherMedical", "Other medical") %>% 
+        stringr::str_replace("ExternalIAR", "IAR-DST assessment") %>% 
+        stringr::str_replace("ComparatorFixed", "Comparator fixed") %>% 
+        stringr::str_replace("InterventionFixed", paste0(intervention_1L_chr, 
+            " fixed")) %>% stringr::str_replace("CostPerMin", 
+        " cost per minute") %>% stringr::str_replace("Cost", 
+        " cost") %>% stringr::str_replace("ProbProxy", " offset probability") %>% 
+        stringr::str_replace_all("HasIAR", "Has an IAR-DST assessment - ") %>% 
+        stringr::str_replace_all("InHouseIAR", "Proportion of IAR-DST assessments performed by treating service - ") %>% 
+        stringr::str_replace_all("NonHelpSeekers", "Proportion of individuals who are non-help seeking - Comparator")) %>% 
+        dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, 
+            "Low") ~ "One year change in K10 for untreated individuals with low distress", 
+            endsWith(Parameter, "Moderate") ~ "One year change in K10 for untreated individuals with moderate distress", 
+            endsWith(Parameter, "VeryHigh") ~ "One year change in K10 for untreated individuals with very high distress", 
+            endsWith(Parameter, "High") ~ "One year change in K10 for untreated individuals with high distress", 
+            T ~ Parameter)) %>% dplyr::arrange(Parameter)
+    return(params_tb)
+}
 #' Update project test comparisons
 #' @description update_project_test_cmprsns() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update project test comparisons. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -283,6 +550,33 @@ update_project_test_cmprsns <- function (X_Ready4useDyad)
         " at start") %>% stringr::str_replace_all("_", " ") %>% 
         stringr::str_replace_all("k10", "K10")) %>% dplyr::arrange(Variable))
     return(X_Ready4useDyad)
+}
+#' Update providers tibble
+#' @description update_providers_tb() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update providers tibble. The function returns Providers (a tibble).
+#' @param providers_tb Providers (a tibble)
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'practitioner_category'
+#' @return Providers (a tibble)
+#' @rdname update_providers_tb
+#' @export 
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @importFrom purrr map_chr
+#' @keywords internal
+update_providers_tb <- function (providers_tb, var_1L_chr = "practitioner_category") 
+{
+    providers_tb <- providers_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+        !!rlang::sym(var_1L_chr) %>% purrr::map_chr(~{
+            value_1L_chr <- switch(.x, "Clinical Psychologist", 
+                "General Psychologist", "Social Worker", "Occupational Therapist", 
+                "Mental Health Nurse", "Aboriginal and Torres Strait Islander Health/Mental Health Worker", 
+                "Low Intensity Mental Health Worker", "General Practitioner", 
+                "Psychiatrist", "Other Medical", "Other", "Psychosocial Support Worker", 
+                "Peer Support Worker")
+            value_1L_chr <- ifelse(is.null(value_1L_chr), NA_character_, 
+                value_1L_chr)
+            value_1L_chr
+        })))
+    return(providers_tb)
 }
 #' Update Quality Adjusted Life Years
 #' @description update_qalys() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update quality adjusted life years. The function is called for its side effects and does not return a value.

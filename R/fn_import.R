@@ -76,9 +76,12 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_c
             destination_1L_chr <- type_1L_chr
         }
         if (is.null(names_ls)) {
-            names_ls <- list.files(paste0(path_to_private_1L_chr, 
-                divider_1L_chr, dir_1L_chr, divider_1L_chr, r_dir_1L_chr, 
-                divider_1L_chr, destination_1L_chr)) %>% stringr::str_sub(end = -5) %>% 
+            path_1L_chr <- paste0(path_to_private_1L_chr, divider_1L_chr, 
+                dir_1L_chr, divider_1L_chr, r_dir_1L_chr, divider_1L_chr, 
+                destination_1L_chr)
+            files_chr <- setdiff(list.files(path_1L_chr), list.dirs(path_1L_chr, 
+                recursive = FALSE, full.names = FALSE))
+            names_ls <- files_chr %>% stringr::str_sub(end = -5) %>% 
                 as.list()
         }
         data_ls <- purrr::map(names_ls, ~readRDS(paste0(path_to_private_1L_chr, 
@@ -102,11 +105,13 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_c
             names_ls = list("unimputed", "imputed")
         }
         data_ls <- names_ls %>% purrr::map(~{
-            dir_1L_chr <- paste0(path_to_private_1L_chr, divider_1L_chr, 
+            path_1L_chr <- paste0(path_to_private_1L_chr, divider_1L_chr, 
                 dir_1L_chr, divider_1L_chr, r_dir_1L_chr, divider_1L_chr, 
                 .x)
-            list.files(dir_1L_chr) %>% purrr::map(~readRDS(paste0(dir_1L_chr, 
-                "/", .x))) %>% stats::setNames(stringr::str_sub(list.files(dir_1L_chr), 
+            files_chr <- setdiff(list.files(path_1L_chr), list.dirs(path_1L_chr, 
+                recursive = FALSE, full.names = FALSE))
+            files_chr %>% purrr::map(~readRDS(paste0(path_1L_chr, 
+                "/", .x))) %>% stats::setNames(stringr::str_sub(files_chr, 
                 end = -5))
         }) %>% stats::setNames(paste0(names_ls %>% unlist(), 
             "_ls"))

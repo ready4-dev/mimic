@@ -51,6 +51,19 @@ add_activity <- function(data_tb,
                                               T ~ neither_1L_chr))
   return(data_tb)
 }
+add_box_conditionally <- function(table_xx,
+                                  html_table_fn = identity, 
+                                  output_type_1L_chr = c("HTML", "PDF", "Word"),
+                                  pdf_table_fn = identity,
+                                  word_table_fn = flextable::theme_box){
+  output_type_1L_chr <- match.arg(output_type_1L_chr)
+  table_xx <- table_xx %>%
+    ready4show::add_tfmn_for_fmt(output_type_1L_chr = output_type_1L_chr,
+                                 tfmns_fn_ls = ready4show::make_table_fns_ls(html_table_fn = html_table_fn, 
+                                                                             pdf_table_fn = pdf_table_fn,
+                                                                             word_table_fn = word_table_fn))
+  return(table_xx)
+}
 add_clients_to_summary <- function (summaries_ls, 
                                     onboarded_tb,
                                     arrange_1L_chr = character(0), 
@@ -560,6 +573,246 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
                                  dplyr::inner_join(draws_tb))
   return(X_Ready4useDyad)
 }
+add_episode <- function(X_Ready4useDyad,
+                        assert_1L_lgl,
+                        episode_1L_int,
+                        inputs_ls,
+                        iterations_int,
+                        sensitivities_ls,
+                        tfmn_ls,
+                        tx_prefix_1L_chr,
+                        utilities_chr,
+                        utility_fns_ls,
+                        episode_end_1L_chr = "EpisodeEnd_mdl",
+                        k10_1L_chr = "K10_mdl",
+                        k10_relapse_1L_chr = "K10Relapse_mdl",
+                        k10_var_1L_chr = "K10",
+                        medical_chr = make_worker_types("medical"),
+                        treatment_1L_chr = character(0),
+                        workers_chr = make_worker_types()){ 
+  update_1L_int <- episode_1L_int
+  ## To Do:
+  ## (Possibly) Add Episode Count Update
+  X_Ready4useDyad <- add_episode_start(X_Ready4useDyad)
+  # X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(Episode = Episode + 1))
+  ## To do
+  ## Add conditional (on Episode>1) logic for K10 / Utility update
+  if(episode_1L_int >1){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(K10Discharge = K10, 
+                                                 K10ChangeDischarge = K10_change))
+    X_Ready4useDyad <- add_outcomes_update(X_Ready4useDyad,
+                                           assert_1L_lgl = assert_1L_lgl,
+                                           k10_mdl = inputs_ls$models_ls %>% purrr::pluck(k10_relapse_1L_chr),#$K10Relapse_mdl,
+                                           k10_var_1L_chr = k10_var_1L_chr,
+                                           iterations_int = iterations_int, 
+                                           params_tb = inputs_ls$params_tb, 
+                                           sensitivities_ls = sensitivities_ls, 
+                                           tfmn_ls = tfmn_ls, 
+                                           types_chr = c("Model", "Function"),
+                                           tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                           update_1L_int = update_1L_int,
+                                           utilities_chr = utilities_chr,
+                                           utility_fns_ls = utility_fns_ls) 
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::select(- c(K10Discharge,K10ChangeDischarge)))
+    update_1L_int <- update_1L_int + 1
+  }
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "EndEpisode", 
+                                       schedule_fn = add_episode_duration,
+                                       schedule_args_ls = list(episode_end_mdl = inputs_ls$models_ls %>% purrr::pluck(episode_end_1L_chr), #$EpisodeEnd_mdl, 
+                                                               iterations_int = iterations_int,
+                                                               treatment_1L_chr = treatment_1L_chr))
+  print_errors(X_Ready4useDyad,
+               vars_chr = c("EpisodeDurationDays"),
+               assert_1L_lgl = assert_1L_lgl,
+               invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateMinutes", 
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- workers_chr %>%
+    purrr::reduce(.init = X_Ready4useDyad,
+                  ~ add_minutes_event(.x, add_dependency_1L_lgl = F,iterations_int = iterations_int, # 
+                                      minutes_mdl = inputs_ls$models_ls %>% purrr::pluck(paste0(.y,"Mins_mdl")),
+                                      var_1L_chr = paste0(.y,"UseMins")))
+  print_errors(X_Ready4useDyad,
+               vars_chr = paste0(c(workers_chr, "Total"),"UseMins"),
+               assert_1L_lgl = assert_1L_lgl,
+               invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                               X_Ready4useDyad@ds_tb %>% dplyr::mutate(TotalUseMins = rowSums(dplyr::across(tidyselect::all_of(paste0(workers_chr,"UseMins"))))))
+  
+  if(!identical(intersect(workers_chr, medical_chr), character(0))){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(MedicalUseMins = rowSums(dplyr::across(tidyselect::all_of(paste0(intersect(workers_chr, medical_chr),"UseMins"))))))
+  }
+  X_Ready4useDyad <- add_outcomes_update(X_Ready4useDyad,
+                                         assert_1L_lgl = assert_1L_lgl,
+                                         k10_mdl = inputs_ls$models_ls %>% purrr::pluck(k10_1L_chr), #$K10_mdl,
+                                         k10_var_1L_chr = k10_var_1L_chr,
+                                         iterations_int = iterations_int, 
+                                         params_tb = inputs_ls$params_tb, 
+                                         sensitivities_ls = sensitivities_ls, 
+                                         tfmn_ls = tfmn_ls, 
+                                         types_chr = c("Model", "Function"),
+                                         tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                         update_1L_int = update_1L_int,
+                                         utilities_chr = utilities_chr,
+                                         utility_fns_ls = utility_fns_ls) 
+  return(X_Ready4useDyad)
+}
+add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, iterations_int = 1:100L, treatment_1L_chr = character(0)) 
+{
+  if (!"EpisodeDurationDays" %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(EpisodeDurationDays = 0))
+  }
+  if(!"Intervention" %in% names(X_Ready4useDyad@ds_tb)){
+    if(identical(treatment_1L_chr, character(0))){
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
+    }else{
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = treatment_1L_chr))
+    }
+    
+  }
+  if (!is.null(episode_end_mdl)) {
+    X_Ready4useDyad <- add_simulated_data(episode_end_mdl, var_1L_chr = "EpisodeDurationDays", 
+                                          Y_Ready4useDyad = X_Ready4useDyad, iterations_int = iterations_int, 
+                                          join_with_chr = c("Iteration"), type_1L_chr = "third", 
+                                          what_1L_chr = "new")
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(EpisodeDurationDays = dplyr::case_when(is.nan(EpisodeDurationDays) ~ 0, T ~ EpisodeDurationDays)))
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysRemaining = lubridate::time_length((EndDate - CurrentDate), "days"),
+                                                                         EpisodeDurationDaysUncapped = round(EpisodeDurationDays,0),
+                                                                         EpisodeDurationDays = purrr::map2_int(DaysRemaining, EpisodeDurationDays, ~round(min(.x,.y),0)),
+                                                                         EpisodeIncludedFraction = purrr::map2_dbl(EpisodeDurationDaysUncapped, EpisodeDurationDays, ~min(1,.x,.y)),
+                                                                         EpisodeDurationCategory = dplyr::case_when(EpisodeDurationDays <100 ~ "Under 100 days",
+                                                                                                                    EpisodeDurationDays >=100 & EpisodeDurationDays <200 ~ "100-200 days",
+                                                                                                                    EpisodeDurationDays >=200 ~ "200 days or more",
+                                                                                                                    T ~ NA_character_) %>% as.factor()) %>%
+                                   dplyr::select(-DaysRemaining))
+    
+  }
+  X_Ready4useDyad <- update_scheduled_date(X_Ready4useDyad, variable_1L_chr = "EpisodeDurationDays", type_1L_chr = "Day")
+  
+  return(X_Ready4useDyad)
+}
+add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, iterations_int = 1:100L, 
+                                   type_1L_chr = c("first", "repeat"), treatment_1L_chr = character(0)) 
+{
+  type_1L_chr <- match.arg(type_1L_chr)
+  var_1L_chr <- ifelse(type_1L_chr == "first", "WaitInDays", 
+                       "DaysToYearOneRepresentation")
+  if (!"WaitInDays" %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(WaitInDays = 0))
+  }
+  if(!"Intervention" %in% names(X_Ready4useDyad@ds_tb)){
+    if(identical(treatment_1L_chr, character(0))){
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
+    }else{
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = treatment_1L_chr))
+    }
+    
+  }
+  if (type_1L_chr == "repeat") {
+    if (!"DaysToYearOneRepresentation" %in% names(X_Ready4useDyad@ds_tb)) {
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysToYearOneRepresentation = 366))
+    }
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysSinceIndexService = as.numeric(CurrentDate - 
+                                                                                                              StartDate)))
+  }
+  if (!is.null(episode_start_mdl)) {
+    X_Ready4useDyad <- add_simulated_data(episode_start_mdl, 
+                                          var_1L_chr = var_1L_chr, Y_Ready4useDyad = X_Ready4useDyad, 
+                                          iterations_int = iterations_int, join_with_chr = c("Iteration"), 
+                                          type_1L_chr = "third", what_1L_chr = "new")
+    if (type_1L_chr == "repeat") {
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                                                                                dplyr::case_when(!!rlang::sym(var_1L_chr) == 
+                                                                                                   0 ~ 366, T ~ !!rlang::sym(var_1L_chr)))))
+    }
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                                                                              round(!!rlang::sym(var_1L_chr), 0))))
+  }
+  X_Ready4useDyad <- update_scheduled_date(X_Ready4useDyad, 
+                                           variable_1L_chr = var_1L_chr, type_1L_chr = "Day")
+  if (type_1L_chr == "repeat") {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::select(-DaysSinceIndexService))
+  }
+  return(X_Ready4useDyad)
+}
+add_iar_params <- function(params_tb, 
+                           comparator_int, 
+                           model_data_ls,
+                           processed_ls,
+                           raw_mds_data_ls,
+                           test_1L_chr, 
+                           comparator_1L_chr = "Comparator",
+                           comparator_filter_fn = identity,
+                           cost_1L_dbl = 0,
+                           intervention_1L_chr = "Intervention", #
+                           intervention_filter_fn = identity
+){
+  types_chr <- c(intervention_1L_chr, comparator_1L_chr)
+  filters_ls <- list(intervention_filter_fn,comparator_filter_fn) %>% stats::setNames(c("Intervention", "Comparator"))
+  iar_ls <- 1:length(types_chr) %>% purrr::map(~{
+    filter_fn <- filters_ls[[.x]]
+    model_data_ls$imputed_ls$Z_Ready4useDyad@ds_tb %>% 
+      dplyr::filter(InterventionGroup==types_chr[.x]) %>% filter_fn() %>%
+      dplyr::pull(HasIAR) %>% as.numeric()
+  }) %>% stats::setNames(names(filters_ls))
+  
+  # mean(iar_dbl)
+  # 
+  params_tb <- types_chr %>%
+    purrr::reduce(.init = params_tb,
+                  ~ {
+                    parameters_dbl <- make_iar_params(processed_ls = processed_ls,
+                                                      raw_mds_data_ls = raw_mds_data_ls,
+                                                      test_1L_chr = test_1L_chr,
+                                                      comparator_1L_chr = comparator_1L_chr,
+                                                      comparator_int = comparator_int,
+                                                      intervention_1L_chr = intervention_1L_chr, 
+                                                      type_1L_chr = .y,
+                                                      what_1L_chr = "InHouseIAR")
+                    .x %>% tibble::add_case(Parameter = paste0("InHouseIAR", c("Intervention","Comparator")[types_chr==.y]),
+                                            Mean = parameters_dbl[1],
+                                            SE = parameters_dbl[2],
+                                            Source = "make_iar_params")
+                  }) %>%
+    tibble::add_case(Parameter = "ExternalIARCost", 
+                     Mean = cost_1L_dbl,
+                     SE = 0, 
+                     SD = NA_real_, 
+                     Source = "add_iar_params") 
+  params_tb <- 1:length(iar_ls) %>%
+    purrr::reduce(.init = params_tb,
+                  ~{
+                    .x %>% 
+                      tibble::add_case(Parameter = paste0("HasIAR",names(iar_ls)[.y]),#"Comparator"),
+                                       Mean = mean(iar_ls[[.y]]),
+                                       SE = sd(iar_ls[[.y]])/sqrt(length(iar_ls[[.y]])), 
+                                       SD = NA_real_, 
+                                       Source = "add_iar_params")
+                  }) %>% dplyr::arrange(Parameter)
+  
+  return(params_tb)
+}
 add_icer <- function(data_tb, 
                      cost_1L_chr = "Cost",
                      effect_1L_chr = "QALYs",
@@ -646,6 +899,28 @@ add_imputed_data <-function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready
     Z_Ready4useDyad <- serious::add_cumulatives(Z_Ready4useDyad, metrics_chr = cumulatives_chr %>% stringr::str_remove("Cumulative"), group_by_1L_chr = "UID")
   }
   return(Z_Ready4useDyad)
+}
+add_iteration_values_set <- function(X_Ready4useDyad,
+                                     value_with_fn,
+                                     value_with_args_ls = NULL,
+                                     tidy_cols_1L_lgl = TRUE){
+  iterations_int <- unique(X_Ready4useDyad@ds_tb$Iteration)
+  samples_ls <- iterations_int %>% purrr::map(~{
+    data_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(Iteration == .x) 
+    if(!is.null(value_with_args_ls)){
+      data_tb <- rlang::exec(value_with_fn,  data_tb, !!!value_with_args_ls)
+    }else{
+      data_tb <- data_tb %>% value_with_fn()
+    }
+    data_tb <- data_tb %>% dplyr::arrange(UID)
+  })
+  X_Ready4useDyad@ds_tb <- samples_ls %>% purrr::reduce(.init = samples_ls[[1]] %>%
+                                                          dplyr::filter(F), ~rbind(.x, .y)) %>% 
+    dplyr::arrange(Iteration, UID)
+  if(tidy_cols_1L_lgl){
+    X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
+  }
+  return(X_Ready4useDyad)
 }
 add_joiners_outcomes_ds <- function(model_data_ls,
                                     keys_chr = c("platform", "clinic_type", "Age", "gender", "employment_status", "clinic_state", "treatment_stage"),
@@ -794,6 +1069,111 @@ add_leave_model_event <- function(X_Ready4useDyad){
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>%  dplyr::mutate(InModel = F))
   return(X_Ready4useDyad)
 }
+add_mds_minutes_totals <- function(services_tb,
+                                  add_chr = c("Contacts", "Use"),
+                                  type_1L_chr = c("both", "total", "prop")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr %in% c("total", "both")){
+    if("Contacts" %in% add_chr){
+      services_tb <- services_tb %>% dplyr::mutate(TotalContactMins = ClinicalPsychologistContactMins + GPContactMins + PsychiatristContactMins + OtherMedicalContactMins + NurseContactMins + OtherContactMins) 
+    }
+    if("Use" %in% add_chr){
+      services_tb <- services_tb %>% dplyr::mutate(TotalUseMins = ClinicalPsychologistUseMins + GPUseMins + PsychiatristUseMins + OtherMedicalUseMins + NurseUseMins + OtherUseMins) 
+    }
+  }
+  if(type_1L_chr %in% c("prop", "both")){
+    if("Contacts" %in% add_chr){
+      services_tb <- services_tb %>% dplyr::mutate(dplyr::across(c(ClinicalPsychologistContactMins, GPContactMins, PsychiatristContactMins, OtherMedicalContactMins, NurseContactMins, OtherContactMins),
+                                                                 ~ .x / TotalContactMins,
+                                                                 .names = "{col}Prop"))
+    }
+    if("Use" %in% add_chr){
+      services_tb <- services_tb %>% dplyr::mutate(dplyr::across(c(ClinicalPsychologistUseMins, GPUseMins, PsychiatristUseMins, OtherMedicalUseMins, NurseUseMins, OtherUseMins),
+                                                                 ~ .x / TotalUseMins,
+                                                                 .names = "{col}Prop"))
+    }
+  }
+  return(services_tb)
+}
+add_mds_org_vars <- function(data_tb,
+                             provider_lup_tb,
+                             phn_code_1L_chr = "PHN_code",
+                             phn_name_1L_chr = "PHN_area_name"){
+  data_tb <- data_tb %>% dplyr::mutate(organisation_key = stringr::str_sub(organisation_path, start = 8),
+                                       PHN_code = stringr::str_sub(organisation_path, end = 6)) 
+  data_tb <- data_tb %>%
+    dplyr::left_join(make_phn_lup(code_1L_chr = phn_code_1L_chr, name_1L_chr = phn_name_1L_chr))
+  data_tb <- data_tb %>%
+    dplyr::left_join(provider_lup_tb) # Generalise
+  return(data_tb)
+}
+add_mds_program_vars <- function(data_tb,
+                                 processed_ls,
+                                 program_services_lup, #
+                                 program_true_chr, # 
+                                 program_type_ls, #
+                                 provider_lup_tb,#
+                                 add_start_date_1L_lgl = TRUE,
+                                 filter_fn = identity, #  
+
+                                 mature_after_dtm = lubridate::years(1)){ 
+  program_true_ls <- program_type_ls[names(program_type_ls) %in% names(program_true_chr)]
+  program_false_ls <- program_type_ls[!names(program_type_ls) %in% names(program_true_chr)]
+  join_tb <- make_episodes_lup(processed_ls, 
+                               program_services_lup = program_services_lup,
+                               filter_fn = filter_fn,
+                               program_true_int = program_true_ls[names(program_true_ls)==names(program_true_chr)[1]][[1]], 
+                               program_true_1L_chr = unname(program_true_chr[1]),
+                               provider_lup_tb = provider_lup_tb) 
+  if(length(program_true_chr==2)){
+    join_tb <- join_tb %>% 
+      dplyr::left_join(make_episodes_lup(processed_ls, 
+                                         program_services_lup = program_services_lup,
+                                         program_true_int = program_true_ls[names(program_true_ls)==names(program_true_chr)[2]][[1]], 
+                                         filter_1L_lgl = F, 
+                                         filter_fn = filter_fn,
+                                         program_true_1L_chr = unname(program_true_chr[2]),
+                                         provider_lup_tb = provider_lup_tb))
+  }
+  data_tb <- data_tb %>%
+    dplyr::left_join(join_tb)
+  data_tb <- data_tb %>%
+    dplyr::mutate(!!rlang::sym(unname(program_true_chr[1])) := dplyr::case_when(is.na(service_provider_key) ~ FALSE,
+                                                                                T ~ !!rlang::sym(unname(program_true_chr[1])))) %>%
+    dplyr::left_join(program_services_lup %>%
+                       dplyr::select(c(names(program_services_lup)[1:3], unname(program_true_chr)), "include")) 
+  data_tb <- data_tb %>% dplyr::mutate(InterventionGroup = dplyr::case_when(!!rlang::sym(program_true_chr[1]) ~ names(program_true_chr)[1], 
+                                                                            T ~ NA_character_))
+  if(length(program_true_chr==2)){
+    data_tb <- data_tb %>% dplyr::mutate(InterventionGroup = dplyr::case_when(is.na(InterventionGroup) & (!!rlang::sym(program_true_chr[2]) & !(!!rlang::sym(program_true_chr[1]))) ~ names(program_true_chr)[2], #
+                                                                              T ~ InterventionGroup))
+  }
+  data_tb <- data_tb %>% dplyr::mutate(InterventionGroup = dplyr::case_when(is.na(InterventionGroup) ~ program_type %>% 
+                                                                              purrr::map_chr(~{
+                                                                                program_1L_int <- .x
+                                                                                program_1L_chr <- names(program_false_ls)[purrr::map_lgl(program_false_ls, ~ program_1L_int %in% .x)]
+                                                                                ifelse(identical(program_1L_chr, character(0)), NA_character_, program_1L_chr)
+                                                                              }),
+                                                                            T ~ InterventionGroup))
+
+  data_tb <- data_tb %>% dplyr::mutate(InScope = dplyr::case_when(InterventionGroup==names(program_true_chr)[1] & include ~ T,
+                                                                  T ~ F)) %>%
+    dplyr::select(-include)
+  if(add_start_date_1L_lgl){
+    start_up_lup <- make_mds_program_starts(processed_ls,
+                                            add_start_date_1L_lgl = FALSE,
+                                            filter_fn = filter_fn,
+                                            mature_after_dtm = mature_after_dtm,
+                                            program_services_lup = program_services_lup, 
+                                            program_true_chr = program_true_chr, 
+                                            program_type_ls = program_type_ls,
+                                            provider_lup_tb = provider_lup_tb)
+    data_tb <- data_tb %>% dplyr::left_join(start_up_lup)
+    data_tb <- data_tb %>% dplyr::mutate(Mature = (referral_date >= start_date + mature_after_dtm))
+  }
+  return(data_tb)
+}
+
 add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad, end_dtm = NULL, period_dtm = lubridate::years(1), start_at_1L_int = -2L, weeks_dbl = c(14, 53)) 
 {
   if (identical(X_Ready4useDyad, ready4use::Ready4useDyad())) {
@@ -932,16 +1312,20 @@ add_minutes_event <- function (X_Ready4useDyad, minutes_mdl = NULL, iterations_i
                                  dplyr::mutate(Minutes = Minutes + Minutes_change))
   return(X_Ready4useDyad)
 }
-add_model_tests <- function (model_data_ls, regressions_ls, imputed_1L_lgl = T, 
-                             iterations_1L_int = 100, join_with_chr = character(0), max_1L_dbl = numeric(0), 
-                             min_1L_dbl = numeric(0), model_1L_int = integer(0), type_1L_chr = c("models", 
-                                                                                                 "candidates"), use_1L_chr = character(0), var_1L_chr = character(0), 
-                             x_label_1L_chr = NA_character_, what_1L_chr = c("AQoL6D", 
-                                                                             "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-                                                                             "Tx_Treatment", "Tx_Discharged")) 
+add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, 
+                             colour_1L_chr = character(0),#ready4use::get_colour_codes(), 
+                             colours_chr = ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(1,9)],
+                             imputed_1L_lgl = T, iterations_1L_int = 100, join_with_chr = character(0), 
+                             max_1L_dbl = numeric(0), min_1L_dbl = numeric(0), model_1L_int = integer(0), 
+                             plot_tfmn_fn = identity,
+                             summary_1L_lgl = FALSE, tfmn_fn = identity, type_1L_chr = c("models", 
+                                                                                         "candidates"), uid_1L_chr = "UID", use_1L_chr = character(0), 
+                             var_1L_chr = character(0), x_label_1L_chr = NA_character_) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
+  if(identical(colour_1L_chr, character(0))){
+    colour_1L_chr <- colours_chr[1]
+  }
   constraints_dbl <- list(min_1L_dbl, max_1L_dbl) %>% purrr::map_chr(~ifelse(identical(.x, 
                                                                                        numeric(0)), "", as.character(.x))) %>% as.numeric() %>% 
     stats::setNames((c("min", "max")))
@@ -978,29 +1362,69 @@ add_model_tests <- function (model_data_ls, regressions_ls, imputed_1L_lgl = T,
                                                   Y_Ready4useDyad = test_ls$Simulated_r4, consolidate_1L_chr = var_1L_chr, 
                                                   join_with_chr = join_with_chr, select_chr = paste0(var_1L_chr, 
                                                                                                      "_sim_mean"), slim_1L_lgl = T)
+  if (summary_1L_lgl) {
+    Z_Ready4useDyad <- test_ls$Comparison_r4
+    test_ls$Comparison_r4 <- renewSlot(test_ls$Comparison_r4, 
+                                       "ds_tb", test_ls$Comparison_r4@ds_tb %>% dplyr::filter(Iteration == 
+                                                                                                0) %>% dplyr::select(-tidyselect::all_of(c(paste0(var_1L_chr, 
+                                                                                                                                                  "_sim_mean"), "Iteration", "Data"))) %>% dplyr::rename(Observed = !!rlang::sym(var_1L_chr)) %>% 
+                                         dplyr::left_join(test_ls$Comparison_r4@ds_tb %>% 
+                                                            dplyr::filter(Data == "Simulated") %>% dplyr::group_by(dplyr::across(tidyselect::all_of(c(uid_1L_chr, 
+                                                                                                                                                      join_with_chr)))) %>% dplyr::summarise(Simulated = mean(!!rlang::sym(var_1L_chr)))))
+  }
   plots_ls <- c("density", "histogram", "scatter") %>% purrr::map(~{
     plot_1L_chr <- .x
     c("all_plt", constraints_chr) %>% purrr::map(~{
       X_Ready4useDyad <- test_ls$Comparison_r4
       if (.x != "all_plt") {
-        new_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(!!rlang::sym(var_1L_chr) >= 
-                                                            constraints_dbl[1] & !!rlang::sym(var_1L_chr) <= 
-                                                            constraints_dbl[2])
+        new_tb <- X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(ifelse(summary_1L_lgl, 
+                                                                                   "Observed", var_1L_chr)), tfmn_fn(!!rlang::sym(ifelse(summary_1L_lgl, 
+                                                                                                                                         "Observed", var_1L_chr))))) %>% dplyr::filter(!!rlang::sym(ifelse(summary_1L_lgl, 
+                                                                                                                                                                                                           "Observed", var_1L_chr)) >= constraints_dbl[1] & 
+                                                                                                                                                                                         !!rlang::sym(ifelse(summary_1L_lgl, "Observed", 
+                                                                                                                                                                                                             var_1L_chr)) <= constraints_dbl[2])
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, 
                                      "ds_tb", new_tb)
+        if (summary_1L_lgl) {
+          Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, 
+                                       "ds_tb", Z_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                                                                                             tfmn_fn(!!rlang::sym(var_1L_chr)))) %>% 
+                                         dplyr::filter(!!rlang::sym(var_1L_chr) >= 
+                                                         constraints_dbl[1] & !!rlang::sym(var_1L_chr) <= 
+                                                         constraints_dbl[2]))
+        }
       }
       if (plot_1L_chr == "scatter") {
         grouping_1L_chr <- character(0)
         if (!identical(join_with_chr, character(0))) {
           grouping_1L_chr <- join_with_chr[1]
         }
-        plot_test_scatter(X_Ready4useDyad, grouping_1L_chr = grouping_1L_chr, 
-                          var_1L_chr = var_1L_chr, collapse_1L_lgl = T)
-      }  else {
-        depict(X_Ready4useDyad, x_vars_chr = var_1L_chr, 
+        if (summary_1L_lgl) {
+          X_Ready4useDyad@ds_tb %>% ggplot2::ggplot(ggplot2::aes(x = Observed, 
+                                                                 y = Simulated)) + ggplot2::geom_abline(lty = 2) + 
+            ggplot2::geom_point(alpha = 0.5, colour = colour_1L_chr) + 
+            ggplot2::theme_classic() %>%
+            plot_tfmn_fn() + tune::coord_obs_pred() 
+        }    else {
+          plot_test_scatter(X_Ready4useDyad, 
+                            colour_1L_chr = colour_1L_chr,
+                            grouping_1L_chr = grouping_1L_chr, 
+                            plot_tfmn_fn = plot_tfmn_fn,
+                            var_1L_chr = var_1L_chr, collapse_1L_lgl = T) 
+        }
+      }    else {
+        if (summary_1L_lgl) {
+          X_Ready4useDyad <- renewSlot(X_Ready4useDyad, 
+                                       "ds_tb", X_Ready4useDyad@ds_tb %>% tidyr::pivot_longer(cols = tidyselect::all_of(c("Observed", 
+                                                                                                                          "Simulated")), names_to = "Data", values_to = var_1L_chr))
+        }  else {
+          Z_Ready4useDyad <- X_Ready4useDyad
+        }
+        depict(Z_Ready4useDyad, x_vars_chr = var_1L_chr, 
                x_labels_chr = x_label_1L_chr, y_labels_chr = "", 
-               z_vars_chr = "Data", z_labels_chr = "", as_percent_1L_lgl = T, 
-               drop_missing_1L_lgl = T, what_1L_chr = plot_1L_chr)
+               z_vars_chr = "Data", z_labels_chr = "", as_percent_1L_lgl = T, colours_chr = colours_chr,
+               drop_missing_1L_lgl = T,  type_1L_chr = "manual", what_1L_chr = plot_1L_chr) %>%
+          plot_tfmn_fn()
       }
     }) %>% stats::setNames(c("all_plt", "constrained_plt")[1:(ifelse(length(constraints_chr) == 
                                                                        0, 1, 2))])
@@ -1009,8 +1433,9 @@ add_model_tests <- function (model_data_ls, regressions_ls, imputed_1L_lgl = T,
   test_ls <- append(test_ls, plots_ls)
   if (what_1L_chr == "Minutes") {
     test_ls$comparison_tb <- make_project_minutes_cmprsn(test_ls$Simulated_r4, 
-                                                         Y_Ready4useDyad = test_ls$Comparison_r4, type_1L_chr = "prediction",
-                                                         weeks_chr = Y_Ready4useDyad@ds_tb$MeasurementWeek %>% unique())
+                                                         Y_Ready4useDyad = test_ls$Comparison_r4, type_1L_chr = "prediction", 
+                                                         weeks_chr = Y_Ready4useDyad@ds_tb$MeasurementWeek %>% 
+                                                           unique())
   }
   regressions_ls$tests_ls <- purrr::assign_in(regressions_ls$tests_ls, 
                                               where = paste0(what_1L_chr, "_ls"), value = test_ls)
@@ -1146,46 +1571,430 @@ add_outcome_time_vars <- function(Y_Ready4useDyad,
   }
   return(Y_Ready4useDyad)
 }
-add_project_assessments <-  function (regressions_ls,
-                                   confusion_1L_lgl = F,
-                                   exclude_int = integer(0),
-                                   model_1L_int = integer(0),
-                                   rank_1L_lgl = TRUE,
-                                   residual_1L_chr = "normal",
-                                   two_part_1L_lgl = FALSE,
-                                   type_1L_chr = c("candidates", "tests", "models"),
-                                   what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", 
-                                                   "Treatments",
-                                                   "Tx_Waitlist", "Tx_Treatment", "Tx_Discharged"),
-                                   var_1L_chr = character(0),
-                                   X_Ready4useDyad = ready4use::Ready4useDyad()){
-  type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "Treatments"){
-    updated_ls <- c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged") %>% 
-      purrr::map(~make_regression_report(regressions_ls, X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int,
-                                       model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl,"all","main"), rank_1L_lgl = rank_1L_lgl, residual_1L_chr = residual_1L_chr, 
-                                       type_1L_chr = type_1L_chr, what_1L_chr = .x, var_1L_chr = var_1L_chr))
+add_non_iar <- function(X_Ready4useDyad,
+                        arms_for_iar_adjustment_chr = character(0)){ 
+  if(!identical(arms_for_iar_adjustment_chr, character(0))){
+    adjustment_1L_dbl <- sum(X_Ready4useDyad@ds_tb$HasIAR)/nrow(X_Ready4useDyad@ds_tb)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(DrawsForNonIAR = runif(nrow(.))) %>%
+                                   dplyr::mutate(HasIAR = dplyr::case_when((Arm %in% arms_for_iar_adjustment_chr) & HasIAR ~ (DrawsForNonIAR<(ParamHasIARComparator/adjustment_1L_dbl)), 
+                                                                           T ~ HasIAR)) %>%
+                                   dplyr::mutate(HasIAR = dplyr::case_when(NonHelpSeeking ~ FALSE, 
+                                                                           T ~ HasIAR)) %>%
+                                   dplyr::select(-DrawsForNonIAR))
+  }
+  
+  return(X_Ready4useDyad)
+}
+add_non_helpseekers <- function(X_Ready4useDyad,
+                                arms_for_non_helpseeking_chr = character(0)){#
+  if(identical(arms_for_non_helpseeking_chr, character(0))){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(NonHelpSeeking = FALSE)) 
   }else{
-    if(two_part_1L_lgl){
-      updated_ls <- 1:2 %>% 
-        purrr::map(~make_regression_report(regressions_ls, X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int,
-                                         model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl,"all","main"), part_1L_int = .x, rank_1L_lgl = rank_1L_lgl, residual_1L_chr = residual_1L_chr, 
-                                         type_1L_chr = type_1L_chr, what_1L_chr = what_1L_chr, var_1L_chr = var_1L_chr)) %>%
-        stats::setNames(paste0("part_",1:2,"_ls"))
-    }else{
-      updated_ls <- make_regression_report(regressions_ls, X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int,
-                                         model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl,"all","main"), rank_1L_lgl = rank_1L_lgl, residual_1L_chr = residual_1L_chr, 
-                                         type_1L_chr = type_1L_chr, what_1L_chr = what_1L_chr, var_1L_chr = var_1L_chr)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>%
+                                   dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking<ParamNonHelpSeekers), 
+                                                                                   T ~ FALSE)) %>%
+                                   dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
+                                                                                T ~ CurrentDate)) %>%
+                                   dplyr::select(-DrawsForNonHelpseeking))
+  }
+  return(X_Ready4useDyad)
+}
+add_project_2_costs <- function(X_Ready4useDyad,
+                                arms_for_intervention_costs_chr,
+                                arms_for_offsets_chr = character(0),
+                                disciplines_chr = make_disciplines(),
+                                intervention_1L_chr = "Intervention",
+                                sensitivities_ls = make_project_2_sensitivities_ls(),
+                                total_1L_lgl = T){
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                               disciplines_chr %>%
+                                 purrr::reduce(.init = X_Ready4useDyad@ds_tb,
+                                               ~ .x %>% dplyr::mutate(!!rlang::sym(paste0(.y,"Cost")) := !!rlang::sym(paste0(.y,"UseMins")) * !!rlang::sym(paste0("Param",.y,"CostPerMin")))
+                                               
+                                 ))
+  if(total_1L_lgl){
+    if(!"ExternalIARCost" %in% names(X_Ready4useDyad@ds_tb)){
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(ExternalIARCost=0))
     }
     
+    #
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(ExternalIAR = runif(n=nrow(X_Ready4useDyad@ds_tb))) %>%
+                                   dplyr::mutate(ExternalIAR = dplyr::case_when(Arm %in% arms_for_intervention_costs_chr ~ ExternalIAR > !!rlang::sym(paste0("ParamInHouseIAR", "Intervention")),  
+                                                                                T ~ ExternalIAR > ParamInHouseIARComparator)) %>%
+                                   dplyr::mutate(ExternalIARCost=dplyr::case_when(HasIAR ~ ExternalIARCost + as.numeric(ExternalIAR) * ParamExternalIARCost,
+                                                                                  T ~ ExternalIARCost)) %>%
+                                   dplyr::mutate(ExternalIAR = dplyr::case_when(HasIAR ~ ExternalIAR,
+                                                                                T ~ 0))) 
+    X_Ready4useDyad <- add_project_2_offsets(X_Ready4useDyad,
+                                             arms_for_offsets_chr = arms_for_offsets_chr)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::rowwise() %>% 
+                                   dplyr::mutate(Cost = sum(dplyr::across(c(paste0(disciplines_chr,"Cost"),"ExternalIARCost")))
+                                   ) %>% dplyr::ungroup() %>%
+                                   # In next line - use Arm or Intervention?
+                                   dplyr::mutate(UnmeasuredCosts = dplyr::case_when(Arm %in% arms_for_intervention_costs_chr ~ ParamInterventionFixedCost * (1-as.numeric(NonHelpSeeking)) + ParamInterventionFixedCostExcludedAdjustment * (1-as.numeric(NonHelpSeeking)) + ParamInterventionFixedCostIARAdjustment * (1-as.numeric(NonHelpSeeking)) + as.numeric(HasIAR) * (1-as.numeric(ExternalIAR)) * ParamExternalIARCost,
+                                                                                    T ~ ParamComparatorFixedCost * (1-as.numeric(NonHelpSeeking)) + ParamComparatorFixedCostExcludedAdjustment * (1-as.numeric(NonHelpSeeking)) + ParamComparatorFixedCostIARAdjustment * (1-as.numeric(NonHelpSeeking)) + as.numeric(HasIAR) * (1-as.numeric(ExternalIAR)) * ParamExternalIARCost)) %>%
+                                   dplyr::mutate(Cost = Cost + UnmeasuredCosts + AmbulanceOffsetCost))
+    X_Ready4useDyad <- sensitivities_ls$costs_ls %>% purrr::reduce(.init = X_Ready4useDyad,
+                                                                   ~{
+                                                                     cost_fn <- .y
+                                                                     .x %>% cost_fn(disciplines_chr = disciplines_chr,
+                                                                                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr)
+                                                                   })
   }
-  if(what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")){
-    regressions_ls$assessments_ls$Treatments_ls <- purrr::assign_in(regressions_ls$assessments_ls$Treatments_ls, where = paste0(stringr::str_remove(what_1L_chr, "Tx_"),"_ls"), value = updated_ls)
+  return(X_Ready4useDyad)
+}
+
+add_project_2_cost_sa_1 <- function(X_Ready4useDyad,
+                                    arms_for_intervention_costs_chr = "Intervention",
+                                    disciplines_chr = make_disciplines(),
+                                    suffix_1L_chr = "_S1",
+                                    ...){
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                               X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::rowwise() %>% 
+                                 dplyr::mutate(!!rlang::sym(paste0("Cost",suffix_1L_chr)) := sum(dplyr::across(c(paste0(disciplines_chr,"Cost"),"ExternalIARCost")))) %>% 
+                                 dplyr::ungroup() %>%
+                                 dplyr::mutate(!!rlang::sym(paste0("UnmeasuredCosts",suffix_1L_chr)) := dplyr::case_when(Arm %in% arms_for_intervention_costs_chr ~ ParamInterventionFixedCost * (1-as.numeric(NonHelpSeeking))  + ParamInterventionFixedCostIARAdjustment * (1-as.numeric(NonHelpSeeking)) + as.numeric(HasIAR) * (1-as.numeric(ExternalIAR)) * ParamExternalIARCost,
+                                                                                                                         T ~ ParamComparatorFixedCost * (1-as.numeric(NonHelpSeeking)) + ParamComparatorFixedCostIARAdjustment * (1-as.numeric(NonHelpSeeking)) + as.numeric(HasIAR) * (1-as.numeric(ExternalIAR)) * ParamExternalIARCost)) %>%
+                                 dplyr::mutate(!!rlang::sym(paste0("Cost",suffix_1L_chr)) := !!rlang::sym(paste0("Cost",suffix_1L_chr)) + !!rlang::sym(paste0("UnmeasuredCosts",suffix_1L_chr)) + AmbulanceOffsetCost))
+  return(X_Ready4useDyad)
+}
+add_project_2_cost_sa_2 <- function(X_Ready4useDyad,
+                                    arms_for_intervention_costs_chr = "Intervention",
+                                    disciplines_chr = make_disciplines(),
+                                    
+                                    suffix_1L_chr = "_S2",
+                                    ...){
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                               disciplines_chr %>%
+                                 purrr::reduce(.init = X_Ready4useDyad@ds_tb,
+                                               ~ .x %>% dplyr::mutate(!!rlang::sym(paste0(.y,"Cost",suffix_1L_chr)) := dplyr::case_when(Arm %in% arms_for_intervention_costs_chr ~ !!rlang::sym(paste0(.y,"UseMins")) * !!rlang::sym(paste0("Param",.y,"CostPerMin")) * ParamInterventionVariableToTotal,
+                                                                                                                                        T ~ !!rlang::sym(paste0(.y,"UseMins")) * !!rlang::sym(paste0("Param",.y,"CostPerMin")) * ParamComparatorVariableToTotal))))
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                               X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::rowwise() %>% 
+                                 dplyr::mutate(!!rlang::sym(paste0("Cost",suffix_1L_chr)) := sum(dplyr::across(c(paste0(disciplines_chr, paste0("Cost",suffix_1L_chr)), "ExternalIARCost", "AmbulanceOffsetCost")))) %>% dplyr::ungroup())
+  return(X_Ready4useDyad)
+}
+add_project_2_k10_draws <- function(X_Ready4useDyad,
+                                    k10_severity_cuts_ls = make_k10_severity_cuts(),
+                                    k10_var_1L_chr = "K10", 
+                                    scale_1L_dbl = 1,
+                                    var_1L_chr = "K10",
+                                    ...){
+  iterations_int <- X_Ready4useDyad@ds_tb$Iteration %>% unique()
+  X_Ready4useDyad@ds_tb <- iterations_int %>%
+    purrr::reduce(.init = X_Ready4useDyad@ds_tb %>% dplyr::filter(FALSE),
+                  ~{
+                    updated_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(Iteration==.y) 
+                    .x %>%
+                      dplyr::bind_rows(updated_tb %>% 
+                                         dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                                                            dplyr::case_when(round(!!rlang::sym(k10_var_1L_chr),0) %in% k10_severity_cuts_ls$Low[1]:k10_severity_cuts_ls$Low[2] ~ !!rlang::sym(k10_var_1L_chr) + round(scale_1L_dbl * rnorm(nrow(updated_tb), mean = dplyr::first(ParamK102YearRTMLow), sd = dplyr::first(ParamK102YearRTMLow_sd)),0), 
+                                                                             round(!!rlang::sym(k10_var_1L_chr),0) %in% k10_severity_cuts_ls$Moderate[1]:k10_severity_cuts_ls$Moderate[2] ~ !!rlang::sym(k10_var_1L_chr) + round(scale_1L_dbl * rnorm(nrow(updated_tb), mean = dplyr::first(ParamK102YearRTMModerate), sd = dplyr::first(ParamK102YearRTMModerate_sd)),0),
+                                                                             round(!!rlang::sym(k10_var_1L_chr),0) %in% k10_severity_cuts_ls$High[1]:k10_severity_cuts_ls$High[2] ~ !!rlang::sym(k10_var_1L_chr) + round(scale_1L_dbl * rnorm(nrow(updated_tb), mean = dplyr::first(ParamK102YearRTMHigh), sd = dplyr::first(ParamK102YearRTMHigh_sd)),0),
+                                                                             round(!!rlang::sym(k10_var_1L_chr),0) %in% k10_severity_cuts_ls$VeryHigh[1]:k10_severity_cuts_ls$VeryHigh[2] ~ !!rlang::sym(k10_var_1L_chr) + round(scale_1L_dbl * rnorm(nrow(updated_tb), mean = dplyr::first(ParamK102YearRTMVeryHigh), sd = dplyr::first(ParamK102YearRTMVeryHigh_sd)),0),
+                                                                             T ~ Inf))) %>%
+                                         dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), !!rlang::sym(var_1L_chr) %>% purrr::map_dbl(~min(max(.x,10),50)))))
+                    
+                  })
+  return(X_Ready4useDyad)
+}
+add_project_2_model_data <- function(model_data_ls,
+                                     sample_ls,
+                                     intervention_1L_chr = "Intervention",
+                                     cut_off_date_1L_chr = "2025-01-01"){ 
+  model_data_ls$imputed_ls$Modelling_r4 <- model_data_ls$imputed_ls$Z_Ready4useDyad %>%
+    update_mds_modelling_ds(sample_ls = sample_ls)
+  model_data_ls$imputed_ls$Wait_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% renewSlot("ds_tb",.@ds_tb %>% dplyr::filter(!is.na(WaitInDays)))
+  model_data_ls$imputed_ls$EpisodeDuration_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% renewSlot("ds_tb",.@ds_tb %>% dplyr::filter(!is.na(EpisodeDurationDays)))
+  model_data_ls$imputed_ls$ProviderMinutes_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>%
+    renewSlot("ds_tb", .@ds_tb %>% 
+                update_minute_var_nms(type_1L_chr = "do")
+    )
+  model_data_ls$imputed_ls$K10_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>%
+    renewSlot("ds_tb",
+              .@ds_tb %>%
+                dplyr::filter(!is.na(K10_End)) %>% 
+                dplyr::mutate(dplyr::across(dplyr::where(is.character), 
+                                            ~as.factor(.x))))
+  model_data_ls$imputed_ls$Representations_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>%
+    renewSlot("ds_tb", model_data_ls$imputed_ls$Modelling_r4@ds_tb %>% 
+                transform_project_2_model_ds(cut_off_date_1L_chr = cut_off_date_1L_chr,
+                                             intervention_1L_chr = intervention_1L_chr,
+                                             type_1L_chr = "representation")
+    )
+  model_data_ls$imputed_ls$K10Relapse_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>%
+    renewSlot("ds_tb",
+              .@ds_tb %>%
+                dplyr::group_by(UID) %>%
+                dplyr::arrange(UID, Episode) %>%
+                dplyr::mutate(K10Discharge = dplyr::lag(K10_End, default = NA_integer_),
+                              K10ChangeDischarge = dplyr::lag(K10_change, default = NA_integer_),
+                              HasIAR = dplyr::lag(HasIAR, default = NA),
+                              Diagnosis = dplyr::lag(Diagnosis, default = NA),
+                              SuicideRisk = dplyr::lag(SuicideRisk, default = NA)) %>%
+                dplyr::ungroup() %>%
+                dplyr::filter(!is.na(K10) & !is.na(K10Discharge) & !is.na(K10ChangeDischarge)) %>%
+                dplyr::mutate(dplyr::across(dplyr::where(is.character),
+                                            ~as.factor(.x)))
+    )
+  return(model_data_ls)
+}
+add_project_2_model_wrap_up <- function(X_Ready4useDyad,
+                                        arms_for_intervention_costs_chr, 
+                                        arms_for_offsets_chr = character(0),
+                                        disciplines_chr, 
+                                        inputs_ls,
+                                        
+                                        iterations_int,
+                                        sensitivities_ls,
+                                        tfmn_ls,
+                                        tx_prefix_1L_chr,
+                                        utilities_chr){
+  if(!"Intervention" %in% names(X_Ready4useDyad@ds_tb)){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
+  }
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, 
+                                   k10_mdl = NULL, 
+                                   k10_var_1L_chr = "K10",
+                                   iterations_int = iterations_int, 
+                                   params_tb = inputs_ls$params_tb, 
+                                   sensitivities_ls = sensitivities_ls, 
+                                   tfmn_ls = tfmn_ls, 
+                                   type_1L_chr = "Project",
+                                   tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                   update_1L_int = 2)
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility",  
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
+                                       add_sensitivity_1L_lgl = T,
+                                       iterations_int = 1:iterations_int, 
+                                       sensitivities_ls = sensitivities_ls,
+                                       tfmn_ls = 1:length(utilities_chr) %>% purrr::map(~identity) %>% stats::setNames(utilities_chr),
+                                       tidy_cols_1L_lgl = T,
+                                       type_1L_chr = "Project", 
+                                       utilities_chr = utilities_chr,
+                                       utility_fns_ls = utility_fns_ls,
+                                       what_1L_chr = "new")
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateCosts", 
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- add_project_2_costs(X_Ready4useDyad, 
+                                         arms_for_offsets_chr = arms_for_offsets_chr,
+                                         disciplines_chr = disciplines_chr, 
+                                         arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
+                                         total_1L_lgl = T)
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "LeaveModel", 
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  X_Ready4useDyad <- add_leave_model_event(X_Ready4useDyad)
+  return(X_Ready4useDyad)
+}
+add_project_2_offsets <- function(X_Ready4useDyad,
+                                  arms_for_offsets_chr = character(0)){  
+  if(identical(arms_for_offsets_chr, character(0))){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(OffsetAmbulance = 0, AmbulanceOffsetCost = 0))
   }else{
-    regressions_ls$assessments_ls <- purrr::assign_in(regressions_ls$assessments_ls, where = paste0(what_1L_chr, "_ls"), value = updated_ls)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(DrawsForAmbulanceOffset = runif(nrow(.))) %>%
+                                   dplyr::mutate(OffsetAmbulance = dplyr::case_when((Arm %in% arms_for_offsets_chr) ~ as.numeric((DrawsForAmbulanceOffset<abs(ParamAmbulanceOffsetProbProxy))), 
+                                                                                    T ~ 0)) %>%
+                                   dplyr::mutate(AmbulanceOffsetCost = dplyr::case_when(ParamAmbulanceOffsetProbProxy >=0 ~ OffsetAmbulance * ParamAmbulanceOffsetCost * -1,
+                                                                                        T ~ OffsetAmbulance * ParamAmbulanceOffsetCost )) %>%
+                                   dplyr::select(-DrawsForAmbulanceOffset))
   }
-  # regressions_ls$assessments_ls$Treatments_ls$Waitlist_ls
+  return(X_Ready4useDyad)
+}
+add_project_2_parameters <- function(params_tb = NULL,
+                                     additions_tb = NULL,
+                                     comparator_1L_chr = character(0),
+                                     comparator_filter_fn = identity,
+                                     comparator_int = integer(0),
+                                     comparator_share_1L_dbl = 1,
+                                     cost_1L_dbl = numeric(0),
+                                     data_ls = NULL,
+                                     denominator_1L_dbl = 100000,
+                                     exposed_1L_dbl = numeric(),
+                                     intervention_1L_chr = character(0),
+                                     intervention_filter_fn = identity,
+                                     intervention_share_1L_dbl = 1,
+                                     n_1L_dbl = numeric(),
+                                     rate_1L_dbl = numeric(),
+                                     source_1L_chr = "add_project_2_parameters",
+                                     test_1L_chr = character(0),
+                                     time_1L_dbl = numeric(0),
+                                     values_dbl = numeric(0),
+                                     what_1L_chr = c("default", "costs", "iar", "offsets")){
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(is.null(params_tb)){
+    params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, ~ Source,
+                                 NA_character_, NA_real_, NA_real_,NA_real_, NA_character_) %>%
+      dplyr::filter(F)
+  }
+  if(what_1L_chr == "costs"){
+    additions_tb <- data_ls$unit_cost_params_tb %>% 
+      dplyr::mutate(SE = 0, SD = NA_real_, Source = "make_cost_per_mins_tb")
+    additions_tb <- add_project_2_parameters(additions_tb,
+                                             additions_tb = data_ls$COSTS_r4@ds_tb %>% 
+                                               dplyr::mutate(Intervention = dplyr::case_when(Intervention == comparator_1L_chr ~ "Comparator",
+                                                                                             Intervention == intervention_1L_chr ~ "Intervention",
+                                                                                             T ~ Intervention)) %>%
+                                               dplyr::select(Intervention, FixedPerClient, VariableToTotalMultiplier) %>%
+                                               tidyr::pivot_longer(cols = c("FixedPerClient", "VariableToTotalMultiplier")) %>%
+                                               dplyr::mutate(Parameter = dplyr::case_when(name == "FixedPerClient" ~ paste0(Intervention,"FixedCost"),
+                                                                                          T ~paste0(Intervention,"VariableToTotal"))) %>%
+                                               dplyr::mutate(Mean = value,
+                                                             SE = 0, SD = NA_real_, Source = "make_mds_costing_ds") %>%
+                                               dplyr::select(-c(Intervention, name,value)))
+    if(identical(cost_1L_dbl,numeric(0))){
+      cost_1L_dbl <- ready4::get_from_lup_obj(params_tb,
+                                              match_var_nm_1L_chr = "Parameter",
+                                              match_value_xx = "ExternalIARCost",
+                                              target_var_nm_1L_chr = "Mean")
+    }
+    additions_tb <- c("Intervention", "Comparator") %>%
+      purrr::reduce(.init = additions_tb,
+                    ~ {
+                      has_iar_1L_dbl <- ready4::get_from_lup_obj(params_tb,
+                                                                 match_var_nm_1L_chr = "Parameter",
+                                                                 match_value_xx = paste0("HasIAR",.y),
+                                                                 target_var_nm_1L_chr = "Mean")
+                      in_house_1L_dbl <- ready4::get_from_lup_obj(params_tb,
+                                                                  match_var_nm_1L_chr = "Parameter",
+                                                                  match_value_xx = paste0("InHouseIAR",.y),
+                                                                  target_var_nm_1L_chr = "Mean")
+                      fixed_1L_dbl <- ready4::get_from_lup_obj(additions_tb,
+                                                               match_var_nm_1L_chr = "Parameter",
+                                                               match_value_xx = paste0(.y,"FixedCost"),
+                                                               target_var_nm_1L_chr = "Mean")
+                      proportion_1L_dbl <- 1-c(intervention_share_1L_dbl, comparator_share_1L_dbl)[which(c("Intervention", "Comparator")==.y)]
+                      .x %>% 
+                        tibble::add_case(Parameter = paste0(.y,"FixedCostIARAdjustment"),
+                                         Mean = -has_iar_1L_dbl*in_house_1L_dbl*cost_1L_dbl ,
+                                         SE = 0, 
+                                         SD = NA_real_, 
+                                         Source = "add_iar_params") %>%
+                        tibble::add_case(Parameter = paste0(.y,"FixedCostExcludedAdjustment"),
+                                         Mean = -(fixed_1L_dbl * proportion_1L_dbl),
+                                         SE = 0, 
+                                         SD = NA_real_, 
+                                         Source = "add_iar_params")
+                      
+                    })
+    params_tb <- params_tb %>%
+      dplyr::filter(Parameter!="HasIARIntervention")
+  }
+  if(what_1L_chr == "offsets"){
+    prob_proxies_dbl <- rnorm(1000, mean = values_dbl[1], sd = values_dbl[2]) %>%
+      purrr::map_dbl(~{
+        calculate_offset_prob_proxy(area_erp_1L_dbl = n_1L_dbl, 
+                                    denominator_1L_dbl = denominator_1L_dbl,
+                                    exposed_1L_dbl = exposed_1L_dbl, 
+                                    risk_1L_dbl = .x, 
+                                    rate_1L_dbl = rate_1L_dbl, 
+                                    time_1L_dbl = time_1L_dbl)
+      })
+    
+    additions_tb <- tibble::tibble(Parameter = c("AmbulanceOffsetProbProxy","AmbulanceOffsetCost"), 
+                                   Mean = c(mean(prob_proxies_dbl),cost_1L_dbl),
+                                   SE = c(sd(prob_proxies_dbl), 0),
+                                   SD = NA_real_, 
+                                   Source = c("calculate_offset_prob_proxy",
+                                              source_1L_chr))
+    
+    
+    
+  }
+  if(what_1L_chr == "iar"){
+    params_tb <- add_iar_params(params_tb = params_tb, 
+                                model_data_ls = data_ls$model_data_ls,
+                                processed_ls = data_ls$processed_ls, 
+                                raw_mds_data_ls = data_ls$raw_mds_data_ls, 
+                                test_1L_chr = test_1L_chr,
+                                comparator_1L_chr = comparator_1L_chr, #?
+                                comparator_int = comparator_int,
+                                comparator_filter_fn = comparator_filter_fn,
+                                cost_1L_dbl = cost_1L_dbl,
+                                intervention_1L_chr = intervention_1L_chr, 
+                                intervention_filter_fn = intervention_filter_fn
+                                
+    )
+  }else{
+    params_tb <- params_tb %>% dplyr::bind_rows(additions_tb) %>% dplyr::arrange(Parameter)
+  }
+  return(params_tb)
+}
+add_project_assessments <- function (regressions_ls, what_1L_chr, 
+                                     colours_chr = ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9,1,5)],
+                                     confusion_1L_lgl = F, 
+                                     exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
+                                                                                              "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
+                                     rank_1L_lgl = TRUE, residual_1L_chr = "normal", two_part_1L_lgl = FALSE, 
+                                     type_1L_chr = c("candidates", "tests", "models"), var_1L_chr = character(0), 
+                                     X_Ready4useDyad = ready4use::Ready4useDyad()) 
+{
+  type_1L_chr <- match.arg(type_1L_chr)
+  if (what_1L_chr %in% names(group_ls)) {
+    updated_ls <- group_ls %>% purrr::pluck(what_1L_chr) %>% 
+      purrr::map(~make_regression_report(regressions_ls, 
+                                         colours_chr = colours_chr,
+                                         X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int, 
+                                         model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl, 
+                                                                                             "all", "main"), rank_1L_lgl = rank_1L_lgl, 
+                                         residual_1L_chr = residual_1L_chr, type_1L_chr = type_1L_chr, 
+                                         what_1L_chr = .x, var_1L_chr = var_1L_chr))
+  }  else {
+    if (two_part_1L_lgl) {
+      updated_ls <- 1:2 %>% purrr::map(~make_regression_report(regressions_ls, 
+                                                               colours_chr = colours_chr,
+                                                               X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int, 
+                                                               model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl, 
+                                                                                                                   "all", "main"), part_1L_int = .x, rank_1L_lgl = rank_1L_lgl, 
+                                                               residual_1L_chr = residual_1L_chr, type_1L_chr = type_1L_chr, 
+                                                               what_1L_chr = what_1L_chr, var_1L_chr = var_1L_chr)) %>% 
+        stats::setNames(paste0("part_", 1:2, "_ls"))
+    }    else {
+      updated_ls <- make_regression_report(regressions_ls, 
+                                           colours_chr = colours_chr,
+                                           X_Ready4useDyad = X_Ready4useDyad, exclude_int = exclude_int, 
+                                           model_1L_int = model_1L_int, report_1L_chr = ifelse(confusion_1L_lgl, 
+                                                                                               "all", "main"), rank_1L_lgl = rank_1L_lgl, 
+                                           residual_1L_chr = residual_1L_chr, type_1L_chr = type_1L_chr, 
+                                           what_1L_chr = what_1L_chr, var_1L_chr = var_1L_chr)
+    }
+  }
+  if (what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")) {
+    regressions_ls$assessments_ls$Treatments_ls <- purrr::assign_in(regressions_ls$assessments_ls$Treatments_ls, 
+                                                                    where = paste0(stringr::str_remove(what_1L_chr, "Tx_"), 
+                                                                                   "_ls"), value = updated_ls)
+  }  else {
+    regressions_ls$assessments_ls <- purrr::assign_in(regressions_ls$assessments_ls, 
+                                                      where = paste0(what_1L_chr, "_ls"), value = updated_ls)
+  }
   return(regressions_ls)
 }
 add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, processed_ls = NULL, 
@@ -1213,8 +2022,7 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
       assertthat::assert_that(type_1L_chr == "imputed")
       model_data_ls <- add_joiners_outcomes_ds(model_data_ls)
     }
-  }
-  else {
+  }  else {
     if (what_1L_chr == "CostWide") {
       assertthat::assert_that(type_1L_chr == "imputed")
       if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
@@ -1232,8 +2040,7 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
     if (what_1L_chr == "Joiners") {
       if (type_1L_chr == "unimputed") {
         X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
-      }
-      else {
+      }      else {
         if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
           model_data_ls <- add_project_model_data(model_data_ls, 
                                                   processed_ls = processed_ls, what_1L_chr = "Joiners")
@@ -1261,8 +2068,7 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
     if (what_1L_chr == "MicroLong") {
       if (type_1L_chr == "unimputed") {
         X_Ready4useDyad <- make_project_service_use_ds(processed_ls)
-      }
-      else {
+      }      else {
         if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
           model_data_ls <- add_project_model_data(model_data_ls, 
                                                   processed_ls = processed_ls, what_1L_chr = "Joiners")
@@ -1289,8 +2095,7 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
         }
         X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$unimputed_ls$MicroLong_r4, 
                                                 processed_ls = processed_ls)
-      }
-      else {
+      }      else {
         if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
           model_data_ls <- add_project_model_data(model_data_ls, 
                                                   processed_ls = processed_ls, type_1L_chr = "imputed", 
@@ -1310,8 +2115,7 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
                                                 processed_ls = processed_ls, join_before_dtm = (model_data_ls$unimputed_ls$MicroLong_r4@ds_tb$Date %>% 
                                                                                                   max()) - lubridate::years(1) + lubridate::days(1), 
                                                 max_periods_1L_int = 1, max_tenure_1L_dbl = 1)
-      }
-      else {
+      }      else {
         if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
           model_data_ls <- add_project_model_data(model_data_ls, 
                                                   processed_ls = processed_ls, type_1L_chr = "imputed", 
@@ -1494,6 +2298,35 @@ add_qalys_sensitivities <- function (X_Ready4useDyad,
                                                                                 })
     
   }
+  return(X_Ready4useDyad)
+}
+add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
+                                    k10_draws_fn,
+                                    add_sensitivity_1L_lgl = FALSE, 
+                                    sensitivities_ls = make_sensitivities_ls(), tfmn_ls = make_class_tfmns(), 
+                                    tx_prefix_1L_chr = "Treatment", utilities_chr = c("AQoL8D", 
+                                                                                      "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), utility_fns_ls = NULL) 
+{
+  if (is.null(utility_fns_ls)) {
+    utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
+  }
+  X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, 
+                                   k10_draws_fn = k10_draws_fn,
+                                   # k10_draws_fn = function(X, 
+                                   #                         k10_var_1L_chr, 
+                                   #                         var_1L_chr, ...) {renewSlot(X, "ds_tb", 
+                                   #                                                     X@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                                   #                                                                                    !!rlang::sym(k10_var_1L_chr) + sample(-5:-1, nrow(X@ds_tb), replace = T))))},
+                                   k10_mdl = NULL, k10_var_1L_chr = "K10", 
+                                   iterations_int = iterations_int, params_tb = inputs_ls$params_tb, 
+                                   sensitivities_ls = sensitivities_ls, suffix_1L_chr = "Update", 
+                                   tfmn_ls = tfmn_ls, type_1L_chr = "Table", tx_prefix_1L_chr = tx_prefix_1L_chr, 
+                                   update_1L_int = 1)
+  X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
+                                       add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, iterations_int = 1:iterations_int, 
+                                       sensitivities_ls = sensitivities_ls, tidy_cols_1L_lgl = T, 
+                                       type_1L_chr = "Function", update_1L_int = 1, utilities_chr = utilities_chr, 
+                                       utility_fns_ls = utility_fns_ls, what_1L_chr = "new")
   return(X_Ready4useDyad)
 }
 add_regressions <- function(regressions_ls,

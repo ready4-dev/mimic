@@ -8,10 +8,28 @@ update_current_event <- function(X_Ready4useDyad){
   return(X_Ready4useDyad)
   
 }
+update_episodes_lup <- function(episodes_lup_tb,
+                                dates_chr, 
+                                part_one_1L_chr, 
+                                program_true_1L_chr){ 
+  episodes_lup_tb <- episodes_lup_tb %>% 
+    dplyr::mutate(!!rlang::sym(program_true_1L_chr) := dplyr::case_when(!!rlang::sym(part_one_1L_chr) & extra_logic & episode_end_date < as.Date(dates_chr[2]) & episode_end_date > as.Date(dates_chr[1]) ~ FALSE,
+                                                                        !!rlang::sym(part_one_1L_chr) & extra_logic & episode_end_date > as.Date(dates_chr[3]) ~ FALSE,
+                                                                        !!rlang::sym(part_one_1L_chr) & !extra_logic ~ FALSE,
+                                                                        T ~ !!rlang::sym(program_true_1L_chr)))
+  return(episodes_lup_tb)
+}
 update_gender <- function(data_tb){
   data_tb <- data_tb %>%
     dplyr::mutate(gender = dplyr::case_when(gender %in% c("Other","Prefer not to say") ~ "OtherPNTS",
                                             T ~ gender))
+  return(data_tb)
+}
+update_intervention_name <- function(data_tb,
+                                     new_1L_chr = "Comparator",
+                                     old_1L_chr = "FlexPsych",
+                                     var_nm_1L_chr = "Intervention"){
+  data_tb <- dplyr::mutate(data_tb, !!rlang::sym(var_nm_1L_chr) := !!rlang::sym(var_nm_1L_chr)  %>% stringr::str_replace_all(old_1L_chr, new_1L_chr))
   return(data_tb)
 }
 update_k10_event_schedule <-  function(X_Ready4useDyad,
@@ -21,6 +39,102 @@ update_k10_event_schedule <-  function(X_Ready4useDyad,
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c("CurrentDate", "ScheduledFor"), ~ dplyr::case_when(k10_part==1 ~treatment_start, T ~ .x))))
   }
   return(X_Ready4useDyad)
+}
+update_mds_modelling_ds <- function(X_Ready4useDyad,
+                                    imputations_int = 1, # Generalise - create argument to pass FlexPsych used later
+                                    sample_ls = NULL,
+                                    filter_true_1L_chr = "FlexPsych"){
+  if(".imp" %in% names(X_Ready4useDyad@ds_tb)){
+    X_Ready4useDyad <- X_Ready4useDyad %>%
+      renewSlot("ds_tb",
+                X_Ready4useDyad@ds_tb %>% dplyr::filter(.imp %in% imputations_int))
+  }
+  X_Ready4useDyad <- X_Ready4useDyad %>%
+    renewSlot("ds_tb",
+              X_Ready4useDyad@ds_tb %>% 
+                dplyr::group_by(UID) %>% dplyr::arrange(UID, Episode) %>% 
+                dplyr::summarise(OneYearCutOffDate = dplyr::first(first_service_date) + lubridate::years(1),
+                                 TotalEpisodes = max(Episode)) %>%
+                dplyr::left_join(X_Ready4useDyad@ds_tb) %>%
+                dplyr::mutate(YearOne = (first_service_date <= OneYearCutOffDate)) %>%
+                # dplyr::filter(.imp==1) %>% 
+                dplyr::rename(IARPractitioner = iar_dst_practitioner_level_of_care,
+                              Intervention = InterventionGroup) %>%
+                dplyr::mutate(MedicalUseMins = GPUseMins + PsychiatristUseMins + OtherMedicalUseMins) %>%
+                dplyr::mutate(EpisodeDurationCategory = dplyr::case_when(EpisodeDurationDays < 100 ~ "Under 100 days",
+                                                                         EpisodeDurationDays >= 100 & EpisodeDurationDays < 200 ~ "100-200 days",
+                                                                         EpisodeDurationDays >= 200 ~ "200 days or more",
+                                                                         T ~ NA_character_) %>% as.factor() ) %>%
+                dplyr::mutate(SubthresholdDisorder = dplyr::case_when(Diagnosis == "Sub-syndromal" ~ T,
+                                                                      is.na(Diagnosis) ~ NA,
+                                                                      T ~ F)) %>%
+                dplyr::mutate(referral_date = dplyr::case_when(referral_date > first_service_date ~ lubridate::NA_Date_,
+                                                               T ~ referral_date
+                )) %>%
+                dplyr::group_by(UID) %>%
+                dplyr::arrange(UID, Episode) %>%
+                dplyr::mutate(last_service_date_previous = dplyr::lag(last_service_date, default = lubridate::NA_Date_)) %>%
+                dplyr::mutate(referral_date = dplyr::case_when(!is.na(last_service_date_previous) & !is.na(referral_date) & referral_date< last_service_date_previous ~ lubridate::NA_Date_,
+                                                               T ~ referral_date
+                )) %>%
+                dplyr::mutate(DaysToYearOneRepresentation = dplyr::case_when(is.na(referral_date)  ~ NA_real_,
+                                                                             !YearOne ~ NA_real_,
+                                                                             T ~ as.numeric(first_service_date - last_service_date_previous))) %>%
+                dplyr::mutate(DaysToYearOneRepresentation = dplyr::lead(DaysToYearOneRepresentation, default = NA_real_)) %>%
+                dplyr::ungroup() %>%
+                dplyr::mutate(WaitInDays = as.numeric(first_service_date - referral_date)) %>%
+                dplyr::filter(InScope | Intervention == filter_true_1L_chr) %>% # Generalise
+                dplyr::mutate(Age = dplyr::case_when(Age>100 ~ 100, T ~ Age),
+                              IRSADQuintile = as.factor(IRSADQuintile),
+                              IARPractitioner = as.factor(IARPractitioner))
+    )
+  if(!is.null(sample_ls)){
+    X_Ready4useDyad <- X_Ready4useDyad %>%
+      renewSlot("ds_tb",
+                1:length(sample_ls) %>% purrr::reduce(.init = X_Ready4useDyad@ds_tb,
+                                                      ~ {
+                                                        group_1L_chr <- names(sample_ls)[.y]
+                                                        use_1L_dbl <- sample_ls[[.y]]
+                                                        use_all_tb <- .x %>% dplyr::filter(Intervention != group_1L_chr)
+                                                        sample_tb <-  .x %>% dplyr::filter(Intervention == group_1L_chr)
+                                                        samples_1L_int <- round(length(unique(sample_tb$UID)) * use_1L_dbl,0)
+                                                        keep_int <- sample(unique(sample_tb$UID), size=samples_1L_int, replace = F)
+                                                        sample_tb <- sample_tb %>% dplyr::filter(UID %in% keep_int)
+                                                        dplyr::bind_rows(use_all_tb, sample_tb) %>% dplyr::arrange(UID, Episode)
+                                                      })
+      )
+  }
+  return(X_Ready4useDyad)
+}
+update_minute_var_nms <- function(data_tb,
+                                  type_1L_chr = c("undo", "do")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  rename_chr <- c("ClinicalPsychologistUseMins", 
+                  "PsychiatristUseMins",
+                  "GPUseMins",
+                  "OtherMedicalUseMins", 
+                  "NurseUseMins",
+                  "OtherUseMins")
+  if(type_1L_chr == "undo"){
+    rename_chr <- paste0(rename_chr, "_change") %>%
+      intersect(names(data_tb))
+  }else{
+    rename_chr <- rename_chr %>%
+      intersect(names(data_tb))
+  }
+  if(!identical(rename_chr, character(0))){
+    if(type_1L_chr == "undo"){
+      data_tb <- data_tb %>% 
+        dplyr::rename_with(~stringr::str_replace_all(.x,"_change",""),
+                           .cols = rename_chr)
+      
+    }else{
+      data_tb <- data_tb %>% 
+        dplyr::rename_with(~paste0(.x,"_change"),
+                           .cols = rename_chr)
+    }
+  }
+  return(data_tb)
 }
 update_mismatched_vars <- function(model_dyad_ls = make_model_dyad_ls,
                                    type_1L_chr = c("drop", "rename")){
@@ -56,6 +170,46 @@ update_mismatched_vars <- function(model_dyad_ls = make_model_dyad_ls,
 }
 update_order <- function(X_Ready4useDyad){
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::arrange(Iteration, UID))
+  return(X_Ready4useDyad)
+}
+update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
+                                   update_fn = function(X_Ready4useDyad){identity(X_Ready4useDyad)},
+                                   combined_suffixes_chr = c("","S01", "S02", "S10", "S11", "S12"),
+                                   outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
+                                   ...) {#
+  qalys_chr <- purrr::map(outcome_suffixes_chr, ~ paste0(paste0(utilities_chr, "_QALYs"),.x)) %>% purrr::flatten_chr()
+  icers_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("ICER_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
+  ces_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("CE_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
+  extras_ls <- list(...)
+  args_ls <- list(X_Ready4useDyad = X_Ready4useDyad) %>% append(extras_ls)
+  X_Ready4useDyad <- rlang::exec(update_fn, !!!args_ls)
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                               combined_suffixes_chr %>%
+                                 purrr::reduce(.init = X_Ready4useDyad@ds_tb,
+                                               ~{
+                                                 data_tb <- .x
+                                                 cost_1L_chr <- ifelse(.y %in% c("",combined_suffixes_chr[combined_suffixes_chr %>% stringr::str_sub(start=2, end=2) =="0"]), 
+                                                                       "Cost", 
+                                                                       paste0("Cost_S",stringr::str_sub(.y,start=2, end=2))) # "Cost_S1"
+                                                 effect_1L_chr <- ifelse(.y %in% c("", "S10"), "_QALYs", 
+                                                                         paste0( "_QALYs_YR1_S", stringr::str_sub(.y,start = -1)))
+                                                 last_1L_chr <- .y
+                                                 purrr::reduce(utilities_chr,
+                                                               .init = data_tb,
+                                                               ~{
+                                                                 .x %>% 
+                                                                   add_dominated(effect_1L_chr = paste0(.y,effect_1L_chr),
+                                                                                 cost_1L_chr = cost_1L_chr,
+                                                                                 suffix_1L_chr = paste0("_", .y, last_1L_chr)) %>%
+                                                                   add_icer(effect_1L_chr = paste0(.y,effect_1L_chr),
+                                                                            cost_1L_chr = cost_1L_chr,
+                                                                            suffix_1L_chr = paste0("_", .y, last_1L_chr)) %>%
+                                                                   add_cost_effectiveness(cost_1L_chr = cost_1L_chr, 
+                                                                                          effect_1L_chr = paste0(.y,effect_1L_chr), 
+                                                                                          suffix_1L_chr = paste0("_", .y, last_1L_chr), 
+                                                                                          threshold_1L_dbl = threshold_1L_dbl)
+                                                               })
+                                               }))
   return(X_Ready4useDyad)
 }
 update_population_classes <- function(X_Ready4useDyad,
@@ -128,6 +282,53 @@ update_previous <- function(X_Ready4useDyad,
   }
   return(X_Ready4useDyad)
 }
+update_processed_tb <- function(data_tb,
+                                first_eight_1L_lgl = NA,
+                                program_1L_chr = NA_character_){
+  
+  if(!is.na(program_1L_chr)){
+    data_tb <- data_tb %>% dplyr::filter(Program == program_1L_chr)
+  }
+  if(!is.na(first_eight_1L_lgl)){
+    if(first_eight_1L_lgl){
+      data_tb <- data_tb %>% dplyr::filter(FirstEight) 
+    }else{
+      data_tb <- data_tb %>% dplyr::filter(!FirstEight) 
+    }
+  }
+  data_tb <- data_tb %>%
+    dplyr::group_by(Report) %>%
+    dplyr::summarise(Service = dplyr::first(Service),
+                     FirstEight = dplyr::first(FirstEight),
+                     Start = dplyr::first(Start),
+                     End = dplyr::first(End))
+  return(data_tb)
+}
+update_project_2_param_names <- function(params_tb){
+  params_tb <- params_tb %>%
+    dplyr::mutate(Parameter = Parameter %>% 
+                    stringr::str_replace("AmbulanceOffset", "Ambulance attendance") %>%
+                    stringr::str_replace("ExcludedAdjustment", " adjustment (base case)") %>%
+                    stringr::str_replace("IARAdjustment", " adjustment for unmeasured IAR assessments") %>%
+                    stringr::str_replace("ClinicalPsychologist", "Clinical psychologist") %>%
+                    stringr::str_replace("OtherMedical", "Other medical") %>%
+                    stringr::str_replace("ExternalIAR", "IAR-DST assessment") %>%
+                    stringr::str_replace("ComparatorFixed", "Comparator fixed") %>%
+                    stringr::str_replace("InterventionFixed", paste0(intervention_1L_chr," fixed")) %>%
+                    stringr::str_replace("CostPerMin", " cost per minute") %>%
+                    stringr::str_replace("Cost", " cost") %>% 
+                    stringr::str_replace("ProbProxy", " offset probability") %>% 
+                    stringr::str_replace_all("HasIAR", "Has an IAR-DST assessment - ") %>% 
+                    stringr::str_replace_all("InHouseIAR", "Proportion of IAR-DST assessments performed by treating service - ") %>%
+                    stringr::str_replace_all("NonHelpSeekers", "Proportion of individuals who are non-help seeking - Comparator") 
+    ) %>%
+    dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, "Low") ~ "One year change in K10 for untreated individuals with low distress", 
+                                               endsWith(Parameter, "Moderate") ~ "One year change in K10 for untreated individuals with moderate distress", 
+                                               endsWith(Parameter, "VeryHigh") ~ "One year change in K10 for untreated individuals with very high distress", 
+                                               endsWith(Parameter, "High") ~ "One year change in K10 for untreated individuals with high distress", T ~ Parameter)) %>%
+    dplyr::arrange(Parameter)
+  return(params_tb)
+}
 update_project_test_cmprsns <- function(X_Ready4useDyad){
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>%
                                  dplyr::filter(!Variable %in% c("Iteration", "UID", "Adult", "Age", "treatment_count", "gad7", "phq9", 
@@ -142,6 +343,20 @@ update_project_test_cmprsns <- function(X_Ready4useDyad){
                                                  stringr::str_replace_all("k10", "K10")) %>%
                                  dplyr::arrange(Variable))
   return(X_Ready4useDyad)
+}
+update_providers_tb <- function(providers_tb,
+                                var_1L_chr = "practitioner_category"){
+  providers_tb <- providers_tb %>%
+    dplyr::mutate(!!rlang::sym(var_1L_chr) := !!rlang::sym(var_1L_chr) %>% 
+                    purrr::map_chr(~{
+                      value_1L_chr <-switch(.x, "Clinical Psychologist", "General Psychologist", "Social Worker", "Occupational Therapist", "Mental Health Nurse",
+                                            "Aboriginal and Torres Strait Islander Health/Mental Health Worker",
+                                            "Low Intensity Mental Health Worker", "General Practitioner", "Psychiatrist", "Other Medical", "Other", 
+                                            "Psychosocial Support Worker", "Peer Support Worker")
+                      value_1L_chr <- ifelse(is.null(value_1L_chr), NA_character_, value_1L_chr)
+                      value_1L_chr
+                    }))
+  return(providers_tb)
 }
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
                           follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(),

@@ -67,6 +67,40 @@ transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm
         }) %>% dplyr::select(-IntersectingYears))
     return(Y_Ready4useDyad)
 }
+#' Transform project 2 model dataset
+#' @description transform_project_2_model_ds() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform project 2 model dataset. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param cut_off_date_1L_chr Cut off date (a character vector of length one)
+#' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intervention'
+#' @param type_1L_chr Type (a character vector of length one), Default: c("has_iar", "representation")
+#' @return Data (a tibble)
+#' @rdname transform_project_2_model_ds
+#' @export 
+#' @importFrom dplyr filter mutate case_when
+#' @importFrom lubridate years
+#' @keywords internal
+transform_project_2_model_ds <- function (data_tb, cut_off_date_1L_chr, intervention_1L_chr = "Intervention", 
+    type_1L_chr = c("has_iar", "representation")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (type_1L_chr == "has_iar") {
+        data_tb <- data_tb %>% dplyr::filter(Intervention == 
+            intervention_1L_chr) %>% dplyr::filter(MatureService) %>% 
+            dplyr::mutate(HasIAR = dplyr::case_when(HasIAR ~ 
+                "Has an IAR", !HasIAR ~ "Does not have an IAR", 
+                T ~ NA_character_))
+    }
+    if (type_1L_chr == "representation") {
+        data_tb <- data_tb %>% dplyr::mutate(DaysToYearOneRepresentation = dplyr::case_when(DaysToYearOneRepresentation == 
+            0 ~ 1, OneYearCutOffDate >= as.Date(cut_off_date_1L_chr) ~ 
+            NA_real_, is.na(DaysToYearOneRepresentation) ~ 0, 
+            T ~ DaysToYearOneRepresentation)) %>% dplyr::mutate(DaysSinceIndexService = as.numeric(last_service_date - 
+            (OneYearCutOffDate - lubridate::years(1)))) %>% dplyr::filter(DaysSinceIndexService < 
+            366) %>% dplyr::filter(!is.na(DaysToYearOneRepresentation)) %>% 
+            dplyr::filter(YearOne)
+    }
+    return(data_tb)
+}
 #' Transform project outcomes dataset
 #' @description transform_project_outcomes_ds() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform project outcomes dataset. The function returns Outcomes (an output object of multiple potential types).
 #' @param outcomes_xx Outcomes (an output object of multiple potential types)
@@ -152,7 +186,7 @@ transform_project_outcomes_ds <- function (outcomes_xx, transform_gender_1L_lgl 
     additions_tb <- additions_tb %>% dplyr::rename_with(~stringr::str_replace(., 
         paste0("_Week", follow_up_1L_int), ""), setdiff(names(additions_tb), 
         "UID")) %>% dplyr::rename(treatment_status_t2 = treatment_status)
-    tfmd_outcomes_tb <- outcomes_tb %>% dplyr::select(-c(AQoL6D_change, 
+    tfd_outcomes_tb <- outcomes_tb %>% dplyr::select(-c(AQoL6D_change, 
         AQoL6D_QALYs, CHU9D_change, CHU9D_QALYs, k10_change, 
         gad7_change, phq9_change, treatment_change)) %>% dplyr::filter(MeasurementWeek != 
         paste0("Week", follow_up_1L_int)) %>% dplyr::select(-MeasurementWeek) %>% 
@@ -164,9 +198,9 @@ transform_project_outcomes_ds <- function (outcomes_xx, transform_gender_1L_lgl 
         "phq9", "phq9_change", "AQoL6D", "AQoL6D_change", "AQoL6D_QALYs", 
         "CHU9D", "CHU9D_change", "CHU9D_QALYs")))
     if (transform_gender_1L_lgl) {
-        tfmd_outcomes_tb <- tfmd_outcomes_tb %>% update_gender()
+        tfd_outcomes_tb <- tfd_outcomes_tb %>% update_gender()
     }
-    X_Ready4useDyad@ds_tb <- tfmd_outcomes_tb
+    X_Ready4useDyad@ds_tb <- tfd_outcomes_tb
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::mutate(`:=`(!!rlang::sym(paste0("AQoL6D_", follow_up_1L_int, 
             "_Weeks")), (AQoL6D + AQoL6D_change) %>% as.double()), 
@@ -275,6 +309,35 @@ transform_to_min_and_max <- function (X_Ready4useDyad, vars_chr, max_1L_dbl = 0.
         dplyr::mutate(dplyr::across(vars_chr, ~.x %>% purrr::map_dbl(~min(max(.x, 
             1e-06), 0.999999)))))
     return(Y_Ready4useDyad)
+}
+#' Transform to remove duplicates
+#' @description transform_to_remove_duplicates() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform to remove duplicates. The function returns Data (a tibble).
+#' @param data_tb Data (a tibble)
+#' @param group_by_chr Group by (a character vector), Default: c("episode_key", "collection_occasion_date", "reason_for_collection")
+#' @param uid_1L_chr Unique identifier (a character vector of length one), Default: 'episode_key'
+#' @return Data (a tibble)
+#' @rdname transform_to_remove_duplicates
+#' @export 
+#' @importFrom dplyr sample_n ungroup pull group_by across mutate n case_when filter select bind_rows
+#' @importFrom rlang sym
+#' @importFrom tidyr all_of
+#' @keywords internal
+transform_to_remove_duplicates <- function (data_tb, group_by_chr = c("episode_key", "collection_occasion_date", 
+    "reason_for_collection"), uid_1L_chr = "episode_key") 
+{
+    duplicates_tb <- get_duplicated_measures(data_tb, group_by_chr = group_by_chr, 
+        uid_1L_chr = uid_1L_chr)
+    duplicates_tb <- duplicates_tb %>% dplyr::sample_n(size = 1) %>% 
+        dplyr::ungroup()
+    keys_chr <- duplicates_tb %>% dplyr::pull(!!rlang::sym(uid_1L_chr))
+    data_tb <- data_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(group_by_chr))) %>% 
+        dplyr::mutate(N = dplyr::n()) %>% dplyr::ungroup() %>% 
+        dplyr::mutate(Duplicate = !!rlang::sym(uid_1L_chr) %in% 
+            keys_chr) %>% dplyr::mutate(Duplicate = dplyr::case_when(N == 
+        1 ~ FALSE, T ~ Duplicate)) %>% dplyr::filter(!Duplicate) %>% 
+        dplyr::select(-c(Duplicate, N)) %>% dplyr::bind_rows(duplicates_tb %>% 
+        dplyr::select(-N))
+    return(data_tb)
 }
 #' Transform treatment factor
 #' @description transform_tx_factor() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform treatment factor. The function returns Data (a tibble).
