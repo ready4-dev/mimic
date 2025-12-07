@@ -23,4 +23,3 @@ a Primary Health Network lookup table (an output object of multiple potential ty
 \description{
 make_phn_lup() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make primary health network lookup table. The function returns a Primary Health Network lookup table (an output object of multiple potential types).
 }
-\keyword{internal}

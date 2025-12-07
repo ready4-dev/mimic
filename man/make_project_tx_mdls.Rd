@@ -29,4 +29,3 @@ Treatment models (a list)
 \description{
 make_project_tx_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project treatment models. The function returns Treatment models (a list).
 }
-\keyword{internal}

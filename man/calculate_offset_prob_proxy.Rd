@@ -32,4 +32,3 @@ Probability proxy (a double vector of length one)
 \description{
 calculate_offset_prob_proxy() is a Calculate function that performs a numeric calculation. Specifically, this function implements an algorithm to calculate offset probability proxy. The function returns Probability proxy (a double vector of length one).
 }
-\keyword{internal}

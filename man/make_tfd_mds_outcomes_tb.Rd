@@ -35,4 +35,3 @@ Data (a tibble)
 \description{
 make_tfd_mds_outcomes_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make transformed minimum dataset outcomes tibble. The function returns Data (a tibble).
 }
-\keyword{internal}

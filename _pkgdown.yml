@@ -1,24 +1,4 @@
-url: https://ready4-dev.github.io/mimic/
-
+url: ~
 template:
   bootstrap: 5
-  bootswatch: journal
 
-home:
-  links:
-  - text: Manual - User (PDF)
-    href: https://github.com/ready4-dev/mimic/releases/download/Documentation_0.0/mimic_User.pdf
-  - text: Manual - Developer (PDF)
-    href: https://github.com/ready4-dev/mimic/releases/download/Documentation_0.0/mimic_Developer.pdf
-  - text: Model
-    href:  https://ready4-dev.github.io/mimic/
-development:
-  mode: auto
-reference:
-- title: "Functions"
-- contents:
-  - predict_comparator_pathway
-  - predict_digital_pathway
-  - predict_from_pool
-  - predict_project_2_pathway
-  - predict_with_sim

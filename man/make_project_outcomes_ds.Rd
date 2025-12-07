@@ -59,4 +59,3 @@ Outcomes (an output object of multiple potential types)
 \description{
 make_project_outcomes_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project outcomes dataset. The function returns Outcomes (an output object of multiple potential types).
 }
-\keyword{internal}

@@ -35,4 +35,3 @@ Confusion (a plot)
 \description{
 plot_tx_mdl_confusion() is a Plot function that plots data. Specifically, this function implements an algorithm to plot treatment model confusion. The function returns Confusion (a plot).
 }
-\keyword{internal}

@@ -26,4 +26,3 @@ Simulations (a data.frame)
 \description{
 make_simulated_draws() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulated draws. The function returns Simulations (a data.frame).
 }
-\keyword{internal}

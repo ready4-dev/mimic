@@ -41,4 +41,3 @@ Dataset (a tibble)
 \description{
 add_project_treatment_change() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project treatment change. The function returns Dataset (a tibble).
 }
-\keyword{internal}

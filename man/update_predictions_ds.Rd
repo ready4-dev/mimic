@@ -13,7 +13,7 @@ update_predictions_ds(
   sensitivities_ls = make_sensitivities_ls(),
   tfmn_1L_chr = "NTF",
   tfmn_ls = make_class_tfmns(),
-  utility_1L_chr = c("AQoL6D", "CHU9D"),
+  utility_1L_chr = c("AQoL6D"),
   var_1L_chr = character(0),
   with_1L_chr = "_sim_mean"
 )
@@ -35,7 +35,7 @@ update_predictions_ds(
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns()}
 
-\item{utility_1L_chr}{Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")}
+\item{utility_1L_chr}{Utility (a character vector of length one), Default: c("AQoL6D")}
 
 \item{var_1L_chr}{Variable (a character vector of length one), Default: character(0)}
 
@@ -47,4 +47,3 @@ Y (A dataset and data dictionary pair.)
 \description{
 update_predictions_ds() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update predictions dataset. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

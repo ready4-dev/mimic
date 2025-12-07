@@ -23,4 +23,3 @@ Data (a tibble)
 \description{
 update_processed_tb() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update processed tibble. The function returns Data (a tibble).
 }
-\keyword{internal}

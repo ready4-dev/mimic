@@ -20,4 +20,3 @@ Collection (a tibble)
 \description{
 make_mds_collection_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset collection tibble. The function returns Collection (a tibble).
 }
-\keyword{internal}

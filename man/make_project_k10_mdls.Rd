@@ -4,10 +4,12 @@
 \alias{make_project_k10_mdls}
 \title{Make project K10 models}
 \usage{
-make_project_k10_mdls(X_Ready4useDyad)
+make_project_k10_mdls(X_Ready4useDyad, make_with_fn = make_project_1_k10_mdls)
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
+
+\item{make_with_fn}{Make with (a function), Default: make_project_1_k10_mdls}
 }
 \value{
 K10 (a list)
@@ -15,4 +17,3 @@ K10 (a list)
 \description{
 make_project_k10_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project k10 models. The function returns K10 (a list).
 }
-\keyword{internal}

@@ -1,6 +1,6 @@
 # mimic
 
-## Implement Simple Microsimulation to Economically Evaluate Mental Health Services
+## Implement Microsimulations to Economically Evaluate Mental Health Services
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -11,7 +11,7 @@
 <!-- badges: end -->
 
 Tools for developing simple microsimulations of mental health
-service and exporting outputs for cost-utility analyses. Designed for
+services and exporting outputs for cost-utility analyses. Designed for
 use with the ready4 framework (https://ready4-dev.github.io/ready4/).
 This early development version of mimic has been made available as
 part of the process of testing and documenting the library.  If you

@@ -17,4 +17,3 @@ Price indices (a double vector)
 \description{
 make_aus_price_years() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make australia price years. The function returns Price indices (a double vector).
 }
-\keyword{internal}

@@ -19,4 +19,3 @@ Model data (a list)
 \description{
 add_project_outcomes_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project outcomes data. The function returns Model data (a list).
 }
-\keyword{internal}

@@ -23,4 +23,3 @@ Data (a tibble)
 \description{
 transform_tx_factor() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform treatment factor. The function returns Data (a tibble).
 }
-\keyword{internal}

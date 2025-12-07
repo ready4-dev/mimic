@@ -26,4 +26,3 @@ Episodes lookup table (a tibble)
 \description{
 update_episodes_lup() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update episodes lookup table. The function returns Episodes lookup table (a tibble).
 }
-\keyword{internal}

@@ -26,4 +26,3 @@ Data (a tibble)
 \description{
 make_mds_unique_measures() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset unique measures. The function returns Data (a tibble).
 }
-\keyword{internal}

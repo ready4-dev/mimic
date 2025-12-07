@@ -23,4 +23,3 @@ X (A dataset and data dictionary pair.)
 \description{
 get_project_model_data() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get project model data. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

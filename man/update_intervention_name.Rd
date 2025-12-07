@@ -26,4 +26,3 @@ Data (a tibble)
 \description{
 update_intervention_name() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update intervention name. The function returns Data (a tibble).
 }
-\keyword{internal}

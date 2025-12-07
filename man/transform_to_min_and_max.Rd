@@ -26,4 +26,3 @@ Y (A dataset and data dictionary pair.)
 \description{
 transform_to_min_and_max() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform to minimum and maximum. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

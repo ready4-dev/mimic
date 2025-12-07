@@ -61,6 +61,11 @@ make_aus_price_years <- function(start_1L_chr = "2021-22",
   price_indices_dbl <- price_indices_dbl[which(names(price_indices_dbl)==start_1L_chr):which(names(price_indices_dbl)==end_1L_chr)]
   return(price_indices_dbl)
 }
+make_batches <- function (n_1L_int = 50,
+                          of_1L_int = 20){
+  batches_ls <- unname(split(1:(n_1L_int*of_1L_int), cut(1:(n_1L_int*of_1L_int), n_1L_int)))
+  return(batches_ls)
+}
 make_class_tfmns <- function (force_1L_lgl = FALSE) 
 {
   if (force_1L_lgl) {
@@ -285,7 +290,11 @@ make_disciplines <- function(arrange_1L_chr = c("default", "semi", "ordered"),
   }
   return(disciplines_chr)
 }
-make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L, 
+make_draws_tb <- function (inputs_ls, 
+                           drop_missing_1L_lgl = FALSE,
+                           drop_suffix_1L_chr = character(0),
+                           iterations_int = 1:100, 
+                           scale_1L_int = 1L, 
                            seed_1L_int = integer(0)) 
 {
   if (!identical(seed_1L_int, integer(0))) {
@@ -293,7 +302,7 @@ make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L,
   }
   iterations_1L_int <- length(unique(iterations_int))
   params_tb <- inputs_ls$params_tb
-  reshaped_tb <- params_tb %>% as.data.frame() %>% t() %>% 
+  reshaped_tb <- params_tb %>% dplyr::select(-tidyselect::any_of("Source")) %>% as.data.frame() %>% t() %>% 
     janitor::row_to_names(1) %>% as.data.frame() %>% dplyr::mutate(dplyr::across(dplyr::everything(), 
                                                                                  ~as.numeric(.x))) %>% tibble::rownames_to_column("Statistic") %>% 
     tibble::as_tibble() %>% dplyr::rename_with(.fn = ~paste0("Param", 
@@ -312,14 +321,32 @@ make_draws_tb <- function (inputs_ls, iterations_int = 1:100, scale_1L_int = 1L,
                                                                                                        adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
                                                                                                        distributions_chr = args_ls$distributions_chr, 
                                                                                                        n_1L_int = iterations_1L_int * scale_1L_int, 
-                                                                                                       seed_1L_int = seed_1L_int, resample_1L_lgl = T, what_1L_chr = name_1L_chr)
+                                                                                                       seed_1L_int = seed_1L_int, resample_1L_lgl = T, 
+                                                                                                       what_1L_chr = name_1L_chr)
                                                                   .x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ParamPool", 
                                                                                                                 name_1L_chr)), sample(predictions_dbl, size = iterations_1L_int)))
                                                                 })
   }
   draws_tb <- draws_tb %>% dplyr::select(-tidyselect::any_of(c("Iteration_mean", 
                                                                "Iteration_sd")))
+  if(drop_missing_1L_lgl){
+    draws_tb <- draws_tb %>% dplyr::select(dplyr::where(~any(!is.na(.x))))
+  }
+  if(!identical(drop_suffix_1L_chr, character(0))){
+    draws_tb <- draws_tb %>% dplyr::rename_with(~ stringr::str_remove(., drop_suffix_1L_chr))
+  }
   return(draws_tb)
+}
+make_economic_results <- function(sim_results_ls,
+                                  intervention_1L_chr,
+                                  utilities_chr){
+  economic_results_ls <- utilities_chr %>%
+    purrr::map(~{
+      make_economic_summary(sim_results_ls, 
+                            reference_1L_chr = intervention_1L_chr, 
+                            effects_1L_chr = paste0(.x,"_QALYs"))
+    }) %>% stats::setNames(utilities_chr)
+  return(economic_results_ls)
 }
 make_economic_summary <- function(sim_results_ls,
                                   correspondences_r3 = ready4show::ready4show_correspondences(),
@@ -1252,6 +1279,16 @@ make_pooled_fit <- function(experts_tb,
   }
   return(fit_xx)
 }
+make_postcode_lup <- function(url_1L_chr = character(0)){
+  if(identical(url_1L_chr, character(0))){
+    url_1L_chr <- "https://www.abs.gov.au/statistics/people/people-and-communities/socio-economic-indexes-areas-seifa-australia/2021/Postal%20Area%2C%20Indexes%2C%20SEIFA%202021.xlsx"
+  }
+  postcode_lup <- openxlsx::read.xlsx(url_1L_chr, 
+                                      sheet = 3, startRow = 6, cols = c(1,6)) %>%
+    dplyr::mutate(IRSADQuintile = round(Decile/2) %>% purrr::map_int(~max(1,.x)))
+  names(postcode_lup)[1] <- "Postcode"
+  return(postcode_lup)
+}
 make_predd_observed_ds <- function(X_Ready4useDyad,
                                    Y_Ready4useDyad,
                                    consolidate_1L_chr = character(0),
@@ -1277,6 +1314,75 @@ make_predd_observed_ds <- function(X_Ready4useDyad,
   }
   Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary", type_1L_chr = "update")
   return(Y_Ready4useDyad)
+}
+make_project_1_k10_mdls <-function (X_Ready4useDyad) {
+  k10_ls <- list(OLS_1_mdl = lm(formula = k10_12_Weeks ~ AQoL6D + 
+                                  CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
+  k10_ls$GLM_GSN_2_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+                                CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+                              family = gaussian())
+  k10_ls$GLM_GSN_LOG_3_mdl <- glm(formula = k10_12_Weeks ~ 
+                                    CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+                                  family = gaussian(link = "log"))
+  k10_ls$GLM_GSN_INV_4_mdl <- glm(formula = k10_12_Weeks ~ 
+                                    AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+                                  data = X_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
+  k10_ls$GLM_GMA_5_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+                                CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+                              family = Gamma())
+  k10_ls$GLM_GMA_LOG_6_mdl <- glm(formula = k10_12_Weeks ~ 
+                                    AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+                                  data = X_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
+  k10_ls$GLM_GMA_INV_7_mdl <- glm(formula = k10_12_Weeks ~ 
+                                    AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+                                  data = X_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
+  k10_ls$GLM_ING_8_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + 
+                                CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, 
+                              family = inverse.gaussian())
+  k10_ls$GLM_ING_INV_9_mdl <- glm(formula = k10_12_Weeks ~ 
+                                    AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+                                  data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "inverse"))
+  k10_ls$GLM_ING_SQT_10_mdl <- glm(formula = k10_12_Weeks ~ 
+                                     AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
+                                   data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "1/mu^2"))
+  return(k10_ls)
+}
+make_project_1_params_tb <- function () {
+  params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, 
+                               "K10ChangeHeadspaceLow", -0.8, 0.4/1.96, sqrt(round(27298 * 
+                                                                                     0.1, 0)) * 0.4/1.96, "K10ChangeHeadspaceModerate", 
+                               1.1, 0.2/1.96, sqrt(round(27298 * 0.2, 0)) * 0.2/1.96, 
+                               "K10ChangeHeadspaceHigh", 1.3, 0.1/1.96, sqrt(round(27298 * 
+                                                                                     0.3, 0)) * 0.1/1.96, "K10ChangeHeadspaceVeryHigh", 
+                               2, 0.1/1.96, sqrt(round(27298 * 0.4, 0)) * 0.1/1.96, 
+                               "K10ChangeSpecialistFemale", 3.5, 7.8/sqrt(385), 7.8, 
+                               "K10ChangeSpecialistMale", 2.9, 8.2/sqrt(233), 8.2, "K10ChangeSpecialistAll", 
+                               3.3, 8/sqrt(620), 8,
+                               "RTM_Q1", 0.8, 0.02, sqrt(round(215578/5, 
+                                                               0)) * 0.02,
+                               "RTM_Q2", -0.3, 0.02, sqrt(round(215578/5, 
+                                                                0)) * 0.02, 
+                               "RTM_Q3", -1.1, 0.02, sqrt(round(215578/5, 
+                                                                0)) * 0.02, 
+                               "RTM_Q4", -1.8, 0.02, sqrt(round(215578/5, 
+                                                                0)) * 0.02, 
+                               "RTM_Q5", -2.9, 0.03, sqrt(round(215578/5, 
+                                                                0)) * 0.03, 
+                               "EDOOSCost", 848, 0, 0, "HeadspaceOOSCost", 
+                               serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
+                                                                             Cost = 230), price_indices_dbl = c(91.4, 93.3, 96, 
+                                                                                                                100, 100 * 102.5514/100.7796) %>% stats::setNames(paste0("FY ", 
+                                                                                                                                                                         2020:2024)), price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% 
+                                 as.vector(), 0, 0, "SpecialistOOSCost", serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", 
+                                                                                                                       Cost = 439), 
+                                                                                                        price_indices_dbl = c(91.4, 93.3, 96, 
+                                                                                                                              100, 100 * 102.5514/100.7796) %>% 
+                                                                                                          stats::setNames(paste0("FY ", 
+                                                                                                                                 2020:2024)), 
+                                                                                                        price_ref_1L_int = 5) %>% 
+                                 dplyr::pull(Cost) %>% 
+                                 as.vector(), 0, 0)
+  return(params_tb)
 }
 make_project_2_days_mdls <- function(X_Ready4useDyad, 
                                      add_chr = character(0),
@@ -2187,6 +2293,7 @@ make_project_2_synthetic_pop <- function(model_data_ls,
   return(population_ls)
 }
 
+
 make_project_activity_ds <- function(raw_data_ls,
                                   type_1L_chr = c("initial", "wip")){
   type_1L_chr <- match.arg(type_1L_chr)
@@ -2275,6 +2382,43 @@ make_project_chu9d_mdls <- function (X_Ready4useDyad)
                                                 Minutes_12_Weeks, data = Y_Ready4useDyad@ds_tb, link = "logit")
   return(chu9d_ls)
 }
+make_project_cmprsn <- function(model_data_ls,
+                                by_1L_chr,
+                                include_chr,
+                                what_1L_chr = "X",
+                                digits_1L_int = 2L,
+                                labels_ls = NULL,
+                                tfmn_fn = identity,
+                                tfmn_1_fn = identity,
+                                tfmn_2_fn = identity,
+                                type_1L_chr = c("unimputed", "imputed", "combined")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr == "combined"){
+    additional_tb <- model_data_ls$unimputed_ls$X_Ready4useDyad@ds_tb %>%
+      tfmn_1_fn() %>% tfmn_fn()
+    element_1L_chr <- paste0("imputed", "_ls")
+  }else{
+    additional_tb <- NULL
+    element_1L_chr <- paste0(type_1L_chr, "_ls")
+  }
+  data_ls <- model_data_ls %>% purrr::pluck(element_1L_chr)
+  data_tb <- data_ls %>% purrr::pluck(intersect(names(data_ls),paste0(what_1L_chr, c("","_xx", "_Ready4useDyad","_r4")))[1]) %>% procureSlot("ds_tb") %>%
+    tfmn_2_fn() %>% tfmn_fn()
+  if(!is.null(additional_tb)){
+    data_tb <-  dplyr::bind_rows(data_tb %>% dplyr::mutate(Data = "Imputed"),
+                                 additional_tb %>% dplyr::select(tidyselect::all_of(intersect(names(data_tb), names(additional_tb)))) %>%
+                                   dplyr::mutate(Data = "Unimputed"))
+  }
+  comparison_xx <- data_tb %>%
+    gtsummary::tbl_summary(by = tidyselect::all_of(by_1L_chr), 
+                           include = tidyselect::all_of(include_chr),
+                           label = labels_ls,
+                           statistic = list(gtsummary::all_continuous() ~ "{mean} ({sd})", 
+                                            gtsummary::all_categorical() ~ "{n} ({p}%)"),
+                           digits = list(gtsummary::all_continuous() ~ c(digits_1L_int, digits_1L_int))) %>% 
+    gtsummary::add_p()
+  return(comparison_xx)
+}
 make_project_consolidated_ds <- function(X_Ready4useDyad,
                                          Y_Ready4useDyad,
                                          Z_Ready4useDyad = ready4use::Ready4useDyad,
@@ -2317,7 +2461,9 @@ make_project_cost_mdlng_ds <- function (W_Ready4useDyad, X_Ready4useDyad, transf
                                  dplyr::select(-tidyr::any_of(c("Active", "Episodes", 
                                                                 "Separations", "role_type", "primary_mode", "primary_participant", 
                                                                 "primary_purpose", "Activity", "Enroll", "EpisodeEnd",
-                                                                "Presentation",      "onboarding_date",   "first_contact",     "last_contact",      "days_to_start",     "days_to_end",       "days_to_first",     "days_to_last",      "IntersectingYears"
+                                                                "Presentation",      "onboarding_date",   "first_contact",     "last_contact",    
+                                                                "days_to_start",     "days_to_end",       "days_to_first",     "days_to_last",    
+                                                                "IntersectingYears"
                                                                 
                                  ))))
   duplicates_chr <- W_Ready4useDyad@ds_tb$UID[W_Ready4useDyad@ds_tb$UID %>% 
@@ -2742,11 +2888,87 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
   })
   if (length(dss_ls) != 1) {
     project_xx <- dss_ls
-  }
-  else {
+  }  else {
     project_xx <- dss_ls %>% purrr::pluck(what_1L_chr)
   }
   return(project_xx)
+}
+make_project_imputations <- function (X_Ready4useDyad, 
+                                      Y_Ready4useDyad = ready4use::Ready4useDyad(), 
+                                      add_cumulatives_1L_lgl = FALSE, 
+                                      characteristics_chr = c("Diagnosis", "Employment"), 
+                                      date_vars_chr = "Date",
+                                      extras_chr = character(0), 
+                                      ignore_x_chr = character(0), 
+                                      ignore_y_chr = character(0),
+                                      imputations_1L_int = 5,
+                                      max_iterations_1L_int = 2,
+                                      method_1L_chr = "rf",
+                                      post_imputation_fn = identity, # post_imputation_fn = add_mds_minutes_totals
+                                      uid_var_1L_chr = "UID") 
+{
+  model_data_ls <-list(imputed_ls = list(),
+                       unimputed_ls = list())
+  model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% update_mds_modelling_ds())
+  if (!identical(ignore_x_chr, character(0))) {
+    A_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::all_of(c(uid_var_1L_chr, 
+                                                                                              date_vars_chr, ignore_x_chr) %>% unique())))
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::all_of(c(ignore_x_chr, date_vars_chr) %>% unique())))
+  }
+  imputed_xx <- mice::mice(X_Ready4useDyad@ds_tb %>% 
+                             dplyr::mutate(dplyr::across(tidyr::any_of(c(characteristics_chr,  extras_chr)), ~as.factor(.x))),
+                           method = method_1L_chr, 
+                           m = imputations_1L_int, maxit = max_iterations_1L_int)
+  
+  Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                               mice::complete(imputed_xx,
+                                              action = "long") %>% tibble::as_tibble() %>% 
+                                 dplyr::mutate(dplyr::across(tidyr::any_of(c(characteristics_chr, 
+                                                                             extras_chr)), ~as.character(.x))))
+  if (!identical(Y_Ready4useDyad, ready4use::Ready4useDyad())) {
+    if (!identical(ignore_y_chr, character(0))) {
+      B_Ready4useDyad <- Y_Ready4useDyad
+      Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
+                                   Y_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::all_of(ignore_y_chr)))
+    }
+    Z_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
+                                 ready4use::add_from_lup_prototype(Y_Ready4useDyad@ds_tb, 
+                                                                   lup_prototype_tb = Z_Ready4useDyad@ds_tb, match_var_nm_1L_chr = uid_var_1L_chr, 
+                                                                   type_1L_chr = c("self"), vars_chr = intersect(characteristics_chr, 
+                                                                                                                 names(X_Ready4useDyad@ds_tb))) %>% dplyr::arrange(UID, 
+                                                                                                                                                                   Date))
+  }
+  if (!identical(extras_chr, character(0))) {
+    imputed_2_xx <- mice::mice(Z_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(dplyr::across(tidyr::any_of(extras_chr), 
+                                                             ~as.factor(.x))), method = method_1L_chr, m = 1, 
+                               maxit = 1)
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+                                 mice::complete(imputed_2_xx) %>% tibble::as_tibble() %>% 
+                                   dplyr::mutate(dplyr::across(tidyr::any_of(extras_chr), 
+                                                               ~as.character(.x))))
+  }
+  if (!identical(ignore_x_chr, character(0))) {
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+                                 Z_Ready4useDyad@ds_tb %>% dplyr::left_join(A_Ready4useDyad@ds_tb))
+  }
+  if (!identical(ignore_y_chr, character(0))) {
+    Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
+                                 Z_Ready4useDyad@ds_tb %>% dplyr::left_join(B_Ready4useDyad@ds_tb))
+  }
+  if (add_cumulatives_1L_lgl) {
+    cumulatives_chr <- setdiff(names(Z_Ready4useDyad@ds_tb)[startsWith(names(Z_Ready4useDyad@ds_tb),
+                                                                       "Cumulative")], c(ignore_x_chr, ignore_y_chr))
+    Z_Ready4useDyad <- serious::add_cumulatives(Z_Ready4useDyad,
+                                                metrics_chr = cumulatives_chr %>% stringr::str_remove("Cumulative"),
+                                                group_by_1L_chr = uid_var_1L_chr)
+  }
+  Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", Z_Ready4useDyad@ds_tb %>% post_imputation_fn())
+  model_data_ls$imputed_ls$Z_Ready4useDyad <-  Z_Ready4useDyad
+  model_data_ls$imputed_ls$imputed_xx <- imputed_xx
+  return(model_data_ls)
 }
 make_project_joiners_ds <- function(processed_ls, 
                                  as_dyad_1L_lgl = T){
@@ -2776,28 +2998,12 @@ make_project_joiners_ds <- function(processed_ls,
   data_xx <- data_xx %>% add_treatment_status(type_1L_int = 1L)
   return(data_xx)
 }
-make_project_k10_mdls <- function(X_Ready4useDyad){ #model_data_ls$unimputed_ls$Outcomes0To12Wide_r4
-  k10_ls <- list(OLS_1_mdl = lm(formula = k10_12_Weeks ~ AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb))
-  k10_ls$GLM_GSN_2_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, data = X_Ready4useDyad@ds_tb, family = gaussian())
-  # With transformation
-  k10_ls$GLM_GSN_LOG_3_mdl <- glm(formula = k10_12_Weeks ~ CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                  data = X_Ready4useDyad@ds_tb, family = gaussian(link = "log"))
-  k10_ls$GLM_GSN_INV_4_mdl <- glm(formula = k10_12_Weeks ~ AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                  data = X_Ready4useDyad@ds_tb, family = gaussian(link = "inverse"))
-  k10_ls$GLM_GMA_5_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                              data = X_Ready4useDyad@ds_tb, family = Gamma())
-  k10_ls$GLM_GMA_LOG_6_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                  data = X_Ready4useDyad@ds_tb, family = Gamma(link = "log"))
-  k10_ls$GLM_GMA_INV_7_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                  data = X_Ready4useDyad@ds_tb, family = Gamma(link = "inverse"))
-  k10_ls$GLM_ING_8_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                              data = X_Ready4useDyad@ds_tb, family = inverse.gaussian())
-  k10_ls$GLM_ING_INV_9_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                  data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "inverse"))
-  k10_ls$GLM_ING_SQT_10_mdl <- glm(formula = k10_12_Weeks ~  AQoL6D + CHU9D + k10 + treatment_change + Minutes_12_Weeks, 
-                                   data = X_Ready4useDyad@ds_tb, family = inverse.gaussian(link = "1/mu^2"))
+make_project_k10_mdls <- function (X_Ready4useDyad,
+                                   make_with_fn = make_project_1_k10_mdls) {
+  k10_ls <- X_Ready4useDyad %>% make_with_fn()
   return(k10_ls)
 }
+
 make_project_keys <- function(type_1L_chr = c("micro", "ts")){
   type_1L_chr <- match.arg(type_1L_chr)
   keys_chr <- c("IncludedDays", "platform", "clinic_type", 
@@ -2829,8 +3035,7 @@ make_project_minutes_cmprsn <- function (X_Ready4useDyad, Y_Ready4useDyad, names
     if (identical(var_1L_chr, character(0))) {
       var_1L_chr <- "Minutes"
     }
-  }
-  else {
+  }  else {
     Z_Ready4useDyad <- Y_Ready4useDyad
     if (identical(names_chr, character(0))) {
       names_chr <- c("Observed", "Simulated")
@@ -3234,29 +3439,9 @@ make_project_overview_ds <- function(raw_data_ls,
   overview_tb <- demographics_tb %>% dplyr::inner_join(raw_data_ls$chats) %>% dplyr::inner_join(raw_data_ls$engagement)
   return(overview_tb)
 }
-make_project_params_tb <- function(){
-  params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~ SD,
-                               "K10ChangeHeadspaceLow", -0.8, 0.4/1.96, sqrt(round(27298*0.1,0)) *0.4/1.96,# Headspace evaluation + Rickwood2014 for % + for duration assumption - https://pmc.ncbi.nlm.nih.gov/articles/PMC10313045/
-                               "K10ChangeHeadspaceModerate", 1.1, 0.2/1.96, sqrt(round(27298*0.2,0)) *0.2/1.96, 
-                               "K10ChangeHeadspaceHigh", 1.3, 0.1/1.96, sqrt(round(27298*0.3,0)) *0.1/1.96,
-                               "K10ChangeHeadspaceVeryHigh", 2, 0.1/1.96, sqrt(round(27298*0.4,0)) *0.1/1.96,
-                               "K10ChangeSpecialistFemale", 3.5,	7.8 / sqrt(385), 7.8, # NOCC
-                               "K10ChangeSpecialistMale", 2.9,	8.2 / sqrt(233), 8.2, 
-                               "K10ChangeSpecialistAll", 3.3,	8 / sqrt(620), 8, 
-                               "RTM_Q1", 0.8, 0.02, sqrt(round(215578/5,0))*0.02, # Headspace evaluation
-                               "RTM_Q2", -0.3, 0.02, sqrt(round(215578/5,0))*0.02,
-                               "RTM_Q3", -1.1, 0.02, sqrt(round(215578/5,0))*0.02,
-                               "RTM_Q4", -1.8, 0.02, sqrt(round(215578/5,0))*0.02,
-                               "RTM_Q5", -2.9, 0.03, sqrt(round(215578/5,0))*0.03,
-                               "EDOOSCost", 848,0,0, # Derived from H2H eval. 2024 $  
-                               "HeadspaceOOSCost", serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", Cost = 230), #serious:: ## 2019 Headspace Evaluation pg330 (need to uprate for price year)
-                                                                         price_indices_dbl = c(91.4, 93.3,96, 100, 100*102.5514/100.7796) %>%  # Table 39a: Health expenditure Australia 2022–23
-                                                                           stats::setNames(paste0("FY ",2020:2024)), 
-                                                                         price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% as.vector(), 0, 0, 
-                               "SpecialistOOSCost", serious::update_for_price_year(tibble::tibble(FiscalYear = "FY 2020", Cost = 439), #serious:: ## NHCDC 2019 Psychiatry non admitted
-                                                                          price_indices_dbl = c(91.4, 93.3,96, 100, 100*102.5514/100.7796) %>%  # Table 39a: Health expenditure Australia 2022–23
-                                                                            stats::setNames(paste0("FY ",2020:2024)), 
-                                                                          price_ref_1L_int = 5) %>% dplyr::pull(Cost) %>% as.vector(), 0, 0)# 
+make_project_params_tb <- function (make_with_fn = make_project_1_params_tb) 
+{
+  params_tb <- make_with_fn()
   return(params_tb)
 }
 make_project_recode_lup <- function(){
@@ -3462,8 +3647,7 @@ make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", grou
   if (!identical(groupings_chr, character(0))) {
     x_tb <- x_tb %>% dplyr::select(Group, Parameter, Intervention, 
                                    Comparator, Difference) %>% dplyr::group_by(Group)
-  }
-  else {
+  }  else {
     x_tb <- x_tb %>% dplyr::select(Parameter, Intervention, 
                                    Comparator, Difference)
   }
@@ -3796,9 +3980,7 @@ make_regression_report <- function (regressions_ls, what_1L_chr,
                                     part_1L_int = integer(0), report_1L_chr = c("all", "main", 
                                                                                 "check", "compare", "confusion", "estimates", "test"), 
                                     rank_1L_lgl = TRUE, residual_1L_chr = "normal", type_1L_chr = c("candidates", 
-                                                                                                    "tests", "models"), 
-                                    var_1L_chr = character(0), 
-                                    X_Ready4useDyad = ready4use::Ready4useDyad()) 
+                                                                                                    "tests", "models"), var_1L_chr = character(0), X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
   report_1L_chr <- match.arg(report_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
@@ -3883,27 +4065,27 @@ make_regression_report <- function (regressions_ls, what_1L_chr,
   }
   return(report_xx)
 }
-make_regressions_ls <- function(){
-  assessments_ls <- candidates_ls <- tests_ls <- list(AQoL6D_ls = list(),
-                                                      CHU9D_ls = list(),
-                                                      k10_ls = list(),
-                                                      Minutes_ls = list(),
-                                                      Treatments_ls = list(Waitlist_ls = list(),
-                                                                           Treatment_ls = list(),
-                                                                           Discharged_ls = list()))
-  models_ls <- list(AQoL6D_mdl = NULL,
-                    CHU9D_mdl = NULL,
-                    k10_mdl = NULL,
-                    Minutes_mdl = NULL,
-                    Treatments_ls = list(Waitlist_mdl = NULL,
-                                         Treatment_mdl = NULL,
-                                         Discharged_mdl = NULL))
-  regressions_ls <- list(candidates_ls = candidates_ls,
-                         assessments_ls = assessments_ls,
-                         models_ls = models_ls,
-                         tests_ls = tests_ls )
+make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), 
+                                                        CHU9D_ls = list(),
+                                                        k10_ls = list(), 
+                                                        Minutes_ls = list(), 
+                                                        Treatments_ls = list(Waitlist_ls = list(), 
+                                                                             Treatment_ls = list(), 
+                                                                             Discharged_ls = list())),
+                                 prototype_mdls_ls = list(AQoL6D_mdl = NULL, 
+                                                          CHU9D_mdl = NULL, 
+                                                          k10_mdl = NULL, 
+                                                          Minutes_mdl = NULL, 
+                                                          Treatments_ls = list(Waitlist_mdl = NULL, 
+                                                                               Treatment_mdl = NULL, 
+                                                                               Discharged_mdl = NULL))) {
+  assessments_ls <- candidates_ls <- tests_ls <- prototype_ls_ls
+  models_ls <- prototype_mdls_ls
+  regressions_ls <- list(candidates_ls = candidates_ls, assessments_ls = assessments_ls, 
+                         models_ls = models_ls, tests_ls = tests_ls)
   return(regressions_ls)
 }
+
 make_report_data <- function (model_data_ls = NULL, 
                               date_end_dtm = as.POSIXct("2023-07-01"),
                               date_start_dtm = as.POSIXct("2023-06-01"),
@@ -4141,8 +4323,8 @@ make_results_matrix <- function(data_tb,
 }
 
 make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = character(0), 
-                                  min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000) 
-{
+                                  min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
+                                                                                                         "CHU9D")) {
   D <- X_Ready4useDyad
   E <- renewSlot(D, "ds_tb", D@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
                                                                                        "Data", group_by_chr)))) %>% dplyr::summarise_at(outcomes_chr, 
@@ -4157,7 +4339,7 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
   ab_tb <- AB@ds_tb
   x_tb <- E@ds_tb
   y_tb <- D@ds_tb %>% dplyr::filter(Data == "Difference")
-  z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
+  z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, utilities_chr = utilities_chr)
   E <- renewSlot(E, "ds_tb", z_tb)
   ab_tb <- ab_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
                                                                    group_by_chr))))
@@ -4179,7 +4361,7 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
                                                                                 startsWith("CE_")])
   x_tb <- x_tb %>% dplyr::left_join(y_tb) %>% dplyr::ungroup() %>% 
     dplyr::left_join(z_tb)
-  x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl)
+  x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, utilities_chr = utilities_chr)
   x_tb <- dplyr::bind_rows(x_tb, ab_tb %>% dplyr::left_join(ab_tb$Data %>% 
                                                               unique() %>% purrr::map_dfr(~y_tb %>% dplyr::mutate(Data = .x))))
   E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::bind_rows(AB@ds_tb))
@@ -4189,19 +4371,21 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
   results_summary_ls <- list(X = E, Y = E1, Z = E2)
   return(results_summary_ls)
 }
-make_results_synthesis <- function (X_Ready4useDyad,
-                                    add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", "Period", 
-                                                                                "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
-                                                                                "treatment_start"), exclude_suffixes_chr = c("_change", 
-                                                                                                                             "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
-                                                                                                                                                                             "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", 
+                                                                                                 "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
+                                                                                                 "treatment_start"), exclude_suffixes_chr = c("_change", "_date", 
+                                                                                                                                              "_previous", "52_Weeks"), keep_chr = c("platform", "clinic_state", 
+                                                                                                                                                                                     "clinic_type", "Age", "gender", "employment_status"), 
+                                    
                                     modifiable_chr = character(0), 
                                     results_ls = NULL, 
-                                    type_1L_chr = c("D", "AB", "C"),
-                                    Y_Ready4useDyad = ready4use::Ready4useDyad(), Z_Ready4useDyad = ready4use::Ready4useDyad()) 
+                                    severity_fn = make_k10_severity_cuts,
+                                    severity_var_1L_chr = "k10_start",
+                                    type_1L_chr = c("D", "AB", "C"), Y_Ready4useDyad = ready4use::Ready4useDyad(), 
+                                    Z_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
-  if(!is.null(results_ls)){
+  if (!is.null(results_ls)) {
     Y_Ready4useDyad = results_ls$Y_Ready4useDyad
     Z_Ready4useDyad = results_ls$Z_Ready4useDyad
   }
@@ -4211,16 +4395,16 @@ make_results_synthesis <- function (X_Ready4useDyad,
                                             keep_chr = keep_chr, modifiable_chr = modifiable_chr, 
                                             type_1L_chr = type_1L_chr)
   if (add_severity_1L_lgl) {
-    severity_ls <- make_k10_severity_cuts()
+    severity_ls <- severity_fn()
     A_Ready4useDyad <- renewSlot(A_Ready4useDyad, "ds_tb", 
-                                 A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(k10_start) >= 
-                                                                                                       severity_ls$Low[1] & as.numeric(k10_start) <= 
-                                                                                                       severity_ls$Low[2] ~ "Low", as.numeric(k10_start) >= 
-                                                                                                       severity_ls$Moderate[1] & as.numeric(k10_start) <= 
-                                                                                                       severity_ls$Moderate[2] ~ "Moderate", as.numeric(k10_start) >= 
-                                                                                                       severity_ls$High[1] & as.numeric(k10_start) <= 
-                                                                                                       severity_ls$High[2] ~ "High", as.numeric(k10_start) >= 
-                                                                                                       severity_ls$VeryHigh[1] & as.numeric(k10_start) <= 
+                                 A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                                                                                                       severity_ls$Low[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                                                                                                       severity_ls$Low[2] ~ "Low", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                                                                                                       severity_ls$Moderate[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                                                                                                       severity_ls$Moderate[2] ~ "Moderate", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                                                                                                       severity_ls$High[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                                                                                                       severity_ls$High[2] ~ "High", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                                                                                                       severity_ls$VeryHigh[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
                                                                                                        severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
   }
   return(A_Ready4useDyad)
@@ -4242,9 +4426,31 @@ make_simulated_draws <- function(model_mdl,
     as.data.frame() %>% stats::setNames(paste0("sim_",iterations_int)) 
   return(simulations_df)
 }
-make_structural_vars <- function(){
-  structural_chr <- c("Iteration","InModel","Arm","Data","StartDate","CurrentDate","EndDate","CurrentEvent","NextEvent", "ScheduledFor")
+make_structural_vars <- function (data_1L_chr = "Data",
+                                  uid_1L_chr = character(0)) {
+  structural_chr <- c("Iteration", uid_1L_chr,  "InModel", "Arm", data_1L_chr, 
+                      "StartDate", "CurrentDate", "EndDate", "CurrentEvent", 
+                      "NextEvent", "ScheduledFor")
   return(structural_chr)
+}
+make_suffix <- function(X_Ready4useDyad,
+                        adjustment_1L_dbl = 0,
+                        follow_up_1L_int = integer(0),
+                        sensitivities_ls = make_sensitivities_ls(),
+                        type_1L_chr = c("Model", "Function", "Project"),
+                        update_1L_int = integer(0)){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(!identical(update_1L_int, integer(0))){
+    suffix_1L_chr <- paste0("_Update_", update_1L_int)
+  }else{
+    if (type_1L_chr == "Project") {
+      suffix_1L_chr <- paste0("_", names(sensitivities_ls$outcomes_ls)[1])
+    } else {
+      suffix_1L_chr <- make_weeks_suffix(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
+                                         follow_up_1L_int = follow_up_1L_int)
+    }
+  }
+  return(suffix_1L_chr)
 }
 make_synthetic_data <- function(model_data_ls,
                                 imputations_1L_int = 5L,
@@ -4288,21 +4494,25 @@ make_synthetic_data <- function(model_data_ls,
                                               Synthetic_r4 = Synthetic_r4))
   return(output_ls)
 }
-make_synthetic_tests <- function (population_ls, model_data_ls = NULL, comparison_1L_chr = c("OutcomesJoinersImputed", 
-                                                                                             "Joiners", "OutcomesJoiners", "Outcomes"), ...) 
+make_synthetic_tests <- function (population_ls, model_data_ls = NULL, 
+                                  original_tb = NULL,
+                                  comparison_1L_chr = c("OutcomesJoinersImputed", 
+                                                        "Joiners", "OutcomesJoiners", "Outcomes"), ...) 
 {
   comparison_1L_chr <- match.arg(comparison_1L_chr)
-  if (comparison_1L_chr == "Joiners") {
-    original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
-      dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == 
-                                                          "Other" ~ NA_character_, T ~ treatment_status) %>% 
-                      as.factor())
-  }
-  if (comparison_1L_chr == "OutcomesJoinersImputed") {
-    original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb
-  }
-  if (comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")) {
-    original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb
+  if(is.null(original_tb)){
+    if (comparison_1L_chr == "Joiners") {
+      original_tb <- model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
+        dplyr::mutate(treatment_status = dplyr::case_when(treatment_status == 
+                                                            "Other" ~ NA_character_, T ~ treatment_status) %>% 
+                        as.factor())
+    }
+    if (comparison_1L_chr == "OutcomesJoinersImputed") {
+      original_tb <- population_ls$real_imputed_ls$Imputed_r4@ds_tb
+    }
+    if (comparison_1L_chr %in% c("OutcomesJoiners", "Outcomes")) {
+      original_tb <- model_data_ls$imputed_ls$OutcomesJoiners_r4@ds_tb
+    }
   }
   original_tb <- dplyr::select(original_tb, intersect(names(original_tb), 
                                                       names(population_ls$fully_synthetic_ls$Synthetic_r4@ds_tb)))
@@ -4545,6 +4755,23 @@ make_unit_cost_params_tb <- function(cost_per_mins_tb,
   unit_cost_params_tb <- unit_cost_params_tb %>% dplyr::mutate(Parameter = paste0(Parameter, "CostPerMin"))
   return(unit_cost_params_tb)
 }
+make_utility_fns_ls <- function(add_to_ls = NULL,
+                                aqol8d_fn = add_aqol8d_from_k10,
+                                eq5d_fn = add_eq5d_from_draws,
+                                sf6d_fn = add_sf6d_from_draws,
+                                utilities_chr = c("AQoL8D", "EQ5D", "SF6D")
+){
+  utility_fns_ls <- list(AQoL8D = aqol8d_fn,
+                         EQ5D = eq5d_fn,
+                         EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr),
+                         SF6D = sf6d_fn,
+                         SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>%
+    purrr::keep_at(utilities_chr)
+  if(!is.null(add_to_ls)){
+    utility_fns_ls <- append(utility_fns_ls, add_to_ls)
+  }
+  return(utility_fns_ls)
+}
 make_utility_predictions_ds <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
                                         Y_Ready4useDyad = ready4use::Ready4useDyad(),
                                         Z_Ready4useDyad = ready4use::Ready4useDyad(),
@@ -4615,6 +4842,14 @@ make_weeks_suffix <- function(X_Ready4useDyad,
     suffix_1L_chr <- paste0("_",adjustment_1L_dbl+round(as.numeric((X_Ready4useDyad@ds_tb$CurrentDate[1]-X_Ready4useDyad@ds_tb$StartDate[1]))/7,0), "_Weeks")
   }
   return(suffix_1L_chr)
+}
+make_worker_types <- function(type_1L_chr = c("all", "medical")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  worker_types_chr <- c("ClinicalPsychologist", "Psychiatrist", "GP", "OtherMedical", "Nurse", "Other")
+  if(type_1L_chr=="medical"){
+    worker_types_chr <- worker_types_chr[c(2:4)]
+  }
+  return(worker_types_chr)
 }
 # make_project_correspondences <- function(){
 #   correspondences_r3 <- ready4show::ready4show_correspondences() %>%

@@ -11,7 +11,6 @@
 #' @importFrom dplyr group_by across mutate n filter ungroup pull
 #' @importFrom tidyselect all_of
 #' @importFrom rlang sym
-#' @keywords internal
 get_duplicated_measures <- function (data_tb, group_by_chr, type_1L_chr = c("table", "uid"), 
     uid_1L_chr = "episode_key", ungroup_1L_lgl = FALSE) 
 {
@@ -39,7 +38,6 @@ get_duplicated_measures <- function (data_tb, group_by_chr, type_1L_chr = c("tab
 #' @return Predictions (an output object of multiple potential types)
 #' @rdname get_pooled
 #' @export 
-#' @keywords internal
 get_pooled <- function (pooled_ls, what_1L_chr, as_1L_chr = c("vector", "histogram", 
     "summary"), n_1L_int = 5000, seed_1L_int = 2001L, resample_1L_lgl = TRUE) 
 {
@@ -61,7 +59,6 @@ get_pooled <- function (pooled_ls, what_1L_chr, as_1L_chr = c("vector", "histogr
 #' @rdname get_private_keys_ls
 #' @export 
 #' @importFrom stringr str_remove_all
-#' @keywords internal
 get_private_keys_ls <- function (path_to_keys_1L_chr, divider_1L_chr = "//", what_1L_chr = c("data", 
     "names")) 
 {
@@ -88,7 +85,6 @@ get_private_keys_ls <- function (path_to_keys_1L_chr, divider_1L_chr = "//", wha
 #' @export 
 #' @importFrom purrr pluck
 #' @importFrom assertthat assert_that
-#' @keywords internal
 get_project_model_data <- function (model_data_ls, what_1L_chr, type_1L_chr = c("imputed", 
     "unimputed")) 
 {
@@ -114,7 +110,6 @@ get_project_model_data <- function (model_data_ls, what_1L_chr, type_1L_chr = c(
 #' @importFrom stringr str_remove_all str_replace_all
 #' @importFrom purrr map
 #' @importFrom stats setNames
-#' @keywords internal
 get_raw_mds_data <- function (path_to_raw_dir_1L_chr, divider_1L_chr = "\\", r_dir_1L_chr = "R", 
     select_chr = character(0), type_1L_chr = c("csv", "rds"), 
     what_1L_chr = c("data", "names")) 
@@ -174,7 +169,6 @@ get_raw_mds_data <- function (path_to_raw_dir_1L_chr, divider_1L_chr = "\\", r_d
 #' @importFrom readxl read_xlsx
 #' @importFrom purrr map
 #' @importFrom stats setNames
-#' @keywords internal
 get_raw_params_data <- function (path_to_param_data_1L_chr, program_fl_nm_1L_chr, unit_cost_fl_nm_1L_chr, 
     cost_types_chr = character(0), divider_1L_chr = "\\", erp_fl_nm_1L_chr = character(0), 
     mbs_fl_nm_1L_chr = character(0), mbs_sheet_1L_chr = "Table EXP.14", 
@@ -210,6 +204,7 @@ get_raw_params_data <- function (path_to_param_data_1L_chr, program_fl_nm_1L_chr
 #' Get regression
 #' @description get_regression() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get regression. The function returns Model (an output object of multiple potential types).
 #' @param regressions_ls Regressions (a list)
+#' @param what_1L_chr What (a character vector of length one)
 #' @param constrained_1L_lgl Constrained (a logical vector of length one), Default: logical(0)
 #' @param model_1L_int Model (an integer vector of length one), Default: integer(0)
 #' @param named_1L_lgl Named (a logical vector of length one), Default: FALSE
@@ -217,30 +212,23 @@ get_raw_params_data <- function (path_to_param_data_1L_chr, program_fl_nm_1L_chr
 #' @param report_1L_chr Report (a character vector of length one), Default: c("all", "check", "compare", "confusion", "density", "estimates", 
 #'    "histogram", "scatter", "test")
 #' @param type_1L_chr Type (a character vector of length one), Default: c("candidates", "assessments", "models", "tests")
-#' @param what_1L_chr What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-#'    "Tx_Treatment", "Tx_Discharged")
 #' @return Model (an output object of multiple potential types)
 #' @rdname get_regression
 #' @export 
 #' @importFrom purrr pluck map
 #' @importFrom assertthat assert_that
 #' @importFrom stringr str_remove
-#' @keywords internal
-get_regression <- function (regressions_ls, constrained_1L_lgl = logical(0), model_1L_int = integer(0), 
-    named_1L_lgl = FALSE, part_1L_int = integer(0), report_1L_chr = c("all", 
-        "check", "compare", "confusion", "density", "estimates", 
-        "histogram", "scatter", "test"), type_1L_chr = c("candidates", 
-        "assessments", "models", "tests"), what_1L_chr = c("AQoL6D", 
-        "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-        "Tx_Treatment", "Tx_Discharged")) 
+get_regression <- function (regressions_ls, what_1L_chr, constrained_1L_lgl = logical(0), 
+    model_1L_int = integer(0), named_1L_lgl = FALSE, part_1L_int = integer(0), 
+    report_1L_chr = c("all", "check", "compare", "confusion", 
+        "density", "estimates", "histogram", "scatter", "test"), 
+    type_1L_chr = c("candidates", "assessments", "models", "tests")) 
 {
     report_1L_chr <- match.arg(report_1L_chr)
     type_1L_chr <- match.arg(type_1L_chr)
-    what_1L_chr <- match.arg(what_1L_chr)
     what_ls <- regressions_ls %>% purrr::pluck(paste0(type_1L_chr, 
         "_ls"))
-    if (what_1L_chr %in% c("AQoL6D", "CHU9D", "K10", "Minutes", 
-        "Treatments")) {
+    if (!what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")) {
         pick_1L_chr <- paste0(what_1L_chr, ifelse(type_1L_chr == 
             "models", "_mdl", "_ls"))
     }
@@ -318,7 +306,6 @@ get_regression <- function (regressions_ls, constrained_1L_lgl = logical(0), mod
 #' @importFrom purrr map_dbl
 #' @importFrom ready4 get_from_lup_obj
 #' @importFrom dplyr filter
-#' @keywords internal
 get_unit_cost_detail <- function (unit_costs_tb, what_1L_chr = c("scenarios", "fixed", 
     "names", "variable")) 
 {

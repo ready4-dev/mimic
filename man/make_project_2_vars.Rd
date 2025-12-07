@@ -23,4 +23,3 @@ Variables (a character vector)
 \description{
 make_project_2_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 variables. The function returns Variables (a character vector).
 }
-\keyword{internal}

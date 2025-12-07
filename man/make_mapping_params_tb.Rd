@@ -12,4 +12,3 @@ Mapping parameters (a tibble)
 \description{
 make_mapping_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make mapping parameters tibble. The function returns Mapping parameters (a tibble).
 }
-\keyword{internal}

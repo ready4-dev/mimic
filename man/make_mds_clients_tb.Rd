@@ -15,4 +15,3 @@ a Minimum Dataset clients (a tibble)
 \description{
 make_mds_clients_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset clients tibble. The function returns a Minimum Dataset clients (a tibble).
 }
-\keyword{internal}

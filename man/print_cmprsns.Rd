@@ -32,4 +32,3 @@ Table (an output object of multiple potential types)
 \description{
 print_cmprsns() is a Print function that prints output to console. Specifically, this function implements an algorithm to print comparisons. The function returns Table (an output object of multiple potential types).
 }
-\keyword{internal}

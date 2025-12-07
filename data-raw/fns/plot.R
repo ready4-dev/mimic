@@ -4,9 +4,8 @@ plot_economic_results <- function (economic_results_ls, what_1L_chr, alpha_1L_db
                                    currency_1L_chr = "$",
                                    plot_tfmn_fn = identity,
                                    size_1L_dbl = 3,
-                                   threshold_1L_dbl = 96000, title_1L_chr = " ", 
-                                   type_1L_chr = c("cep", "ceac", "evi"), 
-                                   x_limits_dbl = numeric(0), ...) 
+                                   threshold_1L_dbl = 96000, title_1L_chr = " ", type_1L_chr = c("cep", 
+                                                                                                 "ceac", "evi"), x_limits_dbl = numeric(0), ...) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
   data_xx <- economic_results_ls %>% purrr::pluck(what_1L_chr)
@@ -87,8 +86,7 @@ plot_test_scatter <- function (X_Ready4useDyad, var_1L_chr,
                                                                                                  !!rlang::sym(paste0(var_1L_chr, "_sim_mean"))))) %>% 
         dplyr::select(-!!rlang::sym(paste0(var_1L_chr, 
                                            "_sim_mean"))) %>% dplyr::distinct()
-    }
-    else {
+    }  else {
       X_Ready4useDyad <- rbind(X_Ready4useDyad@ds_tb %>% 
                                  dplyr::filter(Data != type_1L_chr), X_Ready4useDyad@ds_tb %>% 
                                  dplyr::filter(Data == type_1L_chr) %>% dplyr::group_by(UID) %>% 
@@ -100,15 +98,13 @@ plot_test_scatter <- function (X_Ready4useDyad, var_1L_chr,
     new_tb <- X_Ready4useDyad@ds_tb %>% dplyr::select(c("UID", 
                                                         "Data", var_1L_chr)) %>% tidyr::pivot_wider(names_from = "Data", 
                                                                                                     values_from = var_1L_chr)
-  }
-  else {
+  }  else {
     values_xx <- X_Ready4useDyad@ds_tb %>% dplyr::pull(!!rlang::sym(grouping_1L_chr)) %>% 
       unique() %>% sort()
     if ("factor" %in% class(values_xx)) {
       values_xx <- as.character(values_xx)
       tfmn_fn <- as.character
-    }
-    else {
+    }    else {
       tfmn_fn <- identity
     }
     new_tb <- values_xx %>% purrr::map_dfr(~X_Ready4useDyad@ds_tb %>% 

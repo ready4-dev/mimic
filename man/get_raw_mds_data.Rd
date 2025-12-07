@@ -32,4 +32,3 @@ a Minimum Dataset data (an output object of multiple potential types)
 \description{
 get_raw_mds_data() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get raw minimum dataset data. The function returns a Minimum Dataset data (an output object of multiple potential types).
 }
-\keyword{internal}

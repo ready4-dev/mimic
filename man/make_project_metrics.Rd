@@ -15,4 +15,3 @@ Metrics (a character vector)
 \description{
 make_project_metrics() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project metrics. The function returns Metrics (a character vector).
 }
-\keyword{internal}

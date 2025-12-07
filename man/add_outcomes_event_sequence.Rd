@@ -10,12 +10,16 @@ add_outcomes_event_sequence(
   add_sensitivity_1L_lgl = FALSE,
   adjustment_1L_dbl = -2,
   iterations_int = 1:100L,
+  k10_draws_fn = add_project_1_k10_draws,
   k10_method_1L_chr = c("Model", "Table"),
+  k10_var_1L_chr = "k10",
   sensitivities_ls = make_sensitivities_ls(),
   suffix_1L_chr = character(0),
   tfmn_ls = make_class_tfmns(T),
+  tx_prefix_1L_chr = "treatment",
   utilities_chr = c("CHU9D", "AQoL6D"),
-  type_1L_chr = c("Model", "Project")
+  type_1L_chr = c("Model", "Project"),
+  update_1L_int = integer(0)
 )
 }
 \arguments{
@@ -29,7 +33,11 @@ add_outcomes_event_sequence(
 
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
+\item{k10_draws_fn}{K10 draws (a function), Default: add_project_1_k10_draws}
+
 \item{k10_method_1L_chr}{K10 method (a character vector of length one), Default: c("Model", "Table")}
+
+\item{k10_var_1L_chr}{K10 variable (a character vector of length one), Default: 'k10'}
 
 \item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
 
@@ -37,9 +45,13 @@ add_outcomes_event_sequence(
 
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns(T)}
 
+\item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: 'treatment'}
+
 \item{utilities_chr}{Utilities (a character vector), Default: c("CHU9D", "AQoL6D")}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("Model", "Project")}
+
+\item{update_1L_int}{Update (an integer vector of length one), Default: integer(0)}
 }
 \value{
 X (A dataset and data dictionary pair.)
@@ -47,4 +59,3 @@ X (A dataset and data dictionary pair.)
 \description{
 add_outcomes_event_sequence() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add outcomes event sequence. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

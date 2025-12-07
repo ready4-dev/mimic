@@ -29,4 +29,3 @@ Duplicates (an output object of multiple potential types)
 \description{
 get_duplicated_measures() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get duplicated measures. The function returns Duplicates (an output object of multiple potential types).
 }
-\keyword{internal}

@@ -32,4 +32,3 @@ Actives (an output object of multiple potential types)
 \description{
 make_actives_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make actives tibble. The function returns Actives (an output object of multiple potential types).
 }
-\keyword{internal}

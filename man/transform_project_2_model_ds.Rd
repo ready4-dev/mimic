@@ -26,4 +26,3 @@ Data (a tibble)
 \description{
 transform_project_2_model_ds() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform project 2 model dataset. The function returns Data (a tibble).
 }
-\keyword{internal}

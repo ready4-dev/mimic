@@ -139,70 +139,75 @@ get_raw_params_data <- function(path_to_param_data_1L_chr,
                              unit_cost_tb_ls = unit_cost_tb_ls)
   return(raw_params_data_ls)
 }
-get_regression <- function(regressions_ls,
-                                constrained_1L_lgl = logical(0),
-                                model_1L_int = integer(0),
-                                named_1L_lgl = FALSE,
-                                part_1L_int = integer(0),
-                                report_1L_chr = c("all", "check", "compare", "confusion", "density", "estimates", "histogram", "scatter", "test"),
-                                type_1L_chr = c("candidates", "assessments", "models", "tests"),
-                                what_1L_chr = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")){
+get_regression <- function (regressions_ls, 
+                            what_1L_chr,  # = c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")) 
+                            constrained_1L_lgl = logical(0), model_1L_int = integer(0), 
+                            named_1L_lgl = FALSE, part_1L_int = integer(0), 
+                            report_1L_chr = c("all", "check", "compare", "confusion", "density", "estimates", 
+                                              "histogram", "scatter", "test"), 
+                            type_1L_chr = c("candidates", "assessments", "models", "tests"))  
+{
   report_1L_chr <- match.arg(report_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
-  what_ls <- regressions_ls %>% purrr::pluck(paste0(type_1L_chr,"_ls"))
-  if(what_1L_chr %in% c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments")){
-    pick_1L_chr <- paste0(what_1L_chr,
-                          ifelse(type_1L_chr=="models","_mdl","_ls"))
-  }else{
+  what_ls <- regressions_ls %>% purrr::pluck(paste0(type_1L_chr, 
+                                                    "_ls"))
+  if(!what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")) { # "AQoL6D", "CHU9D", "K10", "Minutes", "Treatments")
+    pick_1L_chr <- paste0(what_1L_chr, ifelse(type_1L_chr == "models", "_mdl", "_ls"))
+  } else {
     pick_1L_chr <- "Treatments_ls"
   }
   models_ls <- what_ls %>% purrr::pluck(pick_1L_chr)
-  if(!identical(part_1L_int, integer(0))){
+  if (!identical(part_1L_int, integer(0))) {
     assertthat::assert_that(part_1L_int %in% 1:2)
-    if(type_1L_chr %in% c("candidates", "models")){
-      if(type_1L_chr == "models"){
+    if (type_1L_chr %in% c("candidates", "models")) {
+      if (type_1L_chr == "models") {
         models_ls <- list(models_ls)
       }
-      models_ls <- purrr::map(models_ls,
-                              ~{
-                                if(inherits(.x,"twopartm")){
-                                  if(part_1L_int==1){
-                                    .x@model_part1 
-                                  }else{
-                                    .x@model_part2 
-                                  }
-                                }else{
-                                  .x
-                                }
-                              })
-      if(type_1L_chr == "models"){
+      models_ls <- purrr::map(models_ls, ~{
+        if (inherits(.x, "twopartm")) {
+          if (part_1L_int == 1) {
+            .x@model_part1
+          } else {
+            .x@model_part2
+          }
+        } else {
+          .x
+        }
+      })
+      if (type_1L_chr == "models") {
         models_ls <- models_ls[[1]]
       }
-    }else{
+    }   else {
       models_ls <- models_ls[[part_1L_int]]
     }
   }
-  if(what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")){
-    pick_1L_chr <- paste0(stringr::str_remove(what_1L_chr, "Tx_"),"_ls")
-    models_ls <- models_ls %>% purrr::pluck(pick_1L_chr) 
+  if (what_1L_chr %in% c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged")) {
+    pick_1L_chr <- paste0(stringr::str_remove(what_1L_chr, 
+                                              "Tx_"), "_ls")
+    models_ls <- models_ls %>% purrr::pluck(pick_1L_chr)
   }
-  if(identical(model_1L_int, integer(0)) | !type_1L_chr %in% c("candidates")){
+  if (identical(model_1L_int, integer(0)) | !type_1L_chr %in% 
+      c("candidates")) {
     model_xx <- models_ls
-  }else{
-    if(named_1L_lgl){
+  } else {
+    if (named_1L_lgl) {
       model_xx <- models_ls[model_1L_int]
-    }else{
+    }  else {
       model_xx <- models_ls[[model_1L_int]]
     }
   }
-  if(type_1L_chr == "assessments" & report_1L_chr != "all"){
-    model_xx <- model_xx %>% purrr::pluck(c("check_plt", "compare_df", "confusion_ls", "estimates_df", "test_df")[which(report_1L_chr == c("check", "compare", "confusion", "estimates", "test"))])
+  if (type_1L_chr == "assessments" & report_1L_chr != "all") {
+    model_xx <- model_xx %>% purrr::pluck(c("check_plt", 
+                                            "compare_df", "confusion_ls", "estimates_df", "test_df")[which(report_1L_chr == 
+                                                                                                             c("check", "compare", "confusion", "estimates", "test"))])
   }
-  if(type_1L_chr == "tests" & report_1L_chr != "all"){
-    model_xx <- model_xx %>% purrr::pluck(c("density_ls", "histogram_ls", "scatter_ls", "comparison_tb")[which(report_1L_chr == c("density", "histogram", "scatter", "compare"))])
-    if(!identical(constrained_1L_lgl,logical(0))){
-      model_xx <- model_xx[[ifelse(constrained_1L_lgl,2,1)]]
+  if (type_1L_chr == "tests" & report_1L_chr != "all") {
+    model_xx <- model_xx %>% purrr::pluck(c("density_ls", 
+                                            "histogram_ls", "scatter_ls", "comparison_tb")[which(report_1L_chr == 
+                                                                                                   c("density", "histogram", "scatter", "compare"))])
+    if (!identical(constrained_1L_lgl, logical(0))) {
+      model_xx <- model_xx[[ifelse(constrained_1L_lgl, 
+                                   2, 1)]]
     }
   }
   return(model_xx)

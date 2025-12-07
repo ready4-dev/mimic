@@ -35,4 +35,3 @@ Tpm models (a list)
 \description{
 make_project_minutes_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project minutes models. The function returns Tpm models (a list).
 }
-\keyword{internal}

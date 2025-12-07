@@ -41,4 +41,3 @@ A (A dataset and data dictionary pair.)
 \description{
 make_composite_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make composite results. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

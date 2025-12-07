@@ -15,4 +15,3 @@ Parameters (a tibble)
 \description{
 update_project_2_param_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update project 2 parameter names. The function returns Parameters (a tibble).
 }
-\keyword{internal}

@@ -4,10 +4,16 @@
 \alias{update_tx_start_end}
 \title{Update treatment start end}
 \usage{
-update_tx_start_end(X_Ready4useDyad, tx_duration_dtm = lubridate::weeks(12))
+update_tx_start_end(
+  X_Ready4useDyad,
+  prefix_1L_chr = "treatment",
+  tx_duration_dtm = lubridate::weeks(12)
+)
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
+
+\item{prefix_1L_chr}{Prefix (a character vector of length one), Default: 'treatment'}
 
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 }
@@ -17,4 +23,3 @@ X (A dataset and data dictionary pair.)
 \description{
 update_tx_start_end() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update treatment start end. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

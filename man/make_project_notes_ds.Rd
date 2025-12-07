@@ -17,4 +17,3 @@ Notes (a tibble)
 \description{
 make_project_notes_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project notes dataset. The function returns Notes (a tibble).
 }
-\keyword{internal}

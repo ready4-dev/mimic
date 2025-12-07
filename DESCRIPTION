@@ -1,18 +1,18 @@
 Package: mimic
-Title: Implement Simple Microsimulation to Economically Evaluate Mental
-    Health Services
-Version: 0.0.1.9004
+Title: Implement Microsimulations to Economically Evaluate Mental Health
+    Services
+Version: 0.1.0
 Authors@R: 
     person("Matthew", "Hamilton", , "matthew.hamilton1@monash.edu", role = c("aut", "cph", "cre"),
            comment = c(ORCID = "0000-0001-7407-9194"))
 Description: Tools for developing simple microsimulations of mental health
-    service and exporting outputs for cost-utility analyses. Designed for
+    services and exporting outputs for cost-utility analyses. Designed for
     use with the ready4 framework (https://ready4-dev.github.io/ready4/).
     This early development version of mimic has been made available as
     part of the process of testing and documenting the library.  If you
     have any questions, please contact the authors
     (matthew.hamilton1@monash.edu).
-License: GPL-3
+License: GPL-3 + file LICENSE
 URL: https://ready4-dev.github.io/mimic/,
     https://github.com/ready4-dev/mimic,
     https://ready4-dev.github.io/mimic/
@@ -22,7 +22,6 @@ RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     knitrBootstrap,
-    pkgload,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
@@ -37,6 +36,7 @@ Imports:
     dplyr,
     flextable,
     ggplot2,
+    gtsummary,
     heemod,
     Hmisc,
     janitor,
@@ -46,6 +46,7 @@ Imports:
     magrittr,
     methods,
     mice,
+    openxlsx,
     parsnip,
     performance,
     purrr,

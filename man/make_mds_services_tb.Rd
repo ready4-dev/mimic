@@ -29,4 +29,3 @@ Services (a tibble)
 \description{
 make_mds_services_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset services tibble. The function returns Services (a tibble).
 }
-\keyword{internal}

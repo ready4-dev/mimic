@@ -33,4 +33,3 @@ X (A dataset and data dictionary pair.)
 \description{
 update_partial_results() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update partial results. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

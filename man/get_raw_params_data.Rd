@@ -53,4 +53,3 @@ Raw parameters data (a list)
 \description{
 get_raw_params_data() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get raw parameters data. The function returns Raw parameters data (a list).
 }
-\keyword{internal}

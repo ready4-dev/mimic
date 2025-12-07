@@ -56,4 +56,3 @@ COSTS (a ready4 module)
 \description{
 make_mds_costing_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset costing dataset. The function returns COSTS (a ready4 module).
 }
-\keyword{internal}

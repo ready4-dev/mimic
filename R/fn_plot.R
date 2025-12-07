@@ -20,7 +20,6 @@
 #' @importFrom BCEA ceac.plot ceplane.plot evi.plot
 #' @importFrom ggplot2 labs scale_x_continuous expand_limits
 #' @importFrom scales dollar_format
-#' @keywords internal
 plot_economic_results <- function (economic_results_ls, what_1L_chr, alpha_1L_dbl = 0.8, 
     colour_1L_chr = ready4use::get_colour_codes(type_1L_chr = "unicol", 
         style_1L_chr = "monash_2"), currency_1L_chr = "$", plot_tfmn_fn = identity, 
@@ -68,7 +67,6 @@ plot_economic_results <- function (economic_results_ls, what_1L_chr, alpha_1L_db
 #' @importFrom assertthat assert_that
 #' @importFrom SHELF plotfit
 #' @importFrom purrr pluck
-#' @keywords internal
 plot_pooled <- function (pooled_fits_ls, what_1L_chr, distributions_chr = "best", 
     pool_1L_lgl = TRUE, ...) 
 {
@@ -98,7 +96,6 @@ plot_pooled <- function (pooled_fits_ls, what_1L_chr, distributions_chr = "best"
 #' @export 
 #' @importFrom ready4use get_colour_codes
 #' @importFrom jtools plot_summs
-#' @keywords internal
 plot_regression <- function (regressions_ls, what_1L_chr, close_1L_lgl = TRUE, colors_chr = ready4use::get_colour_codes(type_1L_chr = "unicol", 
     style_1L_chr = "monash_2"), constrained_1L_lgl = logical(0), 
     model_1L_int = integer(0), named_1L_lgl = FALSE, part_1L_int = integer(0), 
@@ -139,7 +136,6 @@ plot_regression <- function (regressions_ls, what_1L_chr, close_1L_lgl = TRUE, c
 #' @importFrom rlang sym
 #' @importFrom purrr map_dfr
 #' @importFrom tune coord_obs_pred
-#' @keywords internal
 plot_test_scatter <- function (X_Ready4useDyad, var_1L_chr, collapse_1L_lgl = F, colour_1L_chr = ready4use::get_colour_codes(style_1L_chr = "monash_2", 
     type_1L_chr = "unicol"), grouping_1L_chr = character(0), 
     new_1L_lgl = F, plot_tfmn_fn = identity, old_1L_chr = "Observed", 
@@ -213,7 +209,6 @@ plot_test_scatter <- function (X_Ready4useDyad, var_1L_chr, collapse_1L_lgl = F,
 #' @importFrom dplyr rename mutate pull
 #' @importFrom rlang sym
 #' @importFrom ggplot2 autoplot scale_fill_gradient
-#' @keywords internal
 plot_tx_mdl_confusion <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), tx_mdls_ls, 
     model_1L_int, high_1L_chr = "#2E86C1", low_1L_chr = "#D6EAF8", 
     treatment_vars_chr = c("treatment_status", "treatment_status_t2"), 

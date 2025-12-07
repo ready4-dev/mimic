@@ -20,4 +20,3 @@ Model dyad (a list)
 \description{
 update_mismatched_vars() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update mismatched variables. The function returns Model dyad (a list).
 }
-\keyword{internal}

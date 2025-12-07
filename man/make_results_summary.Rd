@@ -9,7 +9,8 @@ make_results_summary(
   outcomes_chr,
   group_by_chr = character(0),
   min_cell_size_1L_int = 1L,
-  threshold_1L_dbl = 96000
+  threshold_1L_dbl = 96000,
+  utilities_chr = c("AQoL6D", "CHU9D")
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ make_results_summary(
 \item{min_cell_size_1L_int}{Minimum cell size (an integer vector of length one), Default: 1}
 
 \item{threshold_1L_dbl}{Threshold (a double vector of length one), Default: 96000}
+
+\item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 }
 \value{
 Results summary (a list)
@@ -29,4 +32,3 @@ Results summary (a list)
 \description{
 make_results_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results summary. The function returns Results summary (a list).
 }
-\keyword{internal}

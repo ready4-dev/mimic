@@ -15,4 +15,3 @@ a CHU-9D (a list)
 \description{
 make_project_chu9d_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project chu-9d models. The function returns a CHU-9D (a list).
 }
-\keyword{internal}

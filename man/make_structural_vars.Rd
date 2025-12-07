@@ -4,7 +4,12 @@
 \alias{make_structural_vars}
 \title{Make structural variables}
 \usage{
-make_structural_vars()
+make_structural_vars(data_1L_chr = "Data", uid_1L_chr = character(0))
+}
+\arguments{
+\item{data_1L_chr}{Data (a character vector of length one), Default: 'Data'}
+
+\item{uid_1L_chr}{Unique identifier (a character vector of length one), Default: character(0)}
 }
 \value{
 Structural (a character vector)
@@ -12,4 +17,3 @@ Structural (a character vector)
 \description{
 make_structural_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make structural variables. The function returns Structural (a character vector).
 }
-\keyword{internal}

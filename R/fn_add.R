@@ -6,7 +6,6 @@
 #' @rdname add_activity
 #' @export 
 #' @importFrom dplyr mutate case_when
-#' @keywords internal
 add_activity <- function (data_tb, neither_1L_chr = "ERROR") 
 {
     data_tb <- data_tb %>% dplyr::mutate(Activity = dplyr::case_when(SignedUp == 
@@ -32,7 +31,6 @@ add_activity <- function (data_tb, neither_1L_chr = "ERROR")
 #' @importFrom lubridate interval years
 #' @importFrom ready4use add_dictionary ready4use_dictionary renew.ready4use_dictionary
 #' @importFrom tidyselect all_of
-#' @keywords internal
 add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_lgl = FALSE, 
     date_of_birth_1L_chr = "date_of_birth", index_date_1L_chr = "onboarding_date", 
     what_chr = c("contacts", "outcomes", "overview")) 
@@ -75,6 +73,50 @@ add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_
         })
     return(project_dss_ls)
 }
+#' Add Assessment of Quality of Life Eight Dimension from K10
+#' @description add_aqol8d_from_k10() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add assessment of quality of life eight dimension from k10. The function returns Data (an output object of multiple potential types).
+#' @param data_xx Data (an output object of multiple potential types)
+#' @param correspondences_r3 Correspondences (a ready4 submodule), Default: ready4show::ready4show_correspondences()
+#' @param norway_1L_lgl Norway (a logical vector of length one), Default: FALSE
+#' @param source_1L_chr Source (a character vector of length one), Default: c("10.1192/bjp.bp.113.136036")
+#' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'AQoL8D'
+#' @return Data (an output object of multiple potential types)
+#' @rdname add_aqol8d_from_k10
+#' @export 
+#' @importFrom ready4show ready4show_correspondences renew.ready4show_correspondences
+#' @importFrom serious transform_data_fmt
+#' @importFrom assertthat assert_that
+#' @importFrom dplyr filter mutate
+#' @importFrom rlang sym
+#' @importFrom purrr map_dbl
+add_aqol8d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
+    norway_1L_lgl = FALSE, source_1L_chr = c("10.1192/bjp.bp.113.136036"), 
+    tidy_cols_1L_lgl = FALSE, var_1L_chr = "AQoL8D") 
+{
+    X_Ready4useDyad <- serious::transform_data_fmt(data_xx, type_1L_chr = "input")
+    data_tb <- X_Ready4useDyad@ds_tb
+    if (identical(correspondences_r3, ready4show::ready4show_correspondences())) {
+        correspondences_r3 <- correspondences_r3 %>% ready4show::renew.ready4show_correspondences(old_nms_chr = c("K10"), 
+            new_nms_chr = c("K10"))
+    }
+    test_1L_lgl <- assertthat::assert_that(length(intersect(correspondences_r3$old_nms_chr, 
+        c("K10"))) == 1)
+    correspondences_r3 <- correspondences_r3 %>% dplyr::filter(old_nms_chr %in% 
+        c("K10"))
+    data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+        !!rlang::sym(correspondences_r3$new_nms_chr[1]) %>% purrr::map_dbl(~{
+            k10_1L_dbl <- .x
+            calculate_aqol8d_from_k10(k10_1L_dbl = k10_1L_dbl, 
+                norway_1L_lgl = norway_1L_lgl, source_1L_chr = source_1L_chr)
+        })))
+    X_Ready4useDyad@ds_tb <- data_tb
+    if (tidy_cols_1L_lgl) {
+        X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
+    }
+    data_xx <- serious::transform_data_fmt(data_xx, X_Ready4useDyad = X_Ready4useDyad)
+    return(data_xx)
+}
 #' Add box conditionally
 #' @description add_box_conditionally() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add box conditionally. The function returns Table (an output object of multiple potential types).
 #' @param table_xx Table (an output object of multiple potential types)
@@ -87,7 +129,6 @@ add_age_to_project_dss <- function (project_dss_ls, age_1L_chr = "Age", drop_1L_
 #' @export 
 #' @importFrom flextable theme_box
 #' @importFrom ready4show add_tfmn_for_fmt make_table_fns_ls
-#' @keywords internal
 add_box_conditionally <- function (table_xx, html_table_fn = identity, output_type_1L_chr = c("HTML", 
     "PDF", "Word"), pdf_table_fn = identity, word_table_fn = flextable::theme_box) 
 {
@@ -110,7 +151,6 @@ add_box_conditionally <- function (table_xx, html_table_fn = identity, output_ty
 #' @importFrom purrr reduce map_chr map2_chr
 #' @importFrom stringr str_extract str_remove
 #' @importFrom rlang sym
-#' @keywords internal
 add_clients_to_summary <- function (summaries_ls, onboarded_tb, arrange_1L_chr = character(0), 
     reference_1L_chr = "Status quo") 
 {
@@ -151,7 +191,6 @@ add_clients_to_summary <- function (summaries_ls, onboarded_tb, arrange_1L_chr =
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE, add_logic_fn = identity, 
     add_offsets_1L_lgl = FALSE, add_variable_1L_lgl = TRUE, base_for_rates_int = 1L, 
     offsets_chr = character(0), variable_unit_1L_chr = "Minutes") 
@@ -206,7 +245,6 @@ add_cost_calculations <- function (data_tb, inputs_ls, add_fixed_1L_lgl = FALSE,
 #' @importFrom dplyr mutate select
 #' @importFrom rlang sym
 #' @importFrom purrr map2_dbl pmap_dbl
-#' @keywords internal
 add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_chr = character(0), 
     effect_1L_chr = "QALYs", icer_1L_chr = character(0), suffix_1L_chr = "", 
     threshold_1L_dbl = 96000) 
@@ -237,7 +275,6 @@ add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_
 #' @rdname add_cost_effectiveness_stats
 #' @export 
 #' @importFrom purrr reduce
-#' @keywords internal
 add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
     "CHU9D")) 
 {
@@ -323,7 +360,6 @@ add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, uti
 #' @importFrom rlang sym
 #' @importFrom tibble tibble
 #' @importFrom tidyselect all_of
-#' @keywords internal
 add_cost_offsets <- function (data_tb, inputs_ls, offsets_chr, add_logic_fn = identity, 
     base_for_rates_int = 1L) 
 {
@@ -400,7 +436,6 @@ add_cost_offsets <- function (data_tb, inputs_ls, offsets_chr, add_logic_fn = id
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_costs_event
 #' @export 
-#' @keywords internal
 add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity, 
     add_offsets_1L_lgl = FALSE, base_for_rates_int = 1L, offsets_chr = character(0), 
     type_1L_chr = c("variable", "fixed", "both", "zero"), variable_unit_1L_chr = "Minutes") 
@@ -447,7 +482,6 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity
 #' @importFrom rlang sym
 #' @importFrom lubridate weeks
 #' @importFrom tibble tibble add_case
-#' @keywords internal
 add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 26, arrange_1L_chr = character(0), 
     bind_to_tb = NULL, cost_tfmn_fn = identity, reference_1L_chr = "Status quo", 
     tfmn_fn = identity, type_1L_chr = c("change_scenario", "change_scen_sq", 
@@ -656,7 +690,6 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @importFrom purrr map2_chr
-#' @keywords internal
 add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
     suffix_1L_chr = "") 
 {
@@ -672,32 +705,39 @@ add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs
 #' @param arm_1L_chr Arm (a character vector of length one)
 #' @param draws_tb Draws (a tibble)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
+#' @param default_fn Default (a function), Default: NULL
+#' @param derive_fn_ls Derive (a list of functions), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
+#' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
 #' @param tfmn_ls Transformation (a list), Default: NULL
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
+#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'treatment'
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_enter_model_event
 #' @export 
 #' @importFrom lubridate years weeks NA_Date_
 #' @importFrom dplyr mutate select everything inner_join
-#' @importFrom purrr map_dfr
-#' @keywords internal
+#' @importFrom purrr map_dfr reduce pluck
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
-    iterations_int = 1:100L, modifiable_chr = character(0), start_dtm = Sys.Date(), 
-    tfmn_ls = NULL, tx_duration_dtm = lubridate::weeks(12)) 
+    default_fn = NULL, derive_fn_ls = NULL, iterations_int = 1:100L, 
+    modifiable_chr = character(0), start_dtm = Sys.Date(), tidy_cols_1L_lgl = FALSE, 
+    tfmn_ls = NULL, tx_duration_dtm = lubridate::weeks(12), tx_prefix_1L_chr = "treatment") 
 {
     X_Ready4useDyad <- X_Ready4useDyad %>% update_population_classes(tfmn_ls = tfmn_ls)
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(Arm = arm_1L_chr, InModel = T, , Iteration = NA_integer_, 
+        dplyr::mutate(Arm = arm_1L_chr, InModel = T, Iteration = NA_integer_, 
             StartDate = start_dtm, EndDate = start_dtm + horizon_dtm, 
             CurrentDate = start_dtm, CurrentEvent = "EnterModel", 
             NextEvent = NA_character_, ScheduledFor = lubridate::NA_Date_) %>% 
         dplyr::select(Iteration, UID, InModel, Arm, StartDate, 
             CurrentDate, EndDate, CurrentEvent, NextEvent, ScheduledFor, 
             dplyr::everything()))
-    X_Ready4useDyad <- update_tx_start_end(X_Ready4useDyad, tx_duration_dtm = tx_duration_dtm)
+    if (paste0(tx_prefix_1L_chr, "_status") %in% names(X_Ready4useDyad@ds_tb)) {
+        X_Ready4useDyad <- update_tx_start_end(X_Ready4useDyad, 
+            prefix_1L_chr = tx_prefix_1L_chr, tx_duration_dtm = tx_duration_dtm)
+    }
     X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = modifiable_chr, 
         pattern_1L_chr = "{col}_start")
     X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = modifiable_chr)
@@ -705,6 +745,22 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
         purrr::map_dfr(~X_Ready4useDyad@ds_tb %>% dplyr::mutate(Iteration = .x)))
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::inner_join(draws_tb))
+    if (!is.null(default_fn)) {
+        X_Ready4useDyad <- default_fn(X_Ready4useDyad)
+    }
+    if (!is.null(derive_fn_ls)) {
+        X_Ready4useDyad <- names(derive_fn_ls) %>% purrr::reduce(.init = X_Ready4useDyad, 
+            ~{
+                derive_fn <- derive_fn_ls %>% purrr::pluck(.y)
+                .x %>% derive_fn(var_1L_chr = .y)
+            })
+        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = names(derive_fn_ls), 
+            pattern_1L_chr = "{col}_start")
+        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = names(derive_fn_ls))
+    }
+    if (tidy_cols_1L_lgl) {
+        X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
+    }
     return(X_Ready4useDyad)
 }
 #' Add episode
@@ -733,7 +789,6 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
 #' @importFrom purrr pluck reduce
 #' @importFrom lubridate days
 #' @importFrom tidyselect all_of
-#' @keywords internal
 add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_ls, 
     iterations_int, sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
     utilities_chr, utility_fns_ls, episode_end_1L_chr = "EpisodeEnd_mdl", 
@@ -811,7 +866,6 @@ add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate time_length
 #' @importFrom purrr map2_int map2_dbl
-#' @keywords internal
 add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, iterations_int = 1:100L, 
     treatment_1L_chr = character(0)) 
 {
@@ -853,6 +907,23 @@ add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, itera
         variable_1L_chr = "EpisodeDurationDays", type_1L_chr = "Day")
     return(X_Ready4useDyad)
 }
+#' Add episode start
+#' @description add_episode_start() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add episode start. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_episode_start
+#' @export 
+#' @importFrom dplyr mutate
+add_episode_start <- function (X_Ready4useDyad) 
+{
+    if (!"Episode" %in% names(X_Ready4useDyad@ds_tb)) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Episode = 0))
+    }
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(Episode = Episode + 1))
+    return(X_Ready4useDyad)
+}
 #' Add episode wait time
 #' @description add_episode_wait_time() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add episode wait time. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -865,7 +936,6 @@ add_episode_duration <- function (X_Ready4useDyad, episode_end_mdl = NULL, itera
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom rlang sym
-#' @keywords internal
 add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, iterations_int = 1:100L, 
     type_1L_chr = c("first", "repeat"), treatment_1L_chr = character(0)) 
 {
@@ -918,6 +988,98 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
     }
     return(X_Ready4useDyad)
 }
+#' Add EQ5D from draws
+#' @description add_eq5d_from_draws() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add eq5d from draws. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param correspondences_r3 Correspondences (a ready4 submodule), Default: ready4show::ready4show_correspondences()
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'ParamEQ5DBeta'
+#' @param value_with_fn Value with (a function), Default: add_eq5d_from_k10
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'EQ5D'
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_eq5d_from_draws
+#' @export 
+#' @importFrom ready4show ready4show_correspondences
+add_eq5d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4show::ready4show_correspondences(), 
+    prefix_1L_chr = "ParamEQ5DBeta", value_with_fn = add_eq5d_from_k10, 
+    var_1L_chr = "EQ5D") 
+{
+    X_Ready4useDyad <- X_Ready4useDyad %>% add_iteration_values_set(value_with_fn = value_with_fn, 
+        value_with_args_ls = list(correspondences_r3 = correspondences_r3, 
+            prefix_1L_chr = prefix_1L_chr, var_1L_chr = var_1L_chr, 
+            type_1L_chr = "internal"))
+    return(X_Ready4useDyad)
+}
+#' Add EQ5D from K10
+#' @description add_eq5d_from_k10() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add eq5d from k10. The function returns Data (an output object of multiple potential types).
+#' @param data_xx Data (an output object of multiple potential types)
+#' @param correspondences_r3 Correspondences (a ready4 submodule), Default: ready4show::ready4show_correspondences()
+#' @param beta_age_1L_dbl Beta age (a double vector of length one), Default: -0.01382
+#' @param beta_constant_1L_dbl Beta constant (a double vector of length one), Default: 3.5222
+#' @param beta_k10_1L_dbl Beta K10 (a double vector of length one), Default: -0.06476
+#' @param germany_1L_lgl Germany (a logical vector of length one), Default: FALSE
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'ParamEQ5DBeta'
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'EQ5D'
+#' @param source_1L_chr Source (a character vector of length one), Default: c("10.1192/bjo.2018.21", "10.1192/bjp.bp.113.136036")
+#' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
+#' @param type_1L_chr Type (a character vector of length one), Default: c("internal", "external")
+#' @return Data (an output object of multiple potential types)
+#' @rdname add_eq5d_from_k10
+#' @export 
+#' @importFrom ready4show ready4show_correspondences renew.ready4show_correspondences
+#' @importFrom serious transform_data_fmt
+#' @importFrom assertthat assert_that
+#' @importFrom dplyr filter arrange mutate select
+#' @importFrom rlang sym
+#' @importFrom tidyselect all_of
+#' @importFrom purrr pmap_dbl map2_dbl
+add_eq5d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
+    beta_age_1L_dbl = -0.01382, beta_constant_1L_dbl = 3.5222, 
+    beta_k10_1L_dbl = -0.06476, germany_1L_lgl = FALSE, prefix_1L_chr = "ParamEQ5DBeta", 
+    var_1L_chr = "EQ5D", source_1L_chr = c("10.1192/bjo.2018.21", 
+        "10.1192/bjp.bp.113.136036"), tidy_cols_1L_lgl = FALSE, 
+    type_1L_chr = c("internal", "external")) 
+{
+    source_1L_chr <- match.arg(source_1L_chr)
+    type_1L_chr <- match.arg(type_1L_chr)
+    X_Ready4useDyad <- serious::transform_data_fmt(data_xx, type_1L_chr = "input")
+    data_tb <- X_Ready4useDyad@ds_tb
+    if (identical(correspondences_r3, ready4show::ready4show_correspondences())) {
+        correspondences_r3 <- correspondences_r3 %>% ready4show::renew.ready4show_correspondences(old_nms_chr = c("Age", 
+            "K10"), new_nms_chr = c("Age", "K10"))
+    }
+    test_1L_lgl <- assertthat::assert_that(length(intersect(correspondences_r3$old_nms_chr, 
+        c("Age", "K10"))) == 2)
+    correspondences_r3 <- correspondences_r3 %>% dplyr::filter(old_nms_chr %in% 
+        c("Age", "K10")) %>% dplyr::arrange(old_nms_chr)
+    if (type_1L_chr == "internal") {
+        data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+            data_tb %>% dplyr::select(tidyselect::all_of(c(correspondences_r3$new_nms_chr, 
+                paste0(prefix_1L_chr, c("Constant", correspondences_r3$new_nms_chr))))) %>% 
+                purrr::pmap_dbl(~calculate_eq5d_from_k10(age_1L_dbl = ..1, 
+                  k10_1L_dbl = ..2, beta_age_1L_dbl = ..4, beta_constant_1L_dbl = ..3, 
+                  beta_k10_1L_dbl = ..5))))
+    }
+    else {
+        data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+            !!rlang::sym(correspondences_r3$new_nms_chr[1]) %>% 
+                purrr::map2_dbl(!!rlang::sym(correspondences_r3$new_nms_chr[2]), 
+                  ~{
+                    age_1L_dbl <- .x
+                    k10_1L_dbl <- .y
+                    calculate_eq5d_from_k10(age_1L_dbl = age_1L_dbl, 
+                      k10_1L_dbl = k10_1L_dbl, beta_age_1L_dbl = beta_age_1L_dbl, 
+                      beta_constant_1L_dbl = beta_constant_1L_dbl, 
+                      beta_k10_1L_dbl = beta_k10_1L_dbl, germany_1L_lgl = germany_1L_lgl, 
+                      source_1L_chr = source_1L_chr)
+                  })))
+    }
+    X_Ready4useDyad@ds_tb <- data_tb
+    if (tidy_cols_1L_lgl) {
+        X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
+    }
+    data_xx <- serious::transform_data_fmt(data_xx, X_Ready4useDyad = X_Ready4useDyad)
+    return(data_xx)
+}
 #' Add Initial Assessment andeferral parameters
 #' @description add_iar_params() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add initial assessment andeferral parameters. The function returns Parameters (a tibble).
 #' @param params_tb Parameters (a tibble)
@@ -938,7 +1100,6 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
 #' @importFrom purrr map reduce
 #' @importFrom dplyr filter pull arrange
 #' @importFrom tibble add_case
-#' @keywords internal
 add_iar_params <- function (params_tb, comparator_int, model_data_ls, processed_ls, 
     raw_mds_data_ls, test_1L_chr, comparator_1L_chr = "Comparator", 
     comparator_filter_fn = identity, cost_1L_dbl = 0, intervention_1L_chr = "Intervention", 
@@ -986,7 +1147,6 @@ add_iar_params <- function (params_tb, comparator_int, model_data_ls, processed_
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_icer <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs", 
     suffix_1L_chr = "") 
 {
@@ -1019,7 +1179,6 @@ add_icer <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs",
 #' @importFrom tibble as_tibble
 #' @importFrom serious add_cumulatives
 #' @importFrom stringr str_remove
-#' @keywords internal
 add_imputed_data <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("platform", 
         "clinic_type", "gender", "employment_status", "clinic_state", 
@@ -1112,7 +1271,6 @@ add_imputed_data <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Read
 #' @importFrom purrr map reduce
 #' @importFrom dplyr filter arrange
 #' @importFrom rlang exec
-#' @keywords internal
 add_iteration_values_set <- function (X_Ready4useDyad, value_with_fn, value_with_args_ls = NULL, 
     tidy_cols_1L_lgl = TRUE) 
 {
@@ -1147,7 +1305,6 @@ add_iteration_values_set <- function (X_Ready4useDyad, value_with_fn, value_with
 #' @export 
 #' @importFrom dplyr filter select left_join
 #' @importFrom tidyselect any_of
-#' @keywords internal
 add_joiners_outcomes_ds <- function (model_data_ls, keys_chr = c("platform", "clinic_type", 
     "Age", "gender", "employment_status", "clinic_state", "treatment_stage"), 
     outcomes_chr = c("treatment_status", "gad7", "k10", "phq9", 
@@ -1169,51 +1326,75 @@ add_joiners_outcomes_ds <- function (model_data_ls, keys_chr = c("platform", "cl
 #' @description add_k10_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add k10 event. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
+#' @param defaults_ls Defaults (a list), Default: list(Minutes = 0)
+#' @param k10_draws_fn K10 draws (a function), Default: add_project_1_k10_draws
 #' @param k10_mdl K10 (a model), Default: NULL
+#' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'k10'
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param params_tb Parameters (a tibble), Default: make_project_params_tb()
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param suffix_1L_chr Suffix (a character vector of length one), Default: character(0)
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns(T)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project", "Table")
+#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'treatment'
+#' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_k10_event
 #' @export 
+#' @importFrom purrr reduce pluck
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
-add_k10_event <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, k10_mdl = NULL, 
+add_k10_event <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, defaults_ls = list(Minutes = 0), 
+    k10_draws_fn = add_project_1_k10_draws, k10_mdl = NULL, k10_var_1L_chr = "k10", 
     iterations_int = 1:100L, params_tb = make_project_params_tb(), 
     sensitivities_ls = make_sensitivities_ls(), suffix_1L_chr = character(0), 
     tfmn_ls = make_class_tfmns(T), type_1L_chr = c("Model", "Project", 
-        "Table")) 
+        "Table"), tx_prefix_1L_chr = "treatment", update_1L_int = integer(0)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (identical(suffix_1L_chr, character(0)) & type_1L_chr != 
         "Project") {
-        suffix_1L_chr <- make_weeks_suffix(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl)
+        suffix_1L_chr <- make_suffix(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
+            sensitivities_ls = sensitivities_ls, type_1L_chr = type_1L_chr, 
+            update_1L_int = update_1L_int)
     }
-    if (!"Minutes" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!is.null(defaults_ls)) {
+        X_Ready4useDyad <- 1:length(defaults_ls) %>% purrr::reduce(.init = X_Ready4useDyad, 
+            ~{
+                default_var_1L_chr <- names(defaults_ls)[.y]
+                if (!default_var_1L_chr %in% names(.x@ds_tb)) {
+                  default_value_1L_chr <- defaults_ls %>% purrr::pluck(.y)
+                  renewSlot(.x, "ds_tb", .x@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(default_var_1L_chr), 
+                    default_value_1L_chr)))
+                }
+                else {
+                  .x
+                }
+            })
+        X_Ready4useDyad <- 1:length(defaults_ls) %>% purrr::reduce(.init = X_Ready4useDyad, 
+            ~{
+                default_var_1L_chr <- names(defaults_ls)[.y]
+                renewSlot(.x, "ds_tb", .x@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(default_var_1L_chr, 
+                  suffix_1L_chr)), !!rlang::sym(default_var_1L_chr))))
+            })
+    }
+    if (!paste0(k10_var_1L_chr, "_change") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Minutes = 0))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(k10_var_1L_chr, 
+                "_change")), 0)))
     }
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(`:=`(!!rlang::sym(paste0("Minutes", suffix_1L_chr)), 
-            Minutes)))
-    if (!"k10_change" %in% names(X_Ready4useDyad@ds_tb)) {
-        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(k10_change = 0))
-    }
-    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c("k10", 
-        "k10_change"))
-    var_1L_chr <- paste0("k10", suffix_1L_chr)
-    X_Ready4useDyad <- add_k10_scores(X_Ready4useDyad, k10_mdl = k10_mdl, 
-        join_with_chr = c("Iteration"), k10_var_1L_chr = "k10", 
+    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c(k10_var_1L_chr, 
+        paste0(k10_var_1L_chr, "_change")))
+    var_1L_chr <- paste0(k10_var_1L_chr, suffix_1L_chr)
+    X_Ready4useDyad <- add_k10_scores(X_Ready4useDyad, k10_draws_fn = k10_draws_fn, 
+        k10_mdl = k10_mdl, join_with_chr = c("Iteration"), k10_var_1L_chr = k10_var_1L_chr, 
         iterations_int = iterations_int, params_tb = params_tb, 
         sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-        type_1L_chr = type_1L_chr, var_1L_chr = var_1L_chr, what_1L_chr = "new")
+        type_1L_chr = type_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        var_1L_chr = var_1L_chr, what_1L_chr = "new")
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(k10 = !!rlang::sym(var_1L_chr)))
+        dplyr::mutate(`:=`(!!rlang::sym(paste0(k10_var_1L_chr)), 
+            !!rlang::sym(var_1L_chr))))
     return(X_Ready4useDyad)
 }
 #' Add K10 scores
@@ -1222,28 +1403,30 @@ add_k10_event <- function (X_Ready4useDyad, adjustment_1L_dbl = 0, k10_mdl = NUL
 #' @param k10_mdl K10 (a model), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param join_with_chr Join with (a character vector), Default: character(0)
+#' @param k10_draws_fn K10 draws (a function), Default: add_project_1_k10_draws
 #' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'k10'
 #' @param params_tb Parameters (a tibble), Default: make_project_params_tb()
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns(T)
+#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'treatment'
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project", "Table")
 #' @param var_1L_chr Variable (a character vector of length one), Default: 'k10_12_Weeks'
 #' @param what_1L_chr What (a character vector of length one), Default: c("old", "new")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_k10_scores
 #' @export 
-#' @importFrom dplyr select where mutate filter across case_when arrange
-#' @importFrom purrr map map2_dfr reduce map_int
-#' @importFrom tidyselect all_of any_of
-#' @importFrom stats setNames
-#' @importFrom rlang sym
+#' @importFrom dplyr select where mutate across
+#' @importFrom tidyselect any_of
+#' @importFrom purrr map_int
 #' @importFrom youthvars youthvars_k10_aus
-#' @keywords internal
+#' @importFrom rlang sym
 add_k10_scores <- function (X_Ready4useDyad, k10_mdl = NULL, iterations_int = 1:100L, 
-    join_with_chr = character(0), k10_var_1L_chr = "k10", params_tb = make_project_params_tb(), 
+    join_with_chr = character(0), k10_draws_fn = add_project_1_k10_draws, 
+    k10_var_1L_chr = "k10", params_tb = make_project_params_tb(), 
     sensitivities_ls = make_sensitivities_ls(), tfmn_ls = make_class_tfmns(T), 
-    type_1L_chr = c("Model", "Project", "Table"), var_1L_chr = "k10_12_Weeks", 
-    what_1L_chr = c("old", "new")) 
+    tx_prefix_1L_chr = "treatment", type_1L_chr = c("Model", 
+        "Project", "Table"), var_1L_chr = "k10_12_Weeks", what_1L_chr = c("old", 
+        "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
@@ -1261,87 +1444,17 @@ add_k10_scores <- function (X_Ready4useDyad, k10_mdl = NULL, iterations_int = 1:
             tfmn_fn = tfmn_ls$K10)
     }
     if (type_1L_chr == "Table") {
-        if (!"k10_part" %in% names(X_Ready4useDyad@ds_tb)) {
-            X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                X_Ready4useDyad@ds_tb %>% dplyr::mutate(k10_part = 0))
-        }
-        severity_ls <- make_k10_severity_cuts()
-        k10_ls <- iterations_int %>% purrr::map(~{
-            data_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(Iteration == 
-                .x) %>% dplyr::mutate(dplyr::across(tidyselect::all_of(k10_vars_chr), 
-                ~as.integer(.x)))
-            quantiles_dbl <- round(quantile(data_tb$k10, probs = c(0.2, 
-                0.4, 0.6, 0.8)), 0) %>% unname()
-            rtm_ls <- list(c(10, quantiles_dbl[1]), c(quantiles_dbl[1] + 
-                1, quantiles_dbl[2]), c(quantiles_dbl[2] + 1, 
-                quantiles_dbl[3]), c(quantiles_dbl[3] + 1, quantiles_dbl[4]), 
-                c(quantiles_dbl[4] + 1, 50)) %>% stats::setNames(paste0("ParamRTM_Q", 
-                1:5))
-            data_tb <- severity_ls %>% purrr::map2_dfr(names(severity_ls), 
-                ~{
-                  cut_tb <- data_tb %>% dplyr::filter(as.integer(k10) >= 
-                    .x[1] & as.integer(k10) <= .x[2])
-                  if (nrow(cut_tb) > 0) {
-                    cut_tb <- dplyr::mutate(cut_tb, Improvement = dplyr::case_when(as.character(clinic_type) == 
-                      "headspace" ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
-                      paste0("ParamK10ChangeHeadspace", .y, "_mean")]], 
-                      sd = cut_tb[[1, paste0("ParamK10ChangeHeadspace", 
-                        .y, "_sd")]]), as.character(clinic_type) == 
-                      "Specialist Services" & as.character(gender) == 
-                      "Female" ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
-                      "ParamK10ChangeSpecialistFemale_mean"]], 
-                      sd = cut_tb[[1, "ParamK10ChangeSpecialistFemale_sd"]]), 
-                      as.character(clinic_type) == "Specialist Services" & 
-                        as.character(gender) == "Male" ~ rnorm(nrow(cut_tb), 
-                        mean = cut_tb[[1, "ParamK10ChangeSpecialistMale_mean"]], 
-                        sd = cut_tb[[1, "ParamK10ChangeSpecialistMale_sd"]]), 
-                      T ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
-                        "ParamK10ChangeSpecialistAll_mean"]], 
-                        sd = cut_tb[[1, "ParamK10ChangeSpecialistAll_sd"]])))
-                    cut_tb <- cut_tb %>% dplyr::mutate(k10_part = dplyr::case_when(!is.na(treatment_start) & 
-                      (treatment_measurement > CurrentDate) ~ 
-                      k10_part + 1, !is.na(treatment_start) & 
-                      (treatment_measurement <= CurrentDate) & 
-                      floor(k10_part) == 1 ~ k10_part + 1, !is.na(treatment_start) & 
-                      (treatment_measurement <= CurrentDate) & 
-                      floor(k10_part) != 1 ~ k10_part + 2, T ~ 
-                      k10_part + 0.001)) %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
-                      dplyr::case_when((!is.na(treatment_start) & 
-                        floor(k10_part) == 2) ~ as.integer(round((as.double(k10) - 
-                        Improvement * treatment_fraction), 0)), 
-                        T ~ as.integer(k10)))) %>% dplyr::select(-Improvement)
-                  }
-                  cut_tb
-                })
-            data_tb <- rtm_ls %>% purrr::map2_dfr(names(rtm_ls), 
-                ~{
-                  cut_tb <- data_tb %>% dplyr::filter(k10 >= 
-                    .x[1] & k10 <= .x[2])
-                  if (nrow(cut_tb) > 0) {
-                    cut_tb <- dplyr::mutate(cut_tb, RTM = dplyr::case_when((as.character(clinic_type) == 
-                      "headspace" & floor(k10_part) %in% 1:2) | 
-                      ((k10_part - floor(k10_part)) <= 0.001) ~ 
-                      rnorm(nrow(cut_tb), mean = cut_tb[[1, paste0(.y, 
-                        "_mean")]], sd = cut_tb[[1, paste0(.y, 
-                        "_sd")]]), T ~ 0))
-                    cut_tb <- cut_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
-                      as.integer(round(!!rlang::sym(var_1L_chr) + 
-                        RTM, 0)))) %>% dplyr::select(-RTM)
-                  }
-                  cut_tb
-                })
-            data_tb %>% dplyr::arrange(UID)
-        })
-        X_Ready4useDyad@ds_tb <- k10_ls %>% purrr::reduce(.init = k10_ls[[1]] %>% 
-            dplyr::filter(F), ~rbind(.x, .y)) %>% dplyr::arrange(Iteration, 
-            UID)
+        X_Ready4useDyad <- k10_draws_fn(X_Ready4useDyad, iterations_int = iterations_int, 
+            k10_var_1L_chr = k10_var_1L_chr, k10_vars_chr = k10_vars_chr, 
+            prefix_1L_chr = tx_prefix_1L_chr, sensitivities_ls = sensitivities_ls, 
+            var_1L_chr = var_1L_chr)
     }
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::mutate(dplyr::across(tidyselect::any_of(c(k10_vars_chr, 
             var_1L_chr)), ~round(.x, 0) %>% as.integer() %>% 
             purrr::map_int(~min(max(.x, 10), 50)) %>% youthvars::youthvars_k10_aus()), 
-            k10_change = as.integer(!!rlang::sym(var_1L_chr) - 
-                as.integer(!!rlang::sym(k10_var_1L_chr)))))
+            `:=`(!!rlang::sym(paste0(k10_var_1L_chr, "_change")), 
+                as.integer(!!rlang::sym(var_1L_chr) - as.integer(!!rlang::sym(k10_var_1L_chr))))))
     return(X_Ready4useDyad)
 }
 #' Add leave model event
@@ -1351,7 +1464,6 @@ add_k10_scores <- function (X_Ready4useDyad, k10_mdl = NULL, iterations_int = 1:
 #' @rdname add_leave_model_event
 #' @export 
 #' @importFrom dplyr mutate
-#' @keywords internal
 add_leave_model_event <- function (X_Ready4useDyad) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -1367,7 +1479,6 @@ add_leave_model_event <- function (X_Ready4useDyad)
 #' @rdname add_mds_minutes_totals
 #' @export 
 #' @importFrom dplyr mutate across
-#' @keywords internal
 add_mds_minutes_totals <- function (services_tb, add_chr = c("Contacts", "Use"), type_1L_chr = c("both", 
     "total", "prop")) 
 {
@@ -1411,7 +1522,6 @@ add_mds_minutes_totals <- function (services_tb, add_chr = c("Contacts", "Use"),
 #' @export 
 #' @importFrom dplyr mutate left_join
 #' @importFrom stringr str_sub
-#' @keywords internal
 add_mds_org_vars <- function (data_tb, provider_lup_tb, phn_code_1L_chr = "PHN_code", 
     phn_name_1L_chr = "PHN_area_name") 
 {
@@ -1441,7 +1551,6 @@ add_mds_org_vars <- function (data_tb, provider_lup_tb, phn_code_1L_chr = "PHN_c
 #' @importFrom dplyr left_join mutate case_when select
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr map_lgl
-#' @keywords internal
 add_mds_program_vars <- function (data_tb, processed_ls, program_services_lup, program_true_chr, 
     program_type_ls, provider_lup_tb, add_start_date_1L_lgl = TRUE, 
     filter_fn = identity, mature_after_dtm = lubridate::years(1)) 
@@ -1517,7 +1626,6 @@ add_mds_program_vars <- function (data_tb, processed_ls, program_services_lup, p
 #' @importFrom tidyr pivot_wider all_of
 #' @importFrom stringr str_remove_all str_remove
 #' @importFrom assertthat assert_that
-#' @keywords internal
 add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4useDyad, 
     end_dtm = NULL, period_dtm = lubridate::years(1), start_at_1L_int = -2L, 
     weeks_dbl = c(14, 53)) 
@@ -1632,49 +1740,59 @@ add_minutes <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_Ready4u
 #' Add minutes event
 #' @description add_minutes_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add minutes event. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param add_dependency_1L_lgl Add dependency (a logical vector of length one), Default: T
 #' @param minutes_mdl Minutes (a model), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param fraction_1L_dbl Fraction (a double vector of length one), Default: numeric(0)
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'Minutes'
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_minutes_event
 #' @export 
 #' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
 #' @importFrom purrr map_int
 #' @importFrom assertthat assert_that
-#' @keywords internal
-add_minutes_event <- function (X_Ready4useDyad, minutes_mdl = NULL, iterations_int = 1:100L, 
-    fraction_1L_dbl = numeric(0)) 
+add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minutes_mdl = NULL, 
+    iterations_int = 1:100L, fraction_1L_dbl = numeric(0), var_1L_chr = "Minutes") 
 {
-    if (!"Minutes" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!var_1L_chr %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Minutes = 0))
-        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = "Minutes", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                0)))
+        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = var_1L_chr, 
             pattern_1L_chr = "{col}_start")
-        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = "Minutes")
+        X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = var_1L_chr)
     }
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(MeasurementWeek = paste0("Week", round(as.numeric((CurrentDate - 
-            StartDate))/7, 0) %>% purrr::map_int(~ifelse(.x == 
-            52, 53, .x)))))
+    if (add_dependency_1L_lgl) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(MeasurementWeek = paste0("Week", 
+                round(as.numeric((CurrentDate - StartDate))/7, 
+                  0) %>% purrr::map_int(~ifelse(.x == 52, 53, 
+                  .x)))))
+    }
     if (!is.null(minutes_mdl)) {
-        X_Ready4useDyad <- add_simulated_data(minutes_mdl, var_1L_chr = "Minutes_change", 
-            Y_Ready4useDyad = X_Ready4useDyad, iterations_int = iterations_int, 
+        X_Ready4useDyad <- add_simulated_data(minutes_mdl, var_1L_chr = paste0(var_1L_chr, 
+            "_change"), Y_Ready4useDyad = X_Ready4useDyad, iterations_int = iterations_int, 
             join_with_chr = c("Iteration"), type_1L_chr = "third", 
             what_1L_chr = "new")
     }
     else {
         assertthat::assert_that(!identical(fraction_1L_dbl, numeric(0)))
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Minutes_change = fraction_1L_dbl * 
-                Minutes_change_previous))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(var_1L_chr, 
+                "_change")), fraction_1L_dbl * !!rlang::sym(paste0(var_1L_chr, 
+                "_change_previous")))))
     }
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(Minutes_change = dplyr::case_when(is.nan(Minutes_change) ~ 
-            0, T ~ Minutes_change)))
-    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c("Minutes", 
-        "Minutes_change"))
+        dplyr::mutate(`:=`(!!rlang::sym(paste0(var_1L_chr, "_change")), 
+            dplyr::case_when(is.nan(!!rlang::sym(paste0(var_1L_chr, 
+                "_change"))) ~ 0, T ~ !!rlang::sym(paste0(var_1L_chr, 
+                "_change"))))))
+    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c(var_1L_chr, 
+        paste0(var_1L_chr, "_change")))
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(Minutes = Minutes + Minutes_change))
+        dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), !!rlang::sym(var_1L_chr) + 
+            !!rlang::sym(paste0(var_1L_chr, "_change")))))
     return(X_Ready4useDyad)
 }
 #' Add model tests
@@ -1711,7 +1829,6 @@ add_minutes_event <- function (X_Ready4useDyad, minutes_mdl = NULL, iterations_i
 #' @importFrom ggplot2 ggplot aes geom_abline geom_point theme_classic
 #' @importFrom tune coord_obs_pred
 #' @importFrom tidyr pivot_longer
-#' @keywords internal
 add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_1L_chr = character(0), 
     colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
         type_1L_chr = "unicol")[c(1, 9)], imputed_1L_lgl = T, 
@@ -1851,7 +1968,6 @@ add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate NA_Date_
-#' @keywords internal
 add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0)) 
 {
     if (identical(arms_for_non_helpseeking_chr, character(0))) {
@@ -1876,7 +1992,6 @@ add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr =
 #' @rdname add_non_iar
 #' @export 
 #' @importFrom dplyr mutate case_when select
-#' @keywords internal
 add_non_iar <- function (X_Ready4useDyad, arms_for_iar_adjustment_chr = character(0)) 
 {
     if (!identical(arms_for_iar_adjustment_chr, character(0))) {
@@ -1900,7 +2015,6 @@ add_non_iar <- function (X_Ready4useDyad, arms_for_iar_adjustment_chr = characte
 #' @export 
 #' @importFrom lubridate weeks
 #' @importFrom dplyr mutate case_when
-#' @keywords internal
 add_outcome_change_schedule <- function (X_Ready4useDyad, step_dtm = lubridate::weeks(0)) 
 {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -1920,7 +2034,6 @@ add_outcome_change_schedule <- function (X_Ready4useDyad, step_dtm = lubridate::
 #' @export 
 #' @importFrom purrr pluck reduce
 #' @importFrom rlang exec
-#' @keywords internal
 add_outcome_sensitivity <- function (X_Ready4useDyad, outcome_1L_chr, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_fn = NULL, tfmn_ls = make_class_tfmns(T)) 
 {
@@ -1951,7 +2064,6 @@ add_outcome_sensitivity <- function (X_Ready4useDyad, outcome_1L_chr, sensitivit
 #' @importFrom lubridate weeks years days
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustments_1L_lgl = FALSE, 
     fup_var_1L_chr = character(0), follow_up_1L_int = integer(0), 
     maintain_for_1L_int = 0L) 
@@ -1998,26 +2110,30 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: -2
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
+#' @param k10_draws_fn K10 draws (a function), Default: add_project_1_k10_draws
 #' @param k10_method_1L_chr K10 method (a character vector of length one), Default: c("Model", "Table")
+#' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'k10'
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param suffix_1L_chr Suffix (a character vector of length one), Default: character(0)
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns(T)
+#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'treatment'
 #' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project")
+#' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_outcomes_event_sequence
 #' @export 
 #' @importFrom lubridate weeks
 #' @importFrom dplyr filter mutate bind_rows arrange
-#' @importFrom purrr reduce map_lgl pluck
 #' @importFrom rlang sym
-#' @keywords internal
+#' @importFrom purrr reduce map_lgl pluck
 add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensitivity_1L_lgl = FALSE, 
-    adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_method_1L_chr = c("Model", 
-        "Table"), sensitivities_ls = make_sensitivities_ls(), 
-    suffix_1L_chr = character(0), tfmn_ls = make_class_tfmns(T), 
+    adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_draws_fn = add_project_1_k10_draws, 
+    k10_method_1L_chr = c("Model", "Table"), k10_var_1L_chr = "k10", 
+    sensitivities_ls = make_sensitivities_ls(), suffix_1L_chr = character(0), 
+    tfmn_ls = make_class_tfmns(T), tx_prefix_1L_chr = "treatment", 
     utilities_chr = c("CHU9D", "AQoL6D"), type_1L_chr = c("Model", 
-        "Project")) 
+        "Project"), update_1L_int = integer(0)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     k10_method_1L_chr <- match.arg(k10_method_1L_chr)
@@ -2026,10 +2142,12 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
-        k10_mdl = inputs_ls$models_ls$K10_mdl, iterations_int = iterations_int, 
-        params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
-        suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == 
-            "Project", "Project", k10_method_1L_chr))
+        k10_draws_fn = k10_draws_fn, k10_mdl = inputs_ls$models_ls$K10_mdl, 
+        iterations_int = iterations_int, params_tb = inputs_ls$params_tb, 
+        sensitivities_ls = sensitivities_ls, suffix_1L_chr = suffix_1L_chr, 
+        tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == 
+            "Project", "Project", k10_method_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        update_1L_int = update_1L_int)
     X_Ready4useDyad <- update_k10_event_schedule(X_Ready4useDyad, 
         type_1L_chr = k10_method_1L_chr)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility", 
@@ -2039,38 +2157,40 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
         add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, adjustment_1L_dbl = adjustment_1L_dbl, 
         models_ls = inputs_ls$models_ls, iterations_int = iterations_int, 
-        rewind_chr = "k10", sensitivities_ls = sensitivities_ls, 
+        rewind_chr = k10_var_1L_chr, sensitivities_ls = sensitivities_ls, 
         tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, type_1L_chr = type_1L_chr, 
         what_1L_chr = "new")
     if (k10_method_1L_chr == "Table" & type_1L_chr == "Model") {
         Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::filter(floor(k10_part) != 
-                1))
+            X_Ready4useDyad@ds_tb %>% dplyr::filter(floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                "_part"))) != 1))
         Z_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::filter(floor(k10_part) == 
-                1))
+            X_Ready4useDyad@ds_tb %>% dplyr::filter(floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                "_part"))) == 1))
         if (nrow(Z_Ready4useDyad@ds_tb) > 0) {
             Z_Ready4useDyad <- add_time_to_event(Z_Ready4useDyad, 
                 event_1L_chr = "UpdateK10", schedule_fn = add_outcome_change_schedule)
             Z_Ready4useDyad <- update_current_date(Z_Ready4useDyad)
             Z_Ready4useDyad <- update_current_event(Z_Ready4useDyad)
             Z_Ready4useDyad <- add_k10_event(Z_Ready4useDyad, 
-                adjustment_1L_dbl = adjustment_1L_dbl, params_tb = inputs_ls$params_tb, 
-                iterations_int = iterations_int, suffix_1L_chr = suffix_1L_chr, 
-                tfmn_ls = tfmn_ls, type_1L_chr = k10_method_1L_chr)
+                adjustment_1L_dbl = adjustment_1L_dbl, k10_draws_fn = k10_draws_fn, 
+                params_tb = inputs_ls$params_tb, iterations_int = iterations_int, 
+                suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, 
+                type_1L_chr = k10_method_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr, 
+                update_1L_int = update_1L_int)
             Z_Ready4useDyad <- add_time_to_event(Z_Ready4useDyad, 
                 event_1L_chr = "UpdateUtility", step_dtm = lubridate::weeks(0))
             Z_Ready4useDyad <- update_current_date(Z_Ready4useDyad)
             Z_Ready4useDyad <- update_current_event(Z_Ready4useDyad)
             Z_Ready4useDyad <- renewSlot(Z_Ready4useDyad, "ds_tb", 
-                c("k10", utilities_chr) %>% purrr::reduce(.init = Z_Ready4useDyad@ds_tb, 
+                c(k10_var_1L_chr, utilities_chr) %>% purrr::reduce(.init = Z_Ready4useDyad@ds_tb, 
                   ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
                     !!rlang::sym(paste0(.y, "_previous"))), `:=`(!!rlang::sym(paste0(.y, 
                     "_previous")), !!rlang::sym(paste0(.y, "_start"))))))
             Z_Ready4useDyad <- add_utility_event(Z_Ready4useDyad, 
                 add_qalys_1L_lgl = T, add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, 
                 adjustment_1L_dbl = adjustment_1L_dbl, models_ls = inputs_ls$models_ls, 
-                iterations_int = iterations_int, rewind_chr = "k10", 
+                iterations_int = iterations_int, rewind_chr = k10_var_1L_chr, 
                 tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
                 what_1L_chr = "new")
             new_chr <- setdiff(names(Z_Ready4useDyad@ds_tb), 
@@ -2095,6 +2215,171 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     X_Ready4useDyad <- update_order(X_Ready4useDyad)
     return(X_Ready4useDyad)
 }
+#' Add outcomes update
+#' @description add_outcomes_update() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add outcomes update. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param assert_1L_lgl Assert (a logical vector of length one)
+#' @param k10_mdl K10 (a model)
+#' @param k10_var_1L_chr K10 variable (a character vector of length one)
+#' @param iterations_int Iterations (an integer vector)
+#' @param params_tb Parameters (a tibble)
+#' @param sensitivities_ls Sensitivities (a list)
+#' @param tfmn_ls Transformation (a list)
+#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one)
+#' @param update_1L_int Update (an integer vector of length one)
+#' @param utilities_chr Utilities (a character vector)
+#' @param utility_fns_ls Utility functions (a list)
+#' @param types_chr Types (a character vector), Default: c("Model", "Function")
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_outcomes_update
+#' @export 
+#' @importFrom lubridate days weeks
+add_outcomes_update <- function (X_Ready4useDyad, assert_1L_lgl, k10_mdl, k10_var_1L_chr, 
+    iterations_int, params_tb, sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
+    update_1L_int, utilities_chr, utility_fns_ls, types_chr = c("Model", 
+        "Function")) 
+{
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
+        step_dtm = lubridate::days(0))
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_mdl = k10_mdl, 
+        k10_var_1L_chr = k10_var_1L_chr, iterations_int = iterations_int, 
+        params_tb = params_tb, sensitivities_ls = sensitivities_ls, 
+        tfmn_ls = tfmn_ls, type_1L_chr = types_chr[1], tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        update_1L_int = update_1L_int)
+    print_errors(X_Ready4useDyad, vars_chr = k10_var_1L_chr, 
+        assert_1L_lgl = assert_1L_lgl, invalid_fn = function(x) (is.na(x) | 
+            is.nan(x) | is.null(x) | x < 10 | x > 50))
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility", 
+        step_dtm = lubridate::weeks(0))
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+    X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
+        add_sensitivity_1L_lgl = F, iterations_int = iterations_int, 
+        tidy_cols_1L_lgl = T, type_1L_chr = types_chr[2], update_1L_int = update_1L_int, 
+        utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls, 
+        what_1L_chr = "new")
+    print_errors(X_Ready4useDyad, vars_chr = utilities_chr, assert_1L_lgl = assert_1L_lgl, 
+        invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | 
+            x < -1 | x > 1))
+    return(X_Ready4useDyad)
+}
+#' Add project 1 K10 draws
+#' @description add_project_1_k10_draws() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project 1 k10 draws. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param iterations_int Iterations (an integer vector), Default: 1:100L
+#' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'k10'
+#' @param k10_vars_chr K10 variables (a character vector), Default: character(0)
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'treatment'
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
+#' @param severity_ls Severity (a list), Default: make_k10_severity_cuts()
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'k10_12_Weeks'
+#' @param ... Additional arguments
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_project_1_k10_draws
+#' @export 
+#' @importFrom dplyr select where mutate filter across pull case_when arrange
+#' @importFrom rlang sym
+#' @importFrom purrr map map2_dfr reduce
+#' @importFrom tidyselect all_of
+#' @importFrom stats setNames
+add_project_1_k10_draws <- function (X_Ready4useDyad, iterations_int = 1:100L, k10_var_1L_chr = "k10", 
+    k10_vars_chr = character(0), prefix_1L_chr = "treatment", 
+    sensitivities_ls = make_sensitivities_ls(), severity_ls = make_k10_severity_cuts(), 
+    var_1L_chr = "k10_12_Weeks", ...) 
+{
+    if (identical(k10_vars_chr, character(0))) {
+        k10_vars_chr <- X_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(~inherits(.x, 
+            "youthvars_k10_aus"))) %>% names()
+    }
+    if (!paste0(k10_var_1L_chr, "_part") %in% names(X_Ready4useDyad@ds_tb)) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(k10_var_1L_chr, 
+                "_part")), 0)))
+    }
+    k10_ls <- iterations_int %>% purrr::map(~{
+        data_tb <- X_Ready4useDyad@ds_tb %>% dplyr::filter(Iteration == 
+            .x) %>% dplyr::mutate(dplyr::across(tidyselect::all_of(k10_vars_chr), 
+            ~as.integer(.x)))
+        quantiles_dbl <- round(quantile(data_tb %>% dplyr::pull(k10_var_1L_chr), 
+            probs = c(0.2, 0.4, 0.6, 0.8)), 0) %>% unname()
+        rtm_ls <- list(c(10, quantiles_dbl[1]), c(quantiles_dbl[1] + 
+            1, quantiles_dbl[2]), c(quantiles_dbl[2] + 1, quantiles_dbl[3]), 
+            c(quantiles_dbl[3] + 1, quantiles_dbl[4]), c(quantiles_dbl[4] + 
+                1, 50)) %>% stats::setNames(paste0("ParamRTM_Q", 
+            1:5))
+        data_tb <- severity_ls %>% purrr::map2_dfr(names(severity_ls), 
+            ~{
+                cut_tb <- data_tb %>% dplyr::filter(as.integer(!!rlang::sym(k10_var_1L_chr)) >= 
+                  .x[1] & as.integer(!!rlang::sym(k10_var_1L_chr)) <= 
+                  .x[2])
+                if (nrow(cut_tb) > 0) {
+                  cut_tb <- dplyr::mutate(cut_tb, Improvement = dplyr::case_when(as.character(clinic_type) == 
+                    "headspace" ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
+                    paste0("ParamK10ChangeHeadspace", .y, "_mean")]], 
+                    sd = cut_tb[[1, paste0("ParamK10ChangeHeadspace", 
+                      .y, "_sd")]]), as.character(clinic_type) == 
+                    "Specialist Services" & as.character(gender) == 
+                    "Female" ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
+                    "ParamK10ChangeSpecialistFemale_mean"]], 
+                    sd = cut_tb[[1, "ParamK10ChangeSpecialistFemale_sd"]]), 
+                    as.character(clinic_type) == "Specialist Services" & 
+                      as.character(gender) == "Male" ~ rnorm(nrow(cut_tb), 
+                      mean = cut_tb[[1, "ParamK10ChangeSpecialistMale_mean"]], 
+                      sd = cut_tb[[1, "ParamK10ChangeSpecialistMale_sd"]]), 
+                    T ~ rnorm(nrow(cut_tb), mean = cut_tb[[1, 
+                      "ParamK10ChangeSpecialistAll_mean"]], sd = cut_tb[[1, 
+                      "ParamK10ChangeSpecialistAll_sd"]])))
+                  cut_tb <- cut_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")), dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_start"))) & (!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_measurement")) > CurrentDate) ~ !!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")) + 1, !is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_start"))) & (!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_measurement")) <= CurrentDate) & floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part"))) == 1 ~ !!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")) + 1, !is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_start"))) & (!!rlang::sym(paste0(prefix_1L_chr, 
+                    "_measurement")) <= CurrentDate) & floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part"))) != 1 ~ !!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")) + 2, T ~ !!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")) + 0.001))) %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                    dplyr::case_when((!is.na(!!rlang::sym(paste0(prefix_1L_chr, 
+                      "_start"))) & floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                      "_part"))) == 2) ~ as.integer(round((as.double(!!rlang::sym(k10_var_1L_chr)) - 
+                      Improvement * !!rlang::sym(paste0(prefix_1L_chr, 
+                        "_fraction"))), 0)), T ~ as.integer(!!rlang::sym(k10_var_1L_chr))))) %>% 
+                    dplyr::select(-Improvement)
+                }
+                cut_tb
+            })
+        data_tb <- rtm_ls %>% purrr::map2_dfr(names(rtm_ls), 
+            ~{
+                cut_tb <- data_tb %>% dplyr::filter(!!rlang::sym(k10_var_1L_chr) >= 
+                  .x[1] & !!rlang::sym(k10_var_1L_chr) <= .x[2])
+                if (nrow(cut_tb) > 0) {
+                  cut_tb <- dplyr::mutate(cut_tb, RTM = dplyr::case_when((as.character(clinic_type) == 
+                    "headspace" & floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part"))) %in% 1:2) | ((!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")) - floor(!!rlang::sym(paste0(k10_var_1L_chr, 
+                    "_part")))) <= 0.001) ~ rnorm(nrow(cut_tb), 
+                    mean = cut_tb[[1, paste0(.y, "_mean")]], 
+                    sd = cut_tb[[1, paste0(.y, "_sd")]]), T ~ 
+                    0))
+                  cut_tb <- cut_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                    as.integer(round(!!rlang::sym(var_1L_chr) + 
+                      RTM, 0)))) %>% dplyr::select(-RTM)
+                }
+                cut_tb
+            })
+        data_tb %>% dplyr::arrange(UID)
+    })
+    X_Ready4useDyad@ds_tb <- k10_ls %>% purrr::reduce(.init = k10_ls[[1]] %>% 
+        dplyr::filter(F), ~rbind(.x, .y)) %>% dplyr::arrange(Iteration, 
+        UID)
+    return(X_Ready4useDyad)
+}
 #' Add project 2 cost sensitivity analysis 1
 #' @description add_project_2_cost_sa_1() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project 2 cost sensitivity analysis 1. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2107,7 +2392,6 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
 #' @export 
 #' @importFrom dplyr rowwise mutate across ungroup case_when
 #' @importFrom rlang sym
-#' @keywords internal
 add_project_2_cost_sa_1 <- function (X_Ready4useDyad, arms_for_intervention_costs_chr = "Intervention", 
     disciplines_chr = make_disciplines(), suffix_1L_chr = "_S1", 
     ...) 
@@ -2144,7 +2428,6 @@ add_project_2_cost_sa_1 <- function (X_Ready4useDyad, arms_for_intervention_cost
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate case_when rowwise across ungroup
 #' @importFrom rlang sym
-#' @keywords internal
 add_project_2_cost_sa_2 <- function (X_Ready4useDyad, arms_for_intervention_costs_chr = "Intervention", 
     disciplines_chr = make_disciplines(), suffix_1L_chr = "_S2", 
     ...) 
@@ -2179,7 +2462,6 @@ add_project_2_cost_sa_2 <- function (X_Ready4useDyad, arms_for_intervention_cost
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate case_when rowwise across ungroup
 #' @importFrom rlang sym
-#' @keywords internal
 add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
     disciplines_chr = make_disciplines(), intervention_1L_chr = "Intervention", 
     sensitivities_ls = make_project_2_sensitivities_ls(), total_1L_lgl = T) 
@@ -2246,7 +2528,6 @@ add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_ch
 #' @importFrom purrr reduce map_dbl
 #' @importFrom dplyr filter bind_rows mutate case_when first
 #' @importFrom rlang sym
-#' @keywords internal
 add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = make_k10_severity_cuts(), 
     k10_var_1L_chr = "K10", scale_1L_dbl = 1, var_1L_chr = "K10", 
     ...) 
@@ -2293,7 +2574,6 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @rdname add_project_2_model_data
 #' @export 
 #' @importFrom dplyr filter mutate across where group_by arrange lag ungroup
-#' @keywords internal
 add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_chr = "Intervention", 
     cut_off_date_1L_chr = "2025-01-01") 
 {
@@ -2345,7 +2625,6 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_
 #' @importFrom lubridate days
 #' @importFrom purrr map
 #' @importFrom stats setNames
-#' @keywords internal
 add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
     disciplines_chr, inputs_ls, iterations_int, sensitivities_ls, 
     tfmn_ls, tx_prefix_1L_chr, utilities_chr) 
@@ -2395,7 +2674,6 @@ add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_
 #' @rdname add_project_2_offsets
 #' @export 
 #' @importFrom dplyr mutate case_when select
-#' @keywords internal
 add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = character(0)) 
 {
     if (identical(arms_for_offsets_chr, character(0))) {
@@ -2446,7 +2724,6 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 #' @importFrom tidyr pivot_longer
 #' @importFrom ready4 get_from_lup_obj
 #' @importFrom purrr reduce map_dbl
-#' @keywords internal
 add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, comparator_1L_chr = character(0), 
     comparator_filter_fn = identity, comparator_int = integer(0), 
     comparator_share_1L_dbl = 1, cost_1L_dbl = numeric(0), data_ls = NULL, 
@@ -2557,7 +2834,6 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @importFrom purrr pluck map assign_in
 #' @importFrom stats setNames
 #' @importFrom stringr str_remove
-#' @keywords internal
 add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
     style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
     5)], confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
@@ -2609,188 +2885,6 @@ add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = 
     }
     return(regressions_ls)
 }
-#' Add project model data
-#' @description add_project_model_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project model data. The function returns Model data (a list).
-#' @param model_data_ls Model data (a list), Default: NULL
-#' @param mdls_lup Models (a lookup table), Default: NULL
-#' @param processed_ls Processed (a list), Default: NULL
-#' @param type_1L_chr Type (a character vector of length one), Default: c("unimputed", "imputed")
-#' @param what_1L_chr What (a character vector of length one), Default: c("CostWide", "Joiners", "JulyJoiners", "MicroLong", "MicroWide", 
-#'    "MicroWide1Year", "MinutesLong", "Outcomes", "OutcomesJoiners", 
-#'    "Series")
-#' @return Model data (a list)
-#' @rdname add_project_model_data
-#' @export 
-#' @importFrom assertthat assert_that
-#' @importFrom youthu get_mdls_lup get_ttu_dv_dss
-#' @importFrom dplyr filter
-#' @importFrom lubridate years days
-#' @importFrom purrr assign_in
-#' @keywords internal
-add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, processed_ls = NULL, 
-    type_1L_chr = c("unimputed", "imputed"), what_1L_chr = c("CostWide", 
-        "Joiners", "JulyJoiners", "MicroLong", "MicroWide", "MicroWide1Year", 
-        "MinutesLong", "Outcomes", "OutcomesJoiners", "Series")) 
-{
-    type_1L_chr <- match.arg(type_1L_chr)
-    what_1L_chr <- match.arg(what_1L_chr)
-    if (is.null(model_data_ls)) {
-        model_data_ls <- list(unimputed_ls = list(), imputed_ls = list())
-    }
-    if (what_1L_chr %in% c("Outcomes", "OutcomesJoiners")) {
-        if (what_1L_chr == "Outcomes") {
-            assertthat::assert_that(type_1L_chr == "unimputed")
-            if (is.null(mdls_lup)) {
-                mdls_lup <- youthu::get_mdls_lup(youthu::get_ttu_dv_dss("TTU"), 
-                  utility_type_chr = "AQoL-6D", mdl_predrs_in_ds_chr = c("PHQ9 total score", 
-                    "GAD7 total score"))
-            }
-            model_data_ls <- add_project_outcomes_data(model_data_ls, 
-                mdls_lup = mdls_lup, processed_ls = processed_ls)
-        }
-        if (what_1L_chr == "OutcomesJoiners") {
-            assertthat::assert_that(type_1L_chr == "imputed")
-            model_data_ls <- add_joiners_outcomes_ds(model_data_ls)
-        }
-    }
-    else {
-        if (what_1L_chr == "CostWide") {
-            assertthat::assert_that(type_1L_chr == "imputed")
-            if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
-                model_data_ls <- add_project_model_data(model_data_ls, 
-                  processed_ls = processed_ls, what_1L_chr = "Joiners")
-            }
-            if (is.null(model_data_ls$imputed_ls$MicroWide_r4)) {
-                model_data_ls <- add_project_model_data(model_data_ls, 
-                  processed_ls = processed_ls, type_1L_chr = "imputed", 
-                  what_1L_chr = "MicroWide")
-            }
-            X_Ready4useDyad <- make_project_cost_mdlng_ds(model_data_ls$unimputed_ls$Joiners_r4, 
-                X_Ready4useDyad = model_data_ls$imputed_ls$MicroWide_r4)
-        }
-        if (what_1L_chr == "Joiners") {
-            if (type_1L_chr == "unimputed") {
-                X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
-            }
-            else {
-                if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, what_1L_chr = "Joiners")
-                }
-                X_Ready4useDyad <- add_imputed_data(renewSlot(model_data_ls$unimputed_ls$Joiners_r4, 
-                  "ds_tb", model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
-                    dplyr::filter(!duplicated(UID))), Y_Ready4useDyad = model_data_ls$unimputed_ls$Joiners_r4, 
-                  impute_age_1L_lgl = T, treatment_status_1L_int = 1)
-            }
-        }
-        if (what_1L_chr == "JulyJoiners") {
-            if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
-                model_data_ls <- add_project_model_data(model_data_ls, 
-                  processed_ls = processed_ls, what_1L_chr = "Joiners")
-            }
-            X_Ready4useDyad <- make_report_data(model_data_ls = model_data_ls, 
-                processed_ls = processed_ls, date_end_dtm = as.POSIXct("2023-07-31"), 
-                date_start_dtm = as.POSIXct("2023-07-01"), platform_1L_chr = "MOST", 
-                transformations_chr = "gender", what_1L_chr = "serviceusecost", 
-                weeks_int = c(14, 48))
-        }
-        if (what_1L_chr == "MicroLong") {
-            if (type_1L_chr == "unimputed") {
-                X_Ready4useDyad <- make_project_service_use_ds(processed_ls)
-            }
-            else {
-                if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, what_1L_chr = "Joiners")
-                }
-                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, what_1L_chr = "MicroLong")
-                }
-                X_Ready4useDyad <- add_imputed_data(renewSlot(model_data_ls$imputed_ls$Joiners_r4, 
-                  "ds_tb", model_data_ls$imputed_ls$Joiners_r4@ds_tb %>% 
-                    dplyr::filter(!duplicated(UID))), Y_Ready4useDyad = model_data_ls$unimputed_ls$MicroLong_r4, 
-                  add_cumulatives_1L_lgl = TRUE, ignore_y_chr = c("Episodes", 
-                    "Separations", "Active", "CumulativeEpisodes", 
-                    "CumulativeSeparations"), extras_chr = c("primary_mode", 
-                    "primary_participant", "primary_purpose"), 
-                  treatment_status_1L_int = 1)
-            }
-        }
-        if (what_1L_chr == "MicroWide") {
-            if (type_1L_chr == "unimputed") {
-                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, what_1L_chr = "MicroLong")
-                }
-                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$unimputed_ls$MicroLong_r4, 
-                  processed_ls = processed_ls)
-            }
-            else {
-                if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, type_1L_chr = "imputed", 
-                    what_1L_chr = "MicroLong")
-                }
-                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$imputed_ls$MicroLong_r4, 
-                  processed_ls = processed_ls)
-            }
-        }
-        if (what_1L_chr == "MicroWide1Year") {
-            if (type_1L_chr == "unimputed") {
-                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, what_1L_chr = "MicroLong")
-                }
-                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$unimputed_ls$MicroLong_r4, 
-                  processed_ls = processed_ls, join_before_dtm = (model_data_ls$unimputed_ls$MicroLong_r4@ds_tb$Date %>% 
-                    max()) - lubridate::years(1) + lubridate::days(1), 
-                  max_periods_1L_int = 1, max_tenure_1L_dbl = 1)
-            }
-            else {
-                if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
-                  model_data_ls <- add_project_model_data(model_data_ls, 
-                    processed_ls = processed_ls, type_1L_chr = "imputed", 
-                    what_1L_chr = "MicroLong")
-                }
-                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$imputed_ls$MicroLong_r4, 
-                  processed_ls = processed_ls, join_before_dtm = (model_data_ls$unimputed_ls$MicroLong_r4@ds_tb$Date %>% 
-                    max()) - lubridate::years(1) + lubridate::days(1), 
-                  max_periods_1L_int = 1, max_tenure_1L_dbl = 1)
-            }
-        }
-        if (what_1L_chr == "MinutesLong") {
-            assertthat::assert_that(type_1L_chr == "imputed")
-            if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
-                model_data_ls <- add_project_model_data(model_data_ls, 
-                  processed_ls = processed_ls, type_1L_chr = "imputed", 
-                  what_1L_chr = "MicroLong")
-            }
-            X_Ready4useDyad <- make_project_minutes_ds(processed_ls, 
-                model_data_ls = model_data_ls, cut_weeks_int = c(14, 
-                  53), period_dtm = lubridate::years(1) - lubridate::days(1), 
-                type_1L_chr = "imputed", what_1L_chr = "long")
-        }
-        if (what_1L_chr == "Series") {
-            if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
-                model_data_ls <- add_project_model_data(model_data_ls, 
-                  processed_ls = processed_ls, type_1L_chr = "imputed", 
-                  what_1L_chr = "MicroLong")
-            }
-            X_Ready4useDyad <- make_project_ts_ds(model_data_ls$imputed_ls$MicroLong_r4, 
-                processed_ls = processed_ls)
-        }
-        if (type_1L_chr == "imputed") {
-            model_data_ls$imputed_ls <- purrr::assign_in(model_data_ls$imputed_ls, 
-                where = paste0(what_1L_chr, "_r4"), value = X_Ready4useDyad)
-        }
-        else {
-            model_data_ls$unimputed_ls <- purrr::assign_in(model_data_ls$unimputed_ls, 
-                where = paste0(what_1L_chr, "_r4"), value = X_Ready4useDyad)
-        }
-    }
-    return(model_data_ls)
-}
 #' Add project offset logic
 #' @description add_project_offset_logic() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project offset logic. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)
@@ -2798,7 +2892,6 @@ add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, proce
 #' @rdname add_project_offset_logic
 #' @export 
 #' @importFrom dplyr mutate case_when
-#' @keywords internal
 add_project_offset_logic <- function (data_tb) 
 {
     data_tb <- data_tb %>% dplyr::mutate(OffsetLogicHeadspace = dplyr::case_when(as.character(clinic_type) == 
@@ -2815,7 +2908,6 @@ add_project_offset_logic <- function (data_tb)
 #' @rdname add_project_outcomes_data
 #' @export 
 #' @importFrom youthu get_mdls_lup get_ttu_dv_dss
-#' @keywords internal
 add_project_outcomes_data <- function (model_data_ls, processed_ls, mdls_lup = NULL) 
 {
     if (is.null(mdls_lup)) {
@@ -2867,7 +2959,6 @@ add_project_outcomes_data <- function (model_data_ls, processed_ls, mdls_lup = N
 #' @export 
 #' @importFrom dplyr mutate case_when group_by lag ungroup arrange
 #' @importFrom rlang sym
-#' @keywords internal
 add_project_treatment_change <- function (ds_tb, arrange_by_id_lgl = T, change_var_nm_1L_chr = "treatment_change", 
     suffix_1L_chr = "_previous", timepoint_1L_chr = "MeasurementWeek", 
     timepoint_bl_1L_chr = "Week0", uid_1L_chr = "UID", var_nm_1L_chr = "treatment_status", 
@@ -2953,7 +3044,6 @@ add_project_treatment_change <- function (ds_tb, arrange_by_id_lgl = T, change_v
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_projected_decay <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, proportion_1L_dbl = 1, 
     tfmn_fn = identity, ...) 
 {
@@ -2978,7 +3068,6 @@ add_projected_decay <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr,
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_projected_growth <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, proportion_1L_dbl = 0.2, 
     tfmn_fn = identity, ...) 
 {
@@ -3002,7 +3091,6 @@ add_projected_growth <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr
 #' @export 
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_projected_maintenance <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1L_chr, tfmn_fn = identity, 
     ...) 
 {
@@ -3018,7 +3106,7 @@ add_projected_maintenance <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1
 #' @param end_var_1L_chr End variable (a character vector of length one), Default: character(0)
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param start_var_1L_chr Start variable (a character vector of length one), Default: character(0)
-#' @param utility_1L_chr Utility (a character vector of length one), Default: c("AQoL6D", "CHU9D")
+#' @param utility_1L_chr Utility (a character vector of length one), Default: c("AQoL6D")
 #' @param type_1L_chr Type (a character vector of length one), Default: c("main", "legacy")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_qalys_sensitivities
@@ -3026,13 +3114,11 @@ add_projected_maintenance <- function (X_Ready4useDyad, outcome_1L_chr, suffix_1
 #' @importFrom purrr pluck map_dbl reduce
 #' @importFrom dplyr mutate arrange
 #' @importFrom rlang sym
-#' @keywords internal
 add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character(0), sensitivities_ls = make_sensitivities_ls(), 
-    start_var_1L_chr = character(0), utility_1L_chr = c("AQoL6D", 
-        "CHU9D"), type_1L_chr = c("main", "legacy")) 
+    start_var_1L_chr = character(0), utility_1L_chr = c("AQoL6D"), 
+    type_1L_chr = c("main", "legacy")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
-    utility_1L_chr <- match.arg(utility_1L_chr)
     if (type_1L_chr == "legacy") {
         suffixes_chr <- paste0("_", names(sensitivities_ls$outcomes_ls))
         qaly_vars_chr <- paste0(paste0(utility_1L_chr, "_QALYs"), 
@@ -3089,7 +3175,6 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_regression_to_mean
 #' @export 
-#' @keywords internal
 add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, k10_draws_fn, 
     add_sensitivity_1L_lgl = FALSE, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_ls = make_class_tfmns(), tx_prefix_1L_chr = "Treatment", 
@@ -3114,14 +3199,13 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
 #' Add regressions
 #' @description add_regressions() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add regressions. The function returns Regressions (a list).
 #' @param regressions_ls Regressions (a list)
+#' @param what_1L_chr What (a character vector of length one)
 #' @param model_1L_int Model (an integer vector of length one), Default: integer(0)
 #' @param fn_args_ls Function arguments (a list), Default: list()
 #' @param model_fn Model (a function), Default: NULL
 #' @param named_1L_lgl Named (a logical vector of length one), Default: FALSE
 #' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
 #' @param type_1L_chr Type (a character vector of length one), Default: c("candidates", "tests", "models")
-#' @param what_1L_chr What (a character vector of length one), Default: c("AQoL6D", "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-#'    "Tx_Treatment", "Tx_Discharged")
 #' @return Regressions (a list)
 #' @rdname add_regressions
 #' @export 
@@ -3129,15 +3213,12 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
 #' @importFrom rlang exec
 #' @importFrom purrr assign_in map
 #' @importFrom stringr str_remove
-#' @keywords internal
-add_regressions <- function (regressions_ls, model_1L_int = integer(0), fn_args_ls = list(), 
-    model_fn = NULL, named_1L_lgl = FALSE, X_Ready4useDyad = ready4use::Ready4useDyad(), 
-    type_1L_chr = c("candidates", "tests", "models"), what_1L_chr = c("AQoL6D", 
-        "CHU9D", "K10", "Minutes", "Treatments", "Tx_Waitlist", 
-        "Tx_Treatment", "Tx_Discharged")) 
+add_regressions <- function (regressions_ls, what_1L_chr, model_1L_int = integer(0), 
+    fn_args_ls = list(), model_fn = NULL, named_1L_lgl = FALSE, 
+    X_Ready4useDyad = ready4use::Ready4useDyad(), type_1L_chr = c("candidates", 
+        "tests", "models")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
-    what_1L_chr <- match.arg(what_1L_chr)
     if (type_1L_chr == "candidates") {
         if (is.null(model_fn)) {
             if (what_1L_chr == "AQoL6D") {
@@ -3190,6 +3271,111 @@ add_regressions <- function (regressions_ls, model_1L_int = integer(0), fn_args_
     }
     return(regressions_ls)
 }
+#' Add Short Form - Six Dimension from draws
+#' @description add_sf6d_from_draws() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add short form - six dimension from draws. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param correspondences_r3 Correspondences (a ready4 submodule), Default: ready4show::ready4show_correspondences()
+#' @param female_values_chr Female values (a character vector), Default: c("Female", "female", "F", "f", "FEMALE")
+#' @param male_values_chr Male values (a character vector), Default: c("Male", "male", "M", "m", "MALE")
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'ParamSF6DBeta'
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'SF6D'
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_sf6d_from_draws
+#' @export 
+#' @importFrom ready4show ready4show_correspondences
+add_sf6d_from_draws <- function (X_Ready4useDyad, correspondences_r3 = ready4show::ready4show_correspondences(), 
+    female_values_chr = c("Female", "female", "F", "f", "FEMALE"), 
+    male_values_chr = c("Male", "male", "M", "m", "MALE"), prefix_1L_chr = "ParamSF6DBeta", 
+    var_1L_chr = "SF6D") 
+{
+    X_Ready4useDyad <- X_Ready4useDyad %>% add_iteration_values_set(value_with_fn = add_sf6d_from_k10, 
+        value_with_args_ls = list(correspondences_r3 = correspondences_r3, 
+            female_values_chr = female_values_chr, male_values_chr = male_values_chr, 
+            prefix_1L_chr = prefix_1L_chr, var_1L_chr = var_1L_chr, 
+            type_1L_chr = "internal"))
+    return(X_Ready4useDyad)
+}
+#' Add Short Form - Six Dimension from K10
+#' @description add_sf6d_from_k10() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add short form - six dimension from k10. The function returns Data (an output object of multiple potential types).
+#' @param data_xx Data (an output object of multiple potential types)
+#' @param correspondences_r3 Correspondences (a ready4 submodule), Default: ready4show::ready4show_correspondences()
+#' @param beta_female_moderate_1L_dbl Beta female moderate (a double vector of length one), Default: -0.059
+#' @param beta_female_high_1L_dbl Beta female high (a double vector of length one), Default: -0.124
+#' @param beta_male_moderate_1L_dbl Beta male moderate (a double vector of length one), Default: -0.055
+#' @param beta_male_high_1L_dbl Beta male high (a double vector of length one), Default: -0.123
+#' @param beta_constant_1L_dbl Beta constant (a double vector of length one), Default: 0.805
+#' @param female_values_chr Female values (a character vector), Default: c("Female", "female", "F", "f", "FEMALE")
+#' @param male_values_chr Male values (a character vector), Default: c("Male", "male", "M", "m", "MALE")
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'ParamSF6DBeta'
+#' @param var_1L_chr Variable (a character vector of length one), Default: 'SF6D'
+#' @param source_1L_chr Source (a character vector of length one), Default: c("10.1016/j.jval.2024.12.002", "10.1192/bjp.bp.113.136036")
+#' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
+#' @param type_1L_chr Type (a character vector of length one), Default: c("internal", "external")
+#' @return Data (an output object of multiple potential types)
+#' @rdname add_sf6d_from_k10
+#' @export 
+#' @importFrom ready4show ready4show_correspondences renew.ready4show_correspondences
+#' @importFrom serious transform_data_fmt
+#' @importFrom assertthat assert_that
+#' @importFrom dplyr filter arrange mutate select
+#' @importFrom rlang sym
+#' @importFrom tidyselect all_of
+#' @importFrom purrr pmap_dbl map2_dbl
+add_sf6d_from_k10 <- function (data_xx, correspondences_r3 = ready4show::ready4show_correspondences(), 
+    beta_female_moderate_1L_dbl = -0.059, beta_female_high_1L_dbl = -0.124, 
+    beta_male_moderate_1L_dbl = -0.055, beta_male_high_1L_dbl = -0.123, 
+    beta_constant_1L_dbl = 0.805, female_values_chr = c("Female", 
+        "female", "F", "f", "FEMALE"), male_values_chr = c("Male", 
+        "male", "M", "m", "MALE"), prefix_1L_chr = "ParamSF6DBeta", 
+    var_1L_chr = "SF6D", source_1L_chr = c("10.1016/j.jval.2024.12.002", 
+        "10.1192/bjp.bp.113.136036"), tidy_cols_1L_lgl = FALSE, 
+    type_1L_chr = c("internal", "external")) 
+{
+    source_1L_chr <- match.arg(source_1L_chr)
+    type_1L_chr <- match.arg(type_1L_chr)
+    X_Ready4useDyad <- serious::transform_data_fmt(data_xx, type_1L_chr = "input")
+    data_tb <- X_Ready4useDyad@ds_tb
+    if (identical(correspondences_r3, ready4show::ready4show_correspondences())) {
+        correspondences_r3 <- correspondences_r3 %>% ready4show::renew.ready4show_correspondences(old_nms_chr = c("Sex", 
+            "K10"), new_nms_chr = c("Sex", "K10"))
+    }
+    test_1L_lgl <- assertthat::assert_that(length(intersect(correspondences_r3$old_nms_chr, 
+        c("Sex", "K10"))) == 2)
+    correspondences_r3 <- correspondences_r3 %>% dplyr::filter(old_nms_chr %in% 
+        c("Sex", "K10")) %>% dplyr::arrange(old_nms_chr)
+    if (type_1L_chr == "internal") {
+        data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+            data_tb %>% dplyr::select(tidyselect::all_of(c(correspondences_r3$new_nms_chr, 
+                paste0(prefix_1L_chr, "Constant"), paste0(paste0(prefix_1L_chr, 
+                  "Female"), c("Moderate", "High")), paste0(paste0(prefix_1L_chr, 
+                  "Male"), c("Moderate", "High"))))) %>% purrr::pmap_dbl(~calculate_sf6d_from_k10(female_1L_lgl = ifelse(..2 %in% 
+                female_values_chr, T, ifelse(..2 %in% male_values_chr, 
+                F, runif(1) < 0.5)), k10_1L_dbl = ..1, beta_female_moderate_1L_dbl = ..4, 
+                beta_female_high_1L_dbl = ..5, beta_male_moderate_1L_dbl = ..6, 
+                beta_male_high_1L_dbl = ..7, beta_constant_1L_dbl = ..3))))
+    }
+    else {
+        data_tb <- data_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+            !!rlang::sym(correspondences_r3$new_nms_chr[1]) %>% 
+                purrr::map2_dbl(!!rlang::sym(correspondences_r3$new_nms_chr[2]), 
+                  ~{
+                    calculate_sf6d_from_k10(female_1L_lgl = ifelse(.y %in% 
+                      female_values_chr, T, ifelse(.y %in% male_values_chr, 
+                      F, runif(1) < 0.5)), k10_1L_dbl = .x, beta_female_moderate_1L_dbl = beta_female_moderate_1L_dbl, 
+                      beta_female_high_1L_dbl = beta_female_high_1L_dbl, 
+                      beta_male_moderate_1L_dbl = beta_male_moderate_1L_dbl, 
+                      beta_male_high_1L_dbl = beta_male_high_1L_dbl, 
+                      beta_constant_1L_dbl = beta_constant_1L_dbl, 
+                      source_1L_chr = source_1L_chr)
+                  })))
+    }
+    X_Ready4useDyad@ds_tb <- data_tb
+    if (tidy_cols_1L_lgl) {
+        X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
+    }
+    data_xx <- serious::transform_data_fmt(data_xx, X_Ready4useDyad = X_Ready4useDyad)
+    return(data_xx)
+}
 #' Add simulated data
 #' @description add_simulated_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add simulated data. The function is called for its side effects and does not return a value.
 #' @param model_mdl Model (a model)
@@ -3213,7 +3399,6 @@ add_regressions <- function (regressions_ls, model_1L_int = integer(0), fn_args_
 #' @importFrom tibble as_tibble
 #' @importFrom specific calculate_depnt_var_tfmn
 #' @importFrom tidyselect any_of
-#' @keywords internal
 add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iterations_int = 1:100L, 
     join_with_chr = character(0), rewind_chr = character(0), 
     tfmn_1L_chr = "NTF", type_1L_chr = c("first", "second", "third", 
@@ -3361,7 +3546,6 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
 #' @importFrom tidyselect any_of
 #' @importFrom stats predict
 #' @importFrom tibble as_tibble
-#' @keywords internal
 add_simulated_treatments <- function (treatment_mdls_ls, Y_Ready4useDyad, bl_week_1L_dbl = 0, 
     change_var_1L_chr = "treatment_change", iterations_int = 1:100L, 
     status_var_1L_chr = "treatment_status", tidy_1L_lgl = FALSE) 
@@ -3419,7 +3603,6 @@ add_simulated_treatments <- function (treatment_mdls_ls, Y_Ready4useDyad, bl_wee
 #' @importFrom lubridate days
 #' @importFrom dplyr mutate
 #' @importFrom rlang exec
-#' @keywords internal
 add_time_to_event <- function (X_Ready4useDyad, event_1L_chr, schedule_args_ls = list(), 
     schedule_fn = NULL, step_dtm = lubridate::days(0)) 
 {
@@ -3444,29 +3627,31 @@ add_time_to_event <- function (X_Ready4useDyad, event_1L_chr, schedule_args_ls =
 #' @param bl_week_1L_dbl Baseline week (a double vector of length one), Default: 0
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param measurement_1L_int Measurement (an integer vector of length one), Default: integer(0)
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: 'treatment'
 #' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_treatment_event
 #' @export 
 #' @importFrom lubridate weeks time_length
 #' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_replace_all
-#' @keywords internal
 add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_dbl = -2, 
     bl_week_1L_dbl = 0, iterations_int = 1:100L, measurement_1L_int = integer(0), 
-    tx_duration_dtm = lubridate::weeks(12)) 
+    prefix_1L_chr = "treatment", tx_duration_dtm = lubridate::weeks(12)) 
 {
     if (!"Period" %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::mutate(Period = "0 to 0 Weeks"))
     }
-    if (!"treatment_change" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!paste0(prefix_1L_chr, "_change") %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_change = NA_character_))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(prefix_1L_chr, 
+                "_change")), NA_character_)))
     }
-    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c("treatment_status", 
-        "treatment_change"))
+    X_Ready4useDyad <- update_previous(X_Ready4useDyad, modifiable_chr = c(paste0(prefix_1L_chr, 
+        "_status"), paste0(prefix_1L_chr, "_change")))
     if (identical(measurement_1L_int, integer(0))) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::mutate(MeasurementWeek = paste0("Week", 
@@ -3487,8 +3672,8 @@ add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_db
     X_Ready4useDyad <- add_simulated_treatments(tx_models_ls, 
         Y_Ready4useDyad = X_Ready4useDyad, bl_week_1L_dbl = bl_week_1L_dbl, 
         iterations_int = iterations_int, tidy_1L_lgl = T)
-    X_Ready4useDyad <- update_tx_start_end(X_Ready4useDyad, tx_duration_dtm = tx_duration_dtm) %>% 
-        update_order()
+    X_Ready4useDyad <- update_tx_start_end(X_Ready4useDyad, prefix_1L_chr = prefix_1L_chr, 
+        tx_duration_dtm = tx_duration_dtm) %>% update_order()
     return(X_Ready4useDyad)
 }
 #' Add treatment status
@@ -3509,7 +3694,6 @@ add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_db
 #' @importFrom rlang sym
 #' @importFrom purrr map_chr
 #' @importFrom ready4use add_dictionary renew.ready4use_dictionary
-#' @keywords internal
 add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "name"), 
     ctg_1L_chr = "Service", group_by_1L_chr = character(0), source_vars_chr = c("treatment_stage", 
         "stage_of_treatment"), three_levels_1L_lgl = FALSE, type_1L_int = 1L:2L, 
@@ -3575,7 +3759,6 @@ add_treatment_status <- function (data_xx, arrange_by_1L_chr = c("category", "na
 #' @importFrom purrr reduce
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
-#' @keywords internal
 add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0) 
 {
     need_to_set_chr <- setdiff(var_names_chr, names(data_tb))
@@ -3592,6 +3775,7 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
 #' @param follow_up_1L_int Follow up (an integer vector of length one), Default: integer(0)
+#' @param utility_fns_ls Utility functions (a list), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
 #' @param models_ls Models (a list), Default: NULL
@@ -3600,8 +3784,10 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @param simulate_1L_lgl Simulate (a logical vector of length one), Default: TRUE
 #' @param tfmn_ls Transformation (a list), Default: NULL
 #' @param tidy_1L_lgl Tidy (a logical vector of length one), Default: TRUE
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
-#' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project")
+#' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
+#' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Function", "Project")
 #' @param what_1L_chr What (a character vector of length one), Default: c("old", "new")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_utility_event
@@ -3610,24 +3796,20 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @importFrom dplyr mutate across
 #' @importFrom rlang sym
 #' @importFrom tidyselect any_of
-#' @keywords internal
 add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_sensitivity_1L_lgl = FALSE, 
-    adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), iterations_int = 1:100L, 
-    maintain_for_1L_int = 0L, models_ls = NULL, rewind_chr = character(0), 
-    sensitivities_ls = make_sensitivities_ls(), simulate_1L_lgl = TRUE, 
-    tfmn_ls = NULL, tidy_1L_lgl = TRUE, utilities_chr = c("AQoL6D", 
-        "CHU9D"), type_1L_chr = c("Model", "Project"), what_1L_chr = c("old", 
-        "new")) 
+    adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), utility_fns_ls = NULL, 
+    iterations_int = 1:100L, maintain_for_1L_int = 0L, models_ls = NULL, 
+    rewind_chr = character(0), sensitivities_ls = make_sensitivities_ls(), 
+    simulate_1L_lgl = TRUE, tfmn_ls = NULL, tidy_1L_lgl = TRUE, 
+    tidy_cols_1L_lgl = FALSE, update_1L_int = integer(0), utilities_chr = c("CHU9D", 
+        "AQoL6D"), type_1L_chr = c("Model", "Function", "Project"), 
+    what_1L_chr = c("old", "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
-    if (type_1L_chr == "Project") {
-        suffix_1L_chr <- paste0("_", names(sensitivities_ls$outcomes_ls)[1])
-    }
-    else {
-        suffix_1L_chr <- make_weeks_suffix(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
-            follow_up_1L_int = follow_up_1L_int)
-    }
+    suffix_1L_chr <- make_suffix(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
+        follow_up_1L_int = follow_up_1L_int, sensitivities_ls = sensitivities_ls, 
+        type_1L_chr = type_1L_chr, update_1L_int = update_1L_int)
     X_Ready4useDyad <- utilities_chr %>% purrr::reduce(.init = X_Ready4useDyad, 
         ~{
             Y_Ready4useDyad <- .x
@@ -3646,12 +3828,19 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
         })
     X_Ready4useDyad <- utilities_chr %>% purrr::reduce(.init = X_Ready4useDyad, 
         ~{
-            if (type_1L_chr == "Model" & simulate_1L_lgl) {
-                Y_Ready4useDyad <- add_simulated_data(models_ls %>% 
-                  purrr::pluck(paste0(.y, "_mdl")), var_1L_chr = paste0(.y, 
-                  suffix_1L_chr), Y_Ready4useDyad = .x, iterations_int = iterations_int, 
-                  join_with_chr = "Iteration", rewind_chr = rewind_chr, 
-                  type_1L_chr = "second", what_1L_chr = what_1L_chr)
+            if (type_1L_chr %in% c("Model", "Function") & simulate_1L_lgl) {
+                if (type_1L_chr == "Model") {
+                  Y_Ready4useDyad <- add_simulated_data(models_ls %>% 
+                    purrr::pluck(paste0(.y, "_mdl")), var_1L_chr = paste0(.y, 
+                    suffix_1L_chr), Y_Ready4useDyad = .x, iterations_int = iterations_int, 
+                    join_with_chr = "Iteration", rewind_chr = rewind_chr, 
+                    type_1L_chr = "second", what_1L_chr = what_1L_chr)
+                }
+                else {
+                  calculator_fn <- utility_fns_ls %>% purrr::pluck(.y)
+                  Y_Ready4useDyad <- calculator_fn(.x, var_1L_chr = paste0(.y, 
+                    suffix_1L_chr))
+                }
                 Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, 
                   "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
                     !!rlang::sym(paste0(.y, suffix_1L_chr)))))
@@ -3672,6 +3861,9 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
                 }
             }
             tfmn_fn <- tfmn_ls %>% purrr::pluck(.y)
+            if (is.null(tfmn_fn)) {
+                tfmn_fn <- identity
+            }
             renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>% 
                 dplyr::mutate(dplyr::across(tidyselect::any_of(paste0(.y, 
                   c("", suffix_1L_chr))), ~tfmn_fn(.x))) %>% 
@@ -3686,6 +3878,9 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
             adjustment_1L_dbl = adjustment_1L_dbl, follow_up_1L_int = follow_up_1L_int, 
             maintain_for_1L_int = maintain_for_1L_int, tidy_1L_lgl = tidy_1L_lgl, 
             utilities_chr = utilities_chr)
+    }
+    if (tidy_cols_1L_lgl) {
+        X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
     }
     return(X_Ready4useDyad)
 }

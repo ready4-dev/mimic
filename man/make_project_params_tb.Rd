@@ -4,7 +4,10 @@
 \alias{make_project_params_tb}
 \title{Make project parameters tibble}
 \usage{
-make_project_params_tb()
+make_project_params_tb(make_with_fn = make_project_1_params_tb)
+}
+\arguments{
+\item{make_with_fn}{Make with (a function), Default: make_project_1_params_tb}
 }
 \value{
 Parameters (a tibble)
@@ -12,4 +15,3 @@ Parameters (a tibble)
 \description{
 make_project_params_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project parameters tibble. The function returns Parameters (a tibble).
 }
-\keyword{internal}

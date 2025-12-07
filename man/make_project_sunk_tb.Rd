@@ -41,4 +41,3 @@ Sunk (a tibble)
 \description{
 make_project_sunk_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project sunk tibble. The function returns Sunk (a tibble).
 }
-\keyword{internal}

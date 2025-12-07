@@ -11,7 +11,6 @@
 #' @importFrom readxl read_xlsx
 #' @importFrom dplyr mutate across relocate
 #' @importFrom lubridate month year
-#' @keywords internal
 import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", areas_chr = c("Intervention", 
     "Matched"), divider_1L_chr = "\\") 
 {
@@ -57,7 +56,6 @@ import_population_k10 <- function (dir_1L_chr, fl_nm_1L_chr = "HILDA k10.xlsx", 
 #' @importFrom stats setNames
 #' @importFrom readxl read_xlsx
 #' @importFrom ready4use Ready4useDyad
-#' @keywords internal
 import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_chr = character(0), 
     r_dir_1L_chr = "R", divider_1L_chr = "\\", names_ls = NULL, 
     type_1L_chr = c("raw", "experts", "custom", "forecasts", 
@@ -167,20 +165,26 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_c
 }
 #' Import results batches
 #' @description import_results_batches() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import results batches. The function returns Results (a list).
-#' @param batches_1L_int Batches (an integer vector of length one)
+#' @param batches_1L_int Batches (an integer vector of length one), Default: integer(0)
 #' @param dir_1L_chr Directory (a character vector of length one)
 #' @return Results (a list)
 #' @rdname import_results_batches
 #' @export 
 #' @importFrom purrr reduce
 #' @importFrom dplyr bind_rows
-#' @keywords internal
-import_results_batches <- function (batches_1L_int, dir_1L_chr) 
+import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr) 
 {
+    files_chr <- list.files(dir_1L_chr, full.names = F)
+    files_chr <- files_chr[endsWith(files_chr, ".RDS")] %>% sort()
+    if (identical(batches_1L_int, integer(0))) {
+        batches_1L_int <- length(files_chr)
+    }
     results_ls <- 1:batches_1L_int %>% purrr::reduce(.init = list(), 
         ~{
-            additions_ls <- readRDS(paste0(dir_1L_chr, "/SimBatch", 
-                .y, ".RDS"))
+            additions_ls <- readRDS(paste0(dir_1L_chr, "/", files_chr[.y]))
+            if (length(additions_ls) == 1) {
+                additions_ls <- additions_ls[[1]]
+            }
             if (identical(.x, list())) {
                 additions_ls
             }

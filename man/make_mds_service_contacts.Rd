@@ -15,4 +15,3 @@ Data (a tibble)
 \description{
 make_mds_service_contacts() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset service contacts. The function returns Data (a tibble).
 }
-\keyword{internal}

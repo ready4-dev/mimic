@@ -1,12 +1,15 @@
-update_current_date <- function(X_Ready4useDyad){
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                               X_Ready4useDyad@ds_tb %>% dplyr::mutate(CurrentDate = ScheduledFor))
+update_current_date <- function (X_Ready4useDyad) {
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,
+                                                                              T ~ ScheduledFor)))
   return(X_Ready4useDyad)
 }
-update_current_event <- function(X_Ready4useDyad){
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(CurrentEvent = NextEvent))
+update_current_event <- function (X_Ready4useDyad) 
+{
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(CurrentEvent = dplyr::case_when(is.na(CurrentDate) ~ NA_character_,
+                                                                               T ~ NextEvent)))
   return(X_Ready4useDyad)
-  
 }
 update_episodes_lup <- function(episodes_lup_tb,
                                 dates_chr, 
@@ -168,15 +171,31 @@ update_mismatched_vars <- function(model_dyad_ls = make_model_dyad_ls,
   }
   return(model_dyad_ls)
 }
-update_order <- function(X_Ready4useDyad){
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::arrange(Iteration, UID))
+
+update_order <- function (X_Ready4useDyad,
+                          structural_chr = make_structural_vars(data_1L_chr = character(0), uid_1L_chr = "UID"),
+                          type_1L_chr = c("rows", "columns")) {
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr %in% c("both","rows")){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::arrange(Iteration, UID))
+  }
+  if(type_1L_chr %in% c("both","columns")){
+    params_chr <- names(X_Ready4useDyad@ds_tb)[startsWith(names(X_Ready4useDyad@ds_tb), "Param")] %>% sort() 
+    main_chr <-  setdiff(names(X_Ready4useDyad@ds_tb), c(structural_chr, params_chr)) %>% sort()
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::select(tidyselect::any_of(c(structural_chr,
+                                                                      main_chr,
+                                                                      params_chr))))
+  }
   return(X_Ready4useDyad)
 }
 update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
                                    update_fn = function(X_Ready4useDyad){identity(X_Ready4useDyad)},
                                    combined_suffixes_chr = c("","S01", "S02", "S10", "S11", "S12"),
                                    outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
-                                   ...) {#
+                                   ...) {#results_xx$total_ls$X
   qalys_chr <- purrr::map(outcome_suffixes_chr, ~ paste0(paste0(utilities_chr, "_QALYs"),.x)) %>% purrr::flatten_chr()
   icers_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("ICER_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
   ces_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("CE_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
@@ -212,73 +231,154 @@ update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
                                                }))
   return(X_Ready4useDyad)
 }
-update_population_classes <- function(X_Ready4useDyad,
-                                      tfmn_ls = NULL){
-  if(!is.null(tfmn_ls)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                 purrr::reduce(1:length(tfmn_ls),
-                                               .init = X_Ready4useDyad@ds_tb,
-                                               ~ {
+update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL) 
+{
+  tfmn_ls <- tfmn_ls %>% purrr::keep_at(intersect(names(tfmn_ls), names(X_Ready4useDyad@ds_tb)))
+  if (!is.null(tfmn_ls) & !identical(tfmn_ls, purrr::keep_at(list(X=NULL),"Y"))) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 purrr::reduce(1:length(tfmn_ls), .init = X_Ready4useDyad@ds_tb, 
+                                               ~{
                                                  fn <- tfmn_ls[[.y]]
-                                                 .x %>%  dplyr::mutate(!!rlang::sym(names(tfmn_ls)[.y]) := fn(!!rlang::sym(names(tfmn_ls)[.y])))
-                                                 })) 
+                                                 .x %>% dplyr::mutate(`:=`(!!rlang::sym(names(tfmn_ls)[.y]), 
+                                                                           fn(!!rlang::sym(names(tfmn_ls)[.y]))))
+                                               }))
   }
   return(X_Ready4useDyad)
 }
-update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, 
-                                   do_int = 1:5, follow_up_1L_int = 12L, maintain_for_1L_int = 0L, sensitivities_ls = make_sensitivities_ls(),
-                                   tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(),
-                                   utility_1L_chr = c("AQoL6D", "CHU9D"), var_1L_chr = character(0), with_1L_chr = "_sim_mean") {
-  utility_1L_chr <- match.arg(utility_1L_chr)
-  var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, type_1L_chr = "fup")
+update_population_ls <- function(population_ls = NULL,
+                                 X_Ready4useDyad = ready4use::Ready4useDyad(),
+                                 type_1L_chr = c("split", "join", "form"),
+                                 use_1L_chr = c("Y", "Z")
+){
+  type_1L_chr <- match.arg(type_1L_chr)
+  use_1L_chr <- match.arg(use_1L_chr)
+  if(type_1L_chr == "form"){
+    population_ls <- list(X_Ready4useDyad = X_Ready4useDyad,
+                          Y_Ready4useDyad = renewSlot(X_Ready4useDyad, "ds_tb",
+                                                      X_Ready4useDyad@ds_tb %>% dplyr::filter(F)),
+                          Z_Ready4useDyad  = renewSlot(X_Ready4useDyad, "ds_tb",
+                                                       X_Ready4useDyad@ds_tb %>% dplyr::filter(F)))
+  }
+  if(type_1L_chr == "split"){
+    if(use_1L_chr == "Y"){
+      population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
+                                                 dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
+    }
+    if(use_1L_chr == "Z"){
+      population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
+                                                 dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
+    }
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!is.na(CurrentDate)))
+  }
+  if(type_1L_chr == "join"){
+    if(use_1L_chr == "Y"){
+      data_tb <- population_ls$Y_Ready4useDyad@ds_tb
+    }
+    if(use_1L_chr == "Z"){
+      data_tb <- population_ls$Z_Ready4useDyad@ds_tb
+    }
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", 
+                                               population_ls$X_Ready4useDyad@ds_tb %>% 
+                                                 dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
+                                                                             ~as.numeric(.x))) %>% 
+                                                 dplyr::bind_rows(data_tb %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))) %>%
+                                                 dplyr::arrange(Iteration, UID))
+    if(use_1L_chr == "Y"){
+      population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb",
+                                                 population_ls$Y_Ready4useDyad@ds_tb  %>% dplyr::filter(F))
+    }
+    if(use_1L_chr == "Z"){
+      population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb",
+                                                 population_ls$Z_Ready4useDyad@ds_tb  %>% dplyr::filter(F))
+    }
+  }
+  return(population_ls)
+}
+update_predictions_ds <- function (Y_Ready4useDyad, adjustment_1L_dbl = 0, do_int = 1:5, # NEEDS GENERALISING
+                                   follow_up_1L_int = 12L, maintain_for_1L_int = 0L, sensitivities_ls = make_sensitivities_ls(), 
+                                   tfmn_1L_chr = "NTF", tfmn_ls = make_class_tfmns(), 
+                                   utility_1L_chr = c("AQoL6D"), 
+                                   var_1L_chr = character(0), with_1L_chr = "_sim_mean") 
+{
+  utility_1L_chr <- utility_1L_chr[1]
+  var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, 
+                                      fup_var_1L_chr = var_1L_chr, type_1L_chr = "fup")
   if (1 %in% do_int) {
     Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
                                                                           !!rlang::sym(paste0(var_1L_chr, with_1L_chr))))
   }
-  if (2 %in% do_int) {
+  if (2 %in% do_int) { # THIS PART NEEDS TO BE GENERALISED - ONLY APPROPRIATE FOR USE WITH CHU-9D and AQoL-6D
     Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
-                                                                          !!rlang::sym(var_1L_chr) %>% purrr::map_dbl(~max(min(.x, 1), ifelse(utility_1L_chr == "CHU9D", -0.2118, 0.03)))))
+                                                                          !!rlang::sym(var_1L_chr) %>% purrr::map_dbl(~max(min(.x, 
+                                                                                                                               1), 
+                                                                                                                           ifelse(utility_1L_chr == "CHU9D", -0.2118, 0.03)))))
   }
   if (3 %in% do_int | 4 %in% do_int | 6 %in% do_int) {
-    yrs_1L_dbl <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, type_1L_chr = "years")
+    yrs_1L_dbl <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, 
+                                        type_1L_chr = "years")
   }
   if (3 %in% do_int) {
-    Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, "_change")), (!!rlang::sym(var_1L_chr) - !!rlang::sym(utility_1L_chr)) %>% as.double)) %>% 
-      dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, "_QALYs")), (((!!rlang::sym(var_1L_chr) + !!rlang::sym(utility_1L_chr))/2) %>% as.double()) * yrs_1L_dbl))
+    Y_Ready4useDyad@ds_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
+                                                                                              "_change")), (!!rlang::sym(var_1L_chr) - !!rlang::sym(utility_1L_chr)) %>% 
+                                                                            as.double)) %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
+                                                                                                                                   "_QALYs")), (((!!rlang::sym(var_1L_chr) + !!rlang::sym(utility_1L_chr))/2) %>% 
+                                                                                                                                                  as.double()) * yrs_1L_dbl))
   }
   if (4 %in% do_int | 6 %in% do_int | 7 %in% do_int) {
-    Y_Ready4useDyad <- add_outcome_time_vars(Y_Ready4useDyad, outcome_1L_chr = utility_1L_chr, add_adjustments_1L_lgl = (4 %in% do_int), follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, maintain_for_1L_int = maintain_for_1L_int)
-    end_var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, type_1L_chr = "end")
-    start_var_1L_chr <- make_conditional_vars(utility_1L_chr, follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, type_1L_chr = "start")
+    Y_Ready4useDyad <- add_outcome_time_vars(Y_Ready4useDyad, 
+                                             outcome_1L_chr = utility_1L_chr, add_adjustments_1L_lgl = (4 %in% 
+                                                                                                          do_int), follow_up_1L_int = follow_up_1L_int, 
+                                             fup_var_1L_chr = var_1L_chr, maintain_for_1L_int = maintain_for_1L_int)
+    end_var_1L_chr <- make_conditional_vars(utility_1L_chr, 
+                                            follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, 
+                                            type_1L_chr = "end")
+    start_var_1L_chr <- make_conditional_vars(utility_1L_chr, 
+                                              follow_up_1L_int = follow_up_1L_int, fup_var_1L_chr = var_1L_chr, 
+                                              type_1L_chr = "start")
   }
   if (4 %in% do_int) {
-    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, end_var_1L_chr = end_var_1L_chr, start_var_1L_chr = start_var_1L_chr, 
-                                               # suffixes_chr = suffixes_chr, 
+    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, 
+                                               end_var_1L_chr = end_var_1L_chr, start_var_1L_chr = start_var_1L_chr, 
                                                utility_1L_chr = utility_1L_chr, type_1L_chr = "legacy")
-    do_int <- c(do_int,8) %>% unique()
+    do_int <- c(do_int, 8) %>% unique()
   }
   if (5 %in% do_int) {
-    Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary", type_1L_chr = "update")
+    Y_Ready4useDyad <- Y_Ready4useDyad %>% renew(what_1L_chr = "dictionary", 
+                                                 type_1L_chr = "update")
   }
   if (6 %in% do_int) {
     Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
-                                 Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, "_QALYs")), !!rlang::sym(paste0(utility_1L_chr, "_QALYs")) + (((!!rlang::sym(start_var_1L_chr) + !!rlang::sym(end_var_1L_chr))/2) %>% as.double()) * !!rlang::sym(paste0(utility_1L_chr, "_years")))))
+                                 Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(utility_1L_chr, 
+                                                                                                  "_QALYs")), !!rlang::sym(paste0(utility_1L_chr, 
+                                                                                                                                  "_QALYs")) + (((!!rlang::sym(start_var_1L_chr) + 
+                                                                                                                                                    !!rlang::sym(end_var_1L_chr))/2) %>% as.double()) * 
+                                                                                !!rlang::sym(paste0(utility_1L_chr, "_years")))))
   }
   if (7 %in% do_int) {
-    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, sensitivities_ls = sensitivities_ls, utility_1L_chr = utility_1L_chr)
+    Y_Ready4useDyad <- add_qalys_sensitivities(Y_Ready4useDyad, 
+                                               sensitivities_ls = sensitivities_ls, utility_1L_chr = utility_1L_chr)
   }
   if (8 %in% do_int) {
-    Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::any_of(paste0(utility_1L_chr, c("_days", "_years", "_multiplier", "_adjusted")))))
+    Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, "ds_tb", 
+                                 Y_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::any_of(paste0(utility_1L_chr, 
+                                                                                                    c("_days", "_years", "_multiplier", "_adjusted")))))
   }
   return(Y_Ready4useDyad)
 }
-update_previous <- function(X_Ready4useDyad,
-                            modifiable_chr = character(0),
-                            pattern_1L_chr = "{col}_previous"){
-  if(!identical(modifiable_chr, character(0))){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                 X_Ready4useDyad@ds_tb %>%
-                                   dplyr::mutate(dplyr::across(modifiable_chr, ~.x, .names = pattern_1L_chr)))
+update_previous <- function (X_Ready4useDyad, modifiable_chr = character(0), pattern_1L_chr = "{col}_previous") 
+{
+  modifiable_chr <- intersect(modifiable_chr, names(X_Ready4useDyad@ds_tb))
+  if (!identical(modifiable_chr, character(0))) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::all_of(modifiable_chr), 
+                                                                                       ~.x, .names = pattern_1L_chr)))
   }
   return(X_Ready4useDyad)
 }
@@ -359,7 +459,7 @@ update_providers_tb <- function(providers_tb,
   return(providers_tb)
 }
 update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjustment_1L_dbl = 0, 
-                          follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(),
+                          follow_up_1L_int = integer(0), maintain_for_1L_int = 0, sensitivities_ls = make_sensitivities_ls(), 
                           tidy_1L_lgl = FALSE, utilities_chr = c("CHU9D", "AQoL6D")) 
 {
   sensitivity_1L_int <- integer(0)
@@ -371,16 +471,20 @@ update_qalys <- function (X_Ready4useDyad, add_sensitivity_1L_lgl = FALSE, adjus
                                                        Y_Ready4useDyad <- .x
                                                        if (!paste0(.y, "_QALYs") %in% names(Y_Ready4useDyad@ds_tb)) {
                                                          Y_Ready4useDyad <- renewSlot(Y_Ready4useDyad, 
-                                                                                      "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(.y, "_QALYs")), 0)))
+                                                                                      "ds_tb", Y_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(.y, 
+                                                                                                                                                                "_QALYs")), 0)))
                                                        }
-                                                       Y_Ready4useDyad <- update_previous(Y_Ready4useDyad, modifiable_chr = paste0(.y, "_QALYs"))
+                                                       Y_Ready4useDyad <- update_previous(Y_Ready4useDyad, 
+                                                                                          modifiable_chr = paste0(.y, "_QALYs"))
                                                        Y_Ready4useDyad %>% update_predictions_ds(adjustment_1L_dbl = adjustment_1L_dbl, 
                                                                                                  do_int = c(6, sensitivity_1L_int, 8), follow_up_1L_int = follow_up_1L_int, 
-                                                                                                 utility_1L_chr = .y, maintain_for_1L_int = maintain_for_1L_int, sensitivities_ls = sensitivities_ls)
+                                                                                                 utility_1L_chr = .y, maintain_for_1L_int = maintain_for_1L_int, 
+                                                                                                 sensitivities_ls = sensitivities_ls)
                                                      })
   if (tidy_1L_lgl) {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::any_of(paste0(utilities_chr, "_QALYS"))))
+                                 X_Ready4useDyad@ds_tb %>% dplyr::select(-tidyselect::any_of(paste0(utilities_chr, 
+                                                                                                    "_QALYS"))))
   }
   return(X_Ready4useDyad)
 }
@@ -393,7 +497,10 @@ update_scenario_names <- function (forecasts_tb, after_1L_chr = character(0), be
                                                                                                                                                                                    prefix_1L_chr))), after_1L_chr), T ~ Scenario))
   return(forecasts_tb)
 }
-update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0), target_1L_int = integer(0), type_1L_chr = c("End", "Day")) 
+update_scheduled_date <- function (X_Ready4useDyad, 
+                                   increment_1L_int = integer(0), 
+                                   target_1L_int = integer(0), variable_1L_chr = character(0),
+                                   type_1L_chr = c("End", "Day")) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
   if (type_1L_chr == "End") {
@@ -401,20 +508,26 @@ update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c("CurrentDate", 
                                                                                          "ScheduledFor"), ~EndDate)))
   }
-  if(type_1L_chr == "Day"){
-    if(identical(increment_1L_int, integer(0))){
-      assertthat::assert_that(!identical(target_1L_int, integer(0)))
-      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = target_1L_int - (lubridate::time_length((CurrentDate - StartDate), "days"))))
-    }else{
+  if (type_1L_chr == "Day") {
+    if (identical(increment_1L_int, integer(0))) {
+      if(!identical(variable_1L_chr, character(0))){
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                     X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = !!rlang::sym(variable_1L_chr)))
+      }else{
+        assertthat::assert_that(!identical(target_1L_int, 
+                                           integer(0)))
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                     X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = target_1L_int - (lubridate::time_length((CurrentDate - StartDate), "days"))))
+      }
+    } else {
       X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                    X_Ready4useDyad@ds_tb %>% dplyr::mutate(IncrementDays = increment_1L_int))
     }
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c("ScheduledFor"), ~CurrentDate + lubridate::days(IncrementDays))))
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c("ScheduledFor"), 
+                                                                                       ~CurrentDate + lubridate::days(IncrementDays))))
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>%  dplyr::select(-IncrementDays))
-    
+                                 X_Ready4useDyad@ds_tb %>% dplyr::select(-IncrementDays))
   }
   return(X_Ready4useDyad)
 }
@@ -455,41 +568,51 @@ update_test_ds <- function(X_Ready4useDyad,
   }
   return(X_Ready4useDyad)
 }
-update_tx_start_end <- function(X_Ready4useDyad,
-                                tx_duration_dtm = lubridate::weeks(12)){
-  if(!"treatment_change" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_change = NA_character_))
+update_tx_start_end <- function (X_Ready4useDyad, prefix_1L_chr = "treatment", tx_duration_dtm = lubridate::weeks(12)) 
+{
+  if (!paste0(prefix_1L_chr,"_change") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_change")) := NA_character_))
   }
-  if(!"treatment_count" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_count = 0))
+  if (!paste0(prefix_1L_chr, "_count") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_count")) := 0))
   }
-  if(!"treatment_start" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_start = lubridate::NA_Date_))
+  if (!paste0(prefix_1L_chr, "_start") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_start")) := lubridate::NA_Date_))
   }
-  if(!"treatment_measurement" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_measurement = lubridate::NA_Date_))
+  if (!paste0(prefix_1L_chr, "_measurement") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_measurement")) := lubridate::NA_Date_))
   }
-  if(!"treatment_fraction" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_fraction = NA_real_))
+  if (!paste0(prefix_1L_chr, "_fraction") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_fraction")) := NA_real_))
   }
-  if(!"treatment_status_previous" %in% names(X_Ready4useDyad@ds_tb)){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(treatment_status_previous = NA_character_))
+  if (!paste0(prefix_1L_chr, "_status_previous") %in% names(X_Ready4useDyad@ds_tb)) {
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_status_previous")) := NA_character_))
   }
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                               X_Ready4useDyad@ds_tb %>%
-                                 dplyr::mutate(treatment_count = dplyr::case_when(as.character(treatment_change) =="Start" ~ treatment_count +1,
-                                                                                  as.character(treatment_change) =="End" &  as.character(treatment_status_previous) == "Waitlist" ~ treatment_count +1,
-                                                                                  T ~ treatment_count),
-                                               treatment_start = dplyr::case_when(!is.na(treatment_start) ~ treatment_start,
-                                                                                  is.na(treatment_start) & as.character(treatment_status)=="Treatment" ~ purrr::map_vec(CurrentDate,~{sample(seq(.x - tx_duration_dtm, .x, by = "day"), 1)}),
-                                                                                  T ~ lubridate::NA_Date_),
-                                               treatment_measurement = dplyr::case_when(!is.na(treatment_measurement) ~ treatment_measurement,
-                                                                                is.na(treatment_measurement) & !is.na(treatment_start) ~ treatment_start + tx_duration_dtm,
-                                                                                T ~ lubridate::NA_Date_),
-                                               treatment_fraction = dplyr::case_when(!is.na(treatment_fraction) ~ treatment_fraction,
-                                                                                     treatment_start >= StartDate & treatment_measurement <= EndDate ~ 1,
-                                                                                     T ~ lubridate::as.period(purrr::map2_vec(EndDate,treatment_measurement, ~ as.Date(ifelse(is.na(.y),lubridate::NA_Date_,min(.x,.y, na.rm=T)))) - CurrentDate) / tx_duration_dtm)
-                                 ))
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(!!rlang::sym(paste0(prefix_1L_chr, "_count")) := dplyr::case_when(as.character(!!rlang::sym(paste0(prefix_1L_chr, "_change"))) == 
+                                                                                                                   "Start" ~ !!rlang::sym(paste0(prefix_1L_chr, "_count")) + 1, as.character(!!rlang::sym(paste0(prefix_1L_chr, "_change"))) == 
+                                                                                                                   "End" & as.character(!!rlang::sym(paste0(prefix_1L_chr, "_status_previous"))) == 
+                                                                                                                   "Waitlist" ~ !!rlang::sym(paste0(prefix_1L_chr, "_count")) + 1, T ~ !!rlang::sym(paste0(prefix_1L_chr, "_count"))), 
+                                               !!rlang::sym(paste0(prefix_1L_chr, "_start")) := dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, "_start"))) ~ 
+                                                                                                                   !!rlang::sym(paste0(prefix_1L_chr, "_start")), is.na(!!rlang::sym(paste0(prefix_1L_chr, "_start"))) & as.character(!!rlang::sym(paste0(prefix_1L_chr, "_status"))) == 
+                                                                                                                   "Treatment" ~ purrr::map_vec(CurrentDate, ~{
+                                                                                                                     sample(seq(.x - tx_duration_dtm, .x, by = "day"), 
+                                                                                                                            1)
+                                                                                                                   }), T ~ lubridate::NA_Date_), !!rlang::sym(paste0(prefix_1L_chr, "_measurement")) := dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, "_measurement"))) ~ 
+                                                                                                                                                                                                                           !!rlang::sym(paste0(prefix_1L_chr, "_measurement")), is.na(!!rlang::sym(paste0(prefix_1L_chr, "_measurement"))) & 
+                                                                                                                                                                                                                           !is.na(!!rlang::sym(paste0(prefix_1L_chr, "_start"))) ~ !!rlang::sym(paste0(prefix_1L_chr, "_start")) + tx_duration_dtm, 
+                                                                                                                                                                                                                         T ~ lubridate::NA_Date_), !!rlang::sym(paste0(prefix_1L_chr, "_fraction")) := dplyr::case_when(!is.na(!!rlang::sym(paste0(prefix_1L_chr, "_fraction"))) ~ 
+                                                                                                                                                                                                                                                                                                                          !!rlang::sym(paste0(prefix_1L_chr, "_fraction")), !!rlang::sym(paste0(prefix_1L_chr, "_start")) >= StartDate & 
+                                                                                                                                                                                                                                                                                                                          !!rlang::sym(paste0(prefix_1L_chr, "_measurement")) <= EndDate ~ 1, T ~ lubridate::as.period(purrr::map2_vec(EndDate, 
+                                                                                                                                                                                                                                                                                                                                                                                                                                       !!rlang::sym(paste0(prefix_1L_chr, "_measurement")), ~as.Date(ifelse(is.na(.y), 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            lubridate::NA_Date_, min(.x, .y, na.rm = T)))) - 
+                                                                                                                                                                                                                                                                                                                                                                                                                         CurrentDate)/tx_duration_dtm)))
   return(X_Ready4useDyad)
 }
 update_with_imputed <- function(project_dss_ls,

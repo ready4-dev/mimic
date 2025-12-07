@@ -38,4 +38,3 @@ Forecasts (a tibble)
 \description{
 update_scenario_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update scenario names. The function returns Forecasts (a tibble).
 }
-\keyword{internal}

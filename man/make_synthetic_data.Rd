@@ -29,4 +29,3 @@ Output (a list)
 \description{
 make_synthetic_data() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make synthetic data. The function returns Output (a list).
 }
-\keyword{internal}

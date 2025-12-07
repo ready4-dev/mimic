@@ -17,4 +17,3 @@ Fit (an output object of multiple potential types)
 \description{
 make_pooled_fit() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make pooled fit. The function returns Fit (an output object of multiple potential types).
 }
-\keyword{internal}

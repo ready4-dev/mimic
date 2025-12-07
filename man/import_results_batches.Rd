@@ -4,10 +4,10 @@
 \alias{import_results_batches}
 \title{Import results batches}
 \usage{
-import_results_batches(batches_1L_int, dir_1L_chr)
+import_results_batches(batches_1L_int = integer(0), dir_1L_chr)
 }
 \arguments{
-\item{batches_1L_int}{Batches (an integer vector of length one)}
+\item{batches_1L_int}{Batches (an integer vector of length one), Default: integer(0)}
 
 \item{dir_1L_chr}{Directory (a character vector of length one)}
 }
@@ -17,4 +17,3 @@ Results (a list)
 \description{
 import_results_batches() is an Import function that reads a data object in its native format and converts it to an R object. Specifically, this function implements an algorithm to import results batches. The function returns Results (a list).
 }
-\keyword{internal}

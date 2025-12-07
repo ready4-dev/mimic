@@ -17,4 +17,3 @@ X (A dataset and data dictionary pair.)
 \description{
 update_k10_event_schedule() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update k10 event schedule. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

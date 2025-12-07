@@ -511,7 +511,6 @@ predict_with_sim <- function (inputs_ls, modifiable_chr = c("treatment_status", 
 #' @importFrom purrr map_chr
 #' @importFrom stringr str_sub
 #' @importFrom lubridate as_date
-#' @keywords internal
 transform_integer_dates <- function (dates_int) 
 {
     if (!is.integer(dates_int)) {

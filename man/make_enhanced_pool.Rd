@@ -17,4 +17,3 @@ Pooled (a list)
 \description{
 make_enhanced_pool() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make enhanced pool. The function returns Pooled (a list).
 }
-\keyword{internal}

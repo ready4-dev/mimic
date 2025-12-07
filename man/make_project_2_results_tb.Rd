@@ -47,4 +47,3 @@ Results (a tibble)
 \description{
 make_project_2_results_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 results tibble. The function returns Results (a tibble).
 }
-\keyword{internal}

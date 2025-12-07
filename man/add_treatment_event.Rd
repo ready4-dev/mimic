@@ -11,6 +11,7 @@ add_treatment_event(
   bl_week_1L_dbl = 0,
   iterations_int = 1:100L,
   measurement_1L_int = integer(0),
+  prefix_1L_chr = "treatment",
   tx_duration_dtm = lubridate::weeks(12)
 )
 }
@@ -27,6 +28,8 @@ add_treatment_event(
 
 \item{measurement_1L_int}{Measurement (an integer vector of length one), Default: integer(0)}
 
+\item{prefix_1L_chr}{Prefix (a character vector of length one), Default: 'treatment'}
+
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 }
 \value{
@@ -35,4 +38,3 @@ X (A dataset and data dictionary pair.)
 \description{
 add_treatment_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add treatment event. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

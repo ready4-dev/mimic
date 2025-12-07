@@ -15,4 +15,3 @@ Plot (a function)
 \description{
 make_project_2_theme_fn() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 theme function. The function returns Plot (a function).
 }
-\keyword{internal}

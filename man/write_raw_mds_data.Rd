@@ -19,4 +19,3 @@ No return value, called for side effects.
 \description{
 write_raw_mds_data() is a Write function that writes a file to a specified local directory. Specifically, this function implements an algorithm to write raw minimum dataset data. The function is called for its side effects and does not return a value.
 }
-\keyword{internal}

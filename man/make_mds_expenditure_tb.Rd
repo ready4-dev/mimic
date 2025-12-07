@@ -47,4 +47,3 @@ Expenditure (a tibble)
 \description{
 make_mds_expenditure_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make minimum dataset expenditure tibble. The function returns Expenditure (a tibble).
 }
-\keyword{internal}
