@@ -32,7 +32,7 @@ update_intervention_name <- function(data_tb,
                                      new_1L_chr = "Comparator",
                                      old_1L_chr = "FlexPsych",
                                      var_nm_1L_chr = "Intervention"){
-  data_tb <- dplyr::mutate(data_tb, !!rlang::sym(var_nm_1L_chr) := !!rlang::sym(var_nm_1L_chr)  %>% stringr::str_replace_all(old_1L_chr, new_1L_chr))
+  data_tb <- dplyr::mutate(data_tb, !!rlang::sym(var_nm_1L_chr) := !!rlang::sym(var_nm_1L_chr) %>% stringr::str_replace_all(old_1L_chr, new_1L_chr))
   return(data_tb)
 }
 update_k10_event_schedule <-  function(X_Ready4useDyad,
@@ -404,9 +404,10 @@ update_processed_tb <- function(data_tb,
                      End = dplyr::first(End))
   return(data_tb)
 }
-update_project_2_param_names <- function(params_tb){
+update_project_2_param_names <- function(params_tb,
+                                         intervention_1L_chr){
   params_tb <- params_tb %>%
-    dplyr::mutate(Parameter = Parameter %>% 
+    dplyr::mutate(Parameter = Parameter %>%
                     stringr::str_replace("AmbulanceOffset", "Ambulance attendance") %>%
                     stringr::str_replace("ExcludedAdjustment", " adjustment (base case)") %>%
                     stringr::str_replace("IARAdjustment", " adjustment for unmeasured IAR assessments") %>%
@@ -416,15 +417,15 @@ update_project_2_param_names <- function(params_tb){
                     stringr::str_replace("ComparatorFixed", "Comparator fixed") %>%
                     stringr::str_replace("InterventionFixed", paste0(intervention_1L_chr," fixed")) %>%
                     stringr::str_replace("CostPerMin", " cost per minute") %>%
-                    stringr::str_replace("Cost", " cost") %>% 
-                    stringr::str_replace("ProbProxy", " offset probability") %>% 
-                    stringr::str_replace_all("HasIAR", "Has an IAR-DST assessment - ") %>% 
+                    stringr::str_replace("Cost", " cost") %>%
+                    stringr::str_replace("ProbProxy", " offset probability") %>%
+                    stringr::str_replace_all("HasIAR", "Has an IAR-DST assessment - ") %>%
                     stringr::str_replace_all("InHouseIAR", "Proportion of IAR-DST assessments performed by treating service - ") %>%
-                    stringr::str_replace_all("NonHelpSeekers", "Proportion of individuals who are non-help seeking - Comparator") 
+                    stringr::str_replace_all("NonHelpSeekers", "Proportion of individuals who are non-help seeking - Comparator")
     ) %>%
-    dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, "Low") ~ "One year change in K10 for untreated individuals with low distress", 
-                                               endsWith(Parameter, "Moderate") ~ "One year change in K10 for untreated individuals with moderate distress", 
-                                               endsWith(Parameter, "VeryHigh") ~ "One year change in K10 for untreated individuals with very high distress", 
+    dplyr::mutate(Parameter = dplyr::case_when(endsWith(Parameter, "Low") ~ "One year change in K10 for untreated individuals with low distress",
+                                               endsWith(Parameter, "Moderate") ~ "One year change in K10 for untreated individuals with moderate distress",
+                                               endsWith(Parameter, "VeryHigh") ~ "One year change in K10 for untreated individuals with very high distress",
                                                endsWith(Parameter, "High") ~ "One year change in K10 for untreated individuals with high distress", T ~ Parameter)) %>%
     dplyr::arrange(Parameter)
   return(params_tb)

@@ -95,7 +95,7 @@ calculate_erp_for_areas <- function (raw_erp_tb = NULL, path_1L_chr = character(
 #' @param exposed_1L_dbl Exposed (a double vector of length one)
 #' @param rate_1L_dbl Rate (a double vector of length one)
 #' @param risk_1L_dbl Risk (a double vector of length one)
-#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 1e+05
+#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 100000
 #' @param time_1L_dbl Time (a double vector of length one), Default: 1
 #' @return Probability proxy (a double vector of length one)
 #' @rdname calculate_offset_prob_proxy
@@ -103,7 +103,7 @@ calculate_erp_for_areas <- function (raw_erp_tb = NULL, path_1L_chr = character(
 #' @importFrom heemod rate_to_prob
 #' @keywords internal
 calculate_offset_prob_proxy <- function (area_erp_1L_dbl, exposed_1L_dbl, rate_1L_dbl, risk_1L_dbl, 
-    denominator_1L_dbl = 1e+05, time_1L_dbl = 1) 
+    denominator_1L_dbl = 100000, time_1L_dbl = 1) 
 {
     averted_rate_1L_dbl <- (rate_1L_dbl/risk_1L_dbl) * (1 - risk_1L_dbl)
     averted_1L_dbl <- area_erp_1L_dbl/denominator_1L_dbl * averted_rate_1L_dbl

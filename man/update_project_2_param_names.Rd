@@ -4,10 +4,12 @@
 \alias{update_project_2_param_names}
 \title{Update project 2 parameter names}
 \usage{
-update_project_2_param_names(params_tb)
+update_project_2_param_names(params_tb, intervention_1L_chr)
 }
 \arguments{
 \item{params_tb}{Parameters (a tibble)}
+
+\item{intervention_1L_chr}{Intervention (a character vector of length one)}
 }
 \value{
 Parameters (a tibble)

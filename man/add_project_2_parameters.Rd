@@ -13,7 +13,7 @@ add_project_2_parameters(
   comparator_share_1L_dbl = 1,
   cost_1L_dbl = numeric(0),
   data_ls = NULL,
-  denominator_1L_dbl = 1e+05,
+  denominator_1L_dbl = 100000,
   exposed_1L_dbl = numeric(),
   intervention_1L_chr = character(0),
   intervention_filter_fn = identity,
@@ -44,7 +44,7 @@ add_project_2_parameters(
 
 \item{data_ls}{Data (a list), Default: NULL}
 
-\item{denominator_1L_dbl}{Denominator (a double vector of length one), Default: 1e+05}
+\item{denominator_1L_dbl}{Denominator (a double vector of length one), Default: 100000}
 
 \item{exposed_1L_dbl}{Exposed (a double vector of length one), Default: numeric()}
 

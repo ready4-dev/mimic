@@ -593,13 +593,14 @@ update_processed_tb <- function (data_tb, first_eight_1L_lgl = NA, program_1L_ch
 #' Update project 2 parameter names
 #' @description update_project_2_param_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update project 2 parameter names. The function returns Parameters (a tibble).
 #' @param params_tb Parameters (a tibble)
+#' @param intervention_1L_chr Intervention (a character vector of length one)
 #' @return Parameters (a tibble)
 #' @rdname update_project_2_param_names
 #' @export 
 #' @importFrom dplyr mutate case_when arrange
 #' @importFrom stringr str_replace str_replace_all
 #' @keywords internal
-update_project_2_param_names <- function (params_tb) 
+update_project_2_param_names <- function (params_tb, intervention_1L_chr) 
 {
     params_tb <- params_tb %>% dplyr::mutate(Parameter = Parameter %>% 
         stringr::str_replace("AmbulanceOffset", "Ambulance attendance") %>% 

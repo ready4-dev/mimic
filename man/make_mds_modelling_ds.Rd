@@ -15,6 +15,7 @@ make_mds_modelling_ds(
   age_min_1L_int = integer(0),
   disciplines_chr = make_disciplines(),
   distinct_orgs_1L_lgl = TRUE,
+  filter_true_1L_chr = "FlexPsych",
   impute_below_1L_dbl = 40,
   imputations_1L_int = 1,
   intervention_1L_chr = "Intv",
@@ -47,6 +48,8 @@ make_mds_modelling_ds(
 \item{disciplines_chr}{Disciplines (a character vector), Default: make_disciplines()}
 
 \item{distinct_orgs_1L_lgl}{Distinct organisations (a logical vector of length one), Default: TRUE}
+
+\item{filter_true_1L_chr}{Filter true (a character vector of length one), Default: 'FlexPsych'}
 
 \item{impute_below_1L_dbl}{Impute below (a double vector of length one), Default: 40}
 

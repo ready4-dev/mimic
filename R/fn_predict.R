@@ -519,8 +519,8 @@ transform_integer_dates <- function (dates_int)
     }
     else {
         dates_dtm <- dates_int %>% purrr::map_chr(~{
-            date_1L_chr <- ifelse(.x < 1e+07, paste0("0", as.integer(.x)), 
-                as.integer(.x))
+            date_1L_chr <- ifelse(.x < 10000000, paste0("0", 
+                as.integer(.x)), as.integer(.x))
             paste0(stringr::str_sub(date_1L_chr, start = 5, end = 8), 
                 "-", stringr::str_sub(date_1L_chr, start = 3, 
                   end = 4), "-", stringr::str_sub(date_1L_chr, 

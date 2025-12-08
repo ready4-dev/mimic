@@ -726,6 +726,7 @@ make_mds_modelling_ds <- function(processed_ls,
                                   age_min_1L_int = integer(0),
                                   disciplines_chr = make_disciplines(),
                                   distinct_orgs_1L_lgl = TRUE,
+                                  filter_true_1L_chr = "FlexPsych",
                                   impute_below_1L_dbl = 40,
                                   imputations_1L_int = 1,
                                   intervention_1L_chr = "Intv", 
@@ -804,6 +805,7 @@ make_mds_modelling_ds <- function(processed_ls,
                                             characteristics_chr = intersect(X_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(is.character)) %>% names(),impute_chr), 
                                             date_vars_chr = X_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(function(x) inherits(x, "Date"))) %>% names(),
                                             extras_chr = character(0), 
+                                            filter_true_1L_chr = filter_true_1L_chr,
                                             ignore_x_chr = do_not_impute_chr, 
                                             imputations_1L_int = imputations_1L_int,
                                             max_iterations_1L_int = max_iterations_1L_int,
@@ -2161,101 +2163,97 @@ make_project_2_results_synthesis <- function (inputs_ls, results_ls,
   )
   return(X_Ready4useDyad)
 }
-make_project_2_results_tb <- function(sim_results_ls, 
-                                      comparator_1L_chr, 
-                                      intervention_1L_chr, 
-                                      params_tb,  
-                                      platform_1L_chr,
-                                      digits_1L_int = 2,
-                                      disciplines_chr = make_disciplines(),
-                                      drop_chr = character(0),
-                                      filter_1L_lgl = TRUE,
-                                      format_1L_lgl = TRUE,
-                                      type_1L_chr = c("main","cost", "outcomes","use")){
-  type_1L_chr <-  match.arg(type_1L_chr)
-  results_tb <- make_project_2_report(arms_chr = c(intervention_1L_chr, comparator_1L_chr), 
-                                      params_tb = params_tb,
-                                      platform_1L_chr = platform_1L_chr, 
-                                      sim_results_ls = sim_results_ls, what_1L_chr = "resultsoutcome") 
-  
-  results_tb <- results_tb %>%
-    dplyr::mutate(Group = Outcome %>% stringr::word(1)) %>%
-    dplyr::mutate(Outcome = stringr::str_replace_all(Outcome, " S1", " (Outcome sensitivity 1)") %>%
-                    stringr::str_replace_all(" S2", " (Outcome sensitivity 2)") %>%
-                    stringr::str_replace_all("\\(Utility sensitivity ", "(Outcome sensitivity ")) %>%
-    dplyr::arrange(Group, Outcome)
-  results_tb <- results_tb %>% 
-    dplyr::rename(Comparator = !!rlang::sym(comparator_1L_chr)) %>%
+make_project_2_results_tb <- function (sim_results_ls, comparator_1L_chr, intervention_1L_chr, 
+                                       params_tb, platform_1L_chr, digits_1L_int = 2, disciplines_chr = make_disciplines(), 
+                                       drop_chr = character(0), filter_1L_lgl = TRUE, format_1L_lgl = TRUE, 
+                                       type_1L_chr = c("main", "cost", "outcomes", "use")) 
+{
+  type_1L_chr <- match.arg(type_1L_chr)
+  results_tb <- make_project_2_report(arms_chr = c(intervention_1L_chr, 
+                                                   comparator_1L_chr), params_tb = params_tb, platform_1L_chr = platform_1L_chr, 
+                                      sim_results_ls = sim_results_ls, what_1L_chr = "resultsoutcome")
+  results_tb <- results_tb %>% dplyr::mutate(Group = Outcome %>% 
+                                               stringr::word(1)) %>% dplyr::mutate(Outcome = stringr::str_replace_all(Outcome, 
+                                                                                                                      " S1", " (Outcome sensitivity 1)") %>% stringr::str_replace_all(" S2", 
+                                                                                                                                                                                      " (Outcome sensitivity 2)") %>% stringr::str_replace_all("\\(Utility sensitivity ", 
+                                                                                                                                                                                                                                               "(Outcome sensitivity ")) %>% dplyr::arrange(Group, Outcome)
+  results_tb <- results_tb %>% dplyr::rename(Comparator = !!rlang::sym(comparator_1L_chr)) %>% 
     dplyr::filter(!Outcome %>% endsWith(paste0(" ", intervention_1L_chr))) %>% 
     dplyr::filter(!Outcome %>% endsWith(paste0(" ", comparator_1L_chr))) %>% 
-    dplyr::mutate(Difference = !!rlang::sym(intervention_1L_chr) - Comparator) %>%
-    dplyr::filter(!is.na(Comparator))
-  results_tb <- results_tb$Group %>% unique() %>%
-    purrr::map_dfr(~{
-      filtered_tb <- results_tb %>% dplyr::filter(Group==.x)
-      dplyr::bind_rows(filtered_tb %>% dplyr::filter(endsWith(Outcome, "at model entry")),
-                       filtered_tb %>% dplyr::filter(!endsWith(Outcome, "at model entry")))
-    }
-    )
+    dplyr::mutate(Difference = !!rlang::sym(intervention_1L_chr) - 
+                    Comparator) %>% dplyr::filter(!is.na(Comparator))
+  results_tb <- results_tb$Group %>% unique() %>% purrr::map_dfr(~{
+    filtered_tb <- results_tb %>% dplyr::filter(Group == 
+                                                  .x)
+    dplyr::bind_rows(filtered_tb %>% dplyr::filter(endsWith(Outcome, 
+                                                            "at model entry")), filtered_tb %>% dplyr::filter(!endsWith(Outcome, 
+                                                                                                                        "at model entry")))
+  })
   labels_ls <- make_project_2_labels(type_1L_chr = "simulation")
-  results_tb <- results_tb %>%
-    dplyr::mutate(Replacement = Group %>% purrr::map_chr(~ifelse(.x %in% names(labels_ls),labels_ls[[which(.x==names(labels_ls))]], .x)))
-  results_tb <- results_tb %>% dplyr::mutate(Outcome = purrr::pmap_chr(results_tb %>% dplyr::select(Outcome, Group, Replacement),
-                                                                       ~ ..1 %>% stringr::str_replace(..2,..3))) %>%
-    dplyr::mutate(Group = Replacement) %>%
+  results_tb <- results_tb %>% dplyr::mutate(Replacement = Group %>% 
+                                               purrr::map_chr(~ifelse(.x %in% names(labels_ls), labels_ls[[which(.x == 
+                                                                                                                   names(labels_ls))]], .x)))
+  results_tb <- results_tb %>% dplyr::mutate(Outcome = purrr::pmap_chr(results_tb %>% 
+                                                                         dplyr::select(Outcome, Group, Replacement), ~..1 %>% 
+                                                                         stringr::str_replace(..2, ..3))) %>% dplyr::mutate(Group = Replacement) %>% 
     dplyr::select(-Replacement)
-  if(format_1L_lgl){
-    results_tb <- results_tb %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ round(.x, digits_1L_int))) 
+  if (format_1L_lgl) {
+    results_tb <- results_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                                             ~round(.x, digits_1L_int)))
   }
-  if(filter_1L_lgl){
-    results_tb <- results_tb %>%
-      dplyr::filter(!endsWith(Outcome, "Update 1") & !startsWith(Outcome, "Contact minutes"))
+  if (filter_1L_lgl) {
+    results_tb <- results_tb %>% dplyr::filter(!endsWith(Outcome, 
+                                                         "Update 1") & !startsWith(Outcome, "Contact minutes"))
   }
-  if(!identical(drop_chr, character(0))){
-    results_tb <- purrr::reduce(drop_chr,
-                                .init = results_tb,
-                                ~ {
+  if (!identical(drop_chr, character(0))) {
+    results_tb <- purrr::reduce(drop_chr, .init = results_tb, 
+                                ~{
                                   .x %>% dplyr::filter(!Outcome %>% stringr::str_detect(.y))
                                 })
   }
-  if(type_1L_chr == "cost"){
-    results_tb <- results_tb %>% dplyr::filter(Outcome %>% stringr::str_detect("Cost") | Outcome %>% stringr::str_detect("cost")) %>%
-      dplyr::mutate(Outcome = dplyr::case_when(Outcome %>% startsWith("Cost") ~ stringr::str_replace_all(Outcome, "Cost", "Total cost"),
-                                               T ~ Outcome)) %>%
-      dplyr::arrange(Outcome) 
+  if (type_1L_chr == "cost") {
+    results_tb <- results_tb %>% dplyr::filter(Outcome %>% 
+                                                 stringr::str_detect("Cost") | Outcome %>% stringr::str_detect("cost")) %>% 
+      dplyr::mutate(Outcome = dplyr::case_when(Outcome %>% 
+                                                 startsWith("Cost") ~ stringr::str_replace_all(Outcome, 
+                                                                                               "Cost", "Total cost"), T ~ Outcome)) %>% dplyr::arrange(Outcome)
     results_tb <- results_tb
-    results_tb <- results_tb %>%
-      dplyr::mutate(Group = dplyr::case_when(Outcome %>% stringr::str_detect("Cost sensitivity 1") ~ "Sensitivity 1",
-                                             Outcome %>% stringr::str_detect("cost sensitivity 1") ~ "Sensitivity 1",
-                                             Outcome %>% stringr::str_detect("Cost sensitivity 2") ~ "Sensitivity 2",
-                                             Outcome %>% stringr::str_detect("cost sensitivity 2") ~ "Sensitivity 2",
-                                             T ~ "Base")) %>%
-      dplyr::arrange(Group, Outcome) %>%
-      dplyr::rename(Analysis = Group) %>%
-      dplyr::select(Analysis, dplyr::everything()) %>%
-      dplyr::mutate(Outcome = stringr::str_replace(Outcome, " \\s*\\([^\\)]+\\)", ""))
-    if(format_1L_lgl){
-      results_tb <- results_tb %>%
-        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x))) 
+    results_tb <- results_tb %>% dplyr::mutate(Group = dplyr::case_when(Outcome %>% 
+                                                                          stringr::str_detect("Cost sensitivity 1") ~ "Sensitivity 1", 
+                                                                        Outcome %>% stringr::str_detect("cost sensitivity 1") ~ 
+                                                                          "Sensitivity 1", Outcome %>% stringr::str_detect("Cost sensitivity 2") ~ 
+                                                                          "Sensitivity 2", Outcome %>% stringr::str_detect("cost sensitivity 2") ~ 
+                                                                          "Sensitivity 2", T ~ "Base")) %>% dplyr::arrange(Group, 
+                                                                                                                           Outcome) %>% dplyr::rename(Analysis = Group) %>% 
+      dplyr::select(Analysis, dplyr::everything()) %>% 
+      dplyr::mutate(Outcome = stringr::str_replace(Outcome, 
+                                                   " \\s*\\([^\\)]+\\)", ""))
+    if (format_1L_lgl) {
+      results_tb <- results_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                                               ~scales::dollar(.x)))
     }
-    
   }
-  if(type_1L_chr == "outcomes"){
-    results_tb <- results_tb %>% 
-      dplyr::filter(!endsWith(Group, "Contact") & !endsWith(Group, "Cost") & !endsWith(Group, "cost") & !endsWith(Group, "minutes") & !endsWith(Group, "Episodes of care")) %>%
-      dplyr::filter(!Group %in% c("Ambulance", "Fixed", "IAR-DST", "Wait time, days", disciplines_chr)) %>% 
-      dplyr::select(-Group) 
+  if (type_1L_chr == "outcomes") {
+    results_tb <- results_tb %>% dplyr::filter(!endsWith(Group, 
+                                                         "Contact") & !endsWith(Group, "Cost") & !endsWith(Group, 
+                                                                                                           "cost") & !endsWith(Group, "minutes") & !endsWith(Group, 
+                                                                                                                                                             "Episodes of care")) %>% dplyr::filter(!Group %in% 
+                                                                                                                                                                                                      c("Ambulance", "Fixed", "IAR-DST", "Wait time, days", 
+                                                                                                                                                                                                        disciplines_chr)) %>% dplyr::select(-Group)
+    results_tb <- results_tb %>% dplyr::filter(!is.na(Difference))
   }
-  if(type_1L_chr == "use"){
-    results_tb <- results_tb %>% 
-      dplyr::filter(endsWith(Group, "Contact") | endsWith(Group, "minutes") | endsWith(Group, "Episodes of care") | 
-                      Group %in% c("Ambulance", "IAR-DST", "Wait time, days")) %>%
-      dplyr::select(-Group) %>%
+  if (type_1L_chr == "use") {
+    results_tb <- results_tb %>% dplyr::filter(endsWith(Group, 
+                                                        "Contact") | endsWith(Group, "minutes") | endsWith(Group, 
+                                                                                                           "Episodes of care") | Group %in% c("Ambulance", "IAR-DST", 
+                                                                                                                                              "Wait time, days")) %>% dplyr::select(-Group) %>% 
       dplyr::filter(!endsWith(Outcome, " cost"))
-    results_tb <- results_tb %>% dplyr::filter(Outcome == "Episodes of care") %>%
-      dplyr::bind_rows(results_tb %>% dplyr::filter(Outcome != "Episodes of care"))
-    results_tb <- results_tb %>% dplyr::mutate(Outcome = Outcome %>% stringr::str_replace_all("General Practitioner", "General practitioner"))
+    results_tb <- results_tb %>% dplyr::filter(Outcome == 
+                                                 "Episodes of care") %>% dplyr::bind_rows(results_tb %>% 
+                                                                                            dplyr::filter(Outcome != "Episodes of care"))
+    results_tb <- results_tb %>% dplyr::mutate(Outcome = Outcome %>% 
+                                                 stringr::str_replace_all("General Practitioner", 
+                                                                          "General practitioner"))
   }
   return(results_tb)
 }
@@ -2899,6 +2897,7 @@ make_project_imputations <- function (X_Ready4useDyad,
                                       characteristics_chr = c("Diagnosis", "Employment"), 
                                       date_vars_chr = "Date",
                                       extras_chr = character(0), 
+                                      filter_true_1L_chr = "FlexPsych",
                                       ignore_x_chr = character(0), 
                                       ignore_y_chr = character(0),
                                       imputations_1L_int = 5,
@@ -2909,7 +2908,7 @@ make_project_imputations <- function (X_Ready4useDyad,
 {
   model_data_ls <-list(imputed_ls = list(),
                        unimputed_ls = list())
-  model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% update_mds_modelling_ds())
+  model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr))
   if (!identical(ignore_x_chr, character(0))) {
     A_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                  X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::all_of(c(uid_var_1L_chr, 

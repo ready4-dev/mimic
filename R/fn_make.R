@@ -1149,6 +1149,7 @@ make_mds_expenditure_tb <- function (raw_expenditure_tb = NULL, path_to_param_da
 #' @param age_min_1L_int Age minimum (an integer vector of length one), Default: integer(0)
 #' @param disciplines_chr Disciplines (a character vector), Default: make_disciplines()
 #' @param distinct_orgs_1L_lgl Distinct organisations (a logical vector of length one), Default: TRUE
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param impute_below_1L_dbl Impute below (a double vector of length one), Default: 40
 #' @param imputations_1L_int Imputations (an integer vector of length one), Default: 1
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intv'
@@ -1174,9 +1175,9 @@ make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_l
     after_dtm = as.Date("2022-07-01"), add_programs_int = c(1, 
         4), age_max_1L_int = integer(0), age_min_1L_int = integer(0), 
     disciplines_chr = make_disciplines(), distinct_orgs_1L_lgl = TRUE, 
-    impute_below_1L_dbl = 40, imputations_1L_int = 1, intervention_1L_chr = "Intv", 
-    jurisdiction_1L_chr = "Jurisdiction", mature_only_1L_lgl = TRUE, 
-    max_iterations_1L_int = 2, missing_after_dtm = Sys.Date(), 
+    filter_true_1L_chr = "FlexPsych", impute_below_1L_dbl = 40, 
+    imputations_1L_int = 1, intervention_1L_chr = "Intv", jurisdiction_1L_chr = "Jurisdiction", 
+    mature_only_1L_lgl = TRUE, max_iterations_1L_int = 2, missing_after_dtm = Sys.Date(), 
     postcode_lup = NULL, program_true_1L_chr = "is_program", 
     require_complete_chr = character(0)) 
 {
@@ -1248,9 +1249,9 @@ make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_l
             impute_chr), date_vars_chr = X_Ready4useDyad@ds_tb %>% 
             dplyr::select(dplyr::where(function(x) inherits(x, 
                 "Date"))) %>% names(), extras_chr = character(0), 
-        ignore_x_chr = do_not_impute_chr, imputations_1L_int = imputations_1L_int, 
-        max_iterations_1L_int = max_iterations_1L_int, method_1L_chr = "rf", 
-        post_imputation_fn = function(x) add_mds_minutes_totals(x, 
+        filter_true_1L_chr = filter_true_1L_chr, ignore_x_chr = do_not_impute_chr, 
+        imputations_1L_int = imputations_1L_int, max_iterations_1L_int = max_iterations_1L_int, 
+        method_1L_chr = "rf", post_imputation_fn = function(x) add_mds_minutes_totals(x, 
             add_chr = "Use"), uid_var_1L_chr = "RecordID")
     model_data_ls$unimputed_ls$missing_tb <- missing_tb
     return(model_data_ls)
@@ -2733,6 +2734,7 @@ make_project_2_results_tb <- function (sim_results_ls, comparator_1L_chr, interv
             "Episodes of care")) %>% dplyr::filter(!Group %in% 
             c("Ambulance", "Fixed", "IAR-DST", "Wait time, days", 
                 disciplines_chr)) %>% dplyr::select(-Group)
+        results_tb <- results_tb %>% dplyr::filter(!is.na(Difference))
     }
     if (type_1L_chr == "use") {
         results_tb <- results_tb %>% dplyr::filter(endsWith(Group, 
@@ -3824,6 +3826,7 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
 #' @param characteristics_chr Characteristics (a character vector), Default: c("Diagnosis", "Employment")
 #' @param date_vars_chr Date variables (a character vector), Default: 'Date'
 #' @param extras_chr Extras (a character vector), Default: character(0)
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param ignore_x_chr Ignore x (a character vector), Default: character(0)
 #' @param ignore_y_chr Ignore y (a character vector), Default: character(0)
 #' @param imputations_1L_int Imputations (an integer vector of length one), Default: 5
@@ -3846,13 +3849,13 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
 make_project_imputations <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("Diagnosis", 
         "Employment"), date_vars_chr = "Date", extras_chr = character(0), 
-    ignore_x_chr = character(0), ignore_y_chr = character(0), 
-    imputations_1L_int = 5, max_iterations_1L_int = 2, method_1L_chr = "rf", 
-    post_imputation_fn = identity, uid_var_1L_chr = "UID") 
+    filter_true_1L_chr = "FlexPsych", ignore_x_chr = character(0), 
+    ignore_y_chr = character(0), imputations_1L_int = 5, max_iterations_1L_int = 2, 
+    method_1L_chr = "rf", post_imputation_fn = identity, uid_var_1L_chr = "UID") 
 {
     model_data_ls <- list(imputed_ls = list(), unimputed_ls = list())
     model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% 
-        update_mds_modelling_ds())
+        update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr))
     if (!identical(ignore_x_chr, character(0))) {
         A_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::all_of(c(uid_var_1L_chr, 

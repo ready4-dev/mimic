@@ -2613,6 +2613,7 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @description add_project_2_model_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project 2 model data. The function returns Model data (a list).
 #' @param model_data_ls Model data (a list)
 #' @param sample_ls Sample (a list)
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intervention'
 #' @param cut_off_date_1L_chr Cut off date (a character vector of length one), Default: '2025-01-01'
 #' @return Model data (a list)
@@ -2620,11 +2621,12 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @export 
 #' @importFrom dplyr filter mutate across where group_by arrange lag ungroup
 #' @keywords internal
-add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_chr = "Intervention", 
-    cut_off_date_1L_chr = "2025-01-01") 
+add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_chr = "FlexPsych", 
+    intervention_1L_chr = "Intervention", cut_off_date_1L_chr = "2025-01-01") 
 {
     model_data_ls$imputed_ls$Modelling_r4 <- model_data_ls$imputed_ls$Z_Ready4useDyad %>% 
-        update_mds_modelling_ds(sample_ls = sample_ls)
+        update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr, 
+            sample_ls = sample_ls)
     model_data_ls$imputed_ls$Wait_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% 
         renewSlot("ds_tb", .@ds_tb %>% dplyr::filter(!is.na(WaitInDays)))
     model_data_ls$imputed_ls$EpisodeDuration_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% 
@@ -2752,7 +2754,7 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 #' @param comparator_share_1L_dbl Comparator share (a double vector of length one), Default: 1
 #' @param cost_1L_dbl Cost (a double vector of length one), Default: numeric(0)
 #' @param data_ls Data (a list), Default: NULL
-#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 1e+05
+#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 100000
 #' @param exposed_1L_dbl Exposed (a double vector of length one), Default: numeric()
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: character(0)
 #' @param intervention_filter_fn Intervention filter (a function), Default: identity
@@ -2776,11 +2778,12 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, comparator_1L_chr = character(0), 
     comparator_filter_fn = identity, comparator_int = integer(0), 
     comparator_share_1L_dbl = 1, cost_1L_dbl = numeric(0), data_ls = NULL, 
-    denominator_1L_dbl = 1e+05, exposed_1L_dbl = numeric(), intervention_1L_chr = character(0), 
-    intervention_filter_fn = identity, intervention_share_1L_dbl = 1, 
-    n_1L_dbl = numeric(), rate_1L_dbl = numeric(), source_1L_chr = "add_project_2_parameters", 
-    test_1L_chr = character(0), time_1L_dbl = numeric(0), values_dbl = numeric(0), 
-    what_1L_chr = c("default", "costs", "iar", "offsets")) 
+    denominator_1L_dbl = 100000, exposed_1L_dbl = numeric(), 
+    intervention_1L_chr = character(0), intervention_filter_fn = identity, 
+    intervention_share_1L_dbl = 1, n_1L_dbl = numeric(), rate_1L_dbl = numeric(), 
+    source_1L_chr = "add_project_2_parameters", test_1L_chr = character(0), 
+    time_1L_dbl = numeric(0), values_dbl = numeric(0), what_1L_chr = c("default", 
+        "costs", "iar", "offsets")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (is.null(params_tb)) {

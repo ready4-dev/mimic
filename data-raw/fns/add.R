@@ -1717,10 +1717,12 @@ add_project_2_k10_draws <- function(X_Ready4useDyad,
 }
 add_project_2_model_data <- function(model_data_ls,
                                      sample_ls,
+                                     filter_true_1L_chr = "FlexPsych",
                                      intervention_1L_chr = "Intervention",
                                      cut_off_date_1L_chr = "2025-01-01"){ 
   model_data_ls$imputed_ls$Modelling_r4 <- model_data_ls$imputed_ls$Z_Ready4useDyad %>%
-    update_mds_modelling_ds(sample_ls = sample_ls)
+    update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr,
+                            sample_ls = sample_ls)
   model_data_ls$imputed_ls$Wait_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% renewSlot("ds_tb",.@ds_tb %>% dplyr::filter(!is.na(WaitInDays)))
   model_data_ls$imputed_ls$EpisodeDuration_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% renewSlot("ds_tb",.@ds_tb %>% dplyr::filter(!is.na(EpisodeDurationDays)))
   model_data_ls$imputed_ls$ProviderMinutes_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>%

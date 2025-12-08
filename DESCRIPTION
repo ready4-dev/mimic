@@ -12,7 +12,7 @@ Description: Tools for developing simple microsimulations of mental health
     part of the process of testing and documenting the library.  If you
     have any questions, please contact the authors
     (matthew.hamilton1@monash.edu).
-License: GPL-3 + file LICENSE
+License: GPL-3
 URL: https://ready4-dev.github.io/mimic/,
     https://github.com/ready4-dev/mimic,
     https://ready4-dev.github.io/mimic/
@@ -22,6 +22,7 @@ RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     knitrBootstrap,
+    pkgload,
     rmarkdown,
     testthat
 VignetteBuilder: knitr

@@ -8,7 +8,7 @@ transform_to_min_and_max(
   X_Ready4useDyad,
   vars_chr,
   max_1L_dbl = 0.999999,
-  min_1L_dbl = 1e-06
+  min_1L_dbl = 0.000001
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ transform_to_min_and_max(
 
 \item{max_1L_dbl}{Maximum (a double vector of length one), Default: 0.999999}
 
-\item{min_1L_dbl}{Minimum (a double vector of length one), Default: 1e-06}
+\item{min_1L_dbl}{Minimum (a double vector of length one), Default: 0.000001}
 }
 \value{
 Y (A dataset and data dictionary pair.)
