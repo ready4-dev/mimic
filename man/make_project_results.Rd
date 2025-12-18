@@ -10,7 +10,8 @@ make_project_results(
   min_cell_size_1L_int = 30L,
   modifiable_chr = character(0),
   outcomes_chr = character(0),
-  threshold_1L_dbl = 96000
+  threshold_1L_dbl = 96000,
+  timestamp_1L_chr = get_timestamp()
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ make_project_results(
 \item{outcomes_chr}{Outcomes (a character vector), Default: character(0)}
 
 \item{threshold_1L_dbl}{Threshold (a double vector of length one), Default: 96000}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 }
 \value{
 Sim results (a list)

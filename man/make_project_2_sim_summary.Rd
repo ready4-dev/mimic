@@ -13,6 +13,7 @@ make_project_2_sim_summary(
   convert_1L_lgl = TRUE,
   platform_1L_chr = "Intervention",
   select_1L_chr = "all",
+  timestamp_1L_chr = get_timestamp(),
   type_1L_chr = c("outcomes", "economic"),
   what_1L_chr = c("total", "diagnosis", "iar", "full_combos")
 )
@@ -33,6 +34,8 @@ make_project_2_sim_summary(
 \item{platform_1L_chr}{Platform (a character vector of length one), Default: 'Intervention'}
 
 \item{select_1L_chr}{Select (a character vector of length one), Default: 'all'}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("outcomes", "economic")}
 

@@ -13,6 +13,7 @@ add_costs_to_summary(
   cost_tfmn_fn = identity,
   reference_1L_chr = "Status quo",
   tfmn_fn = identity,
+  timestamp_1L_chr = get_timestamp(),
   type_1L_chr = c("change_scenario", "change_scen_sq", "change_sq", "scenario",
     "scen_sq", "sq", "summary_scenario"),
   unit_1L_chr = c("minutes", "clients")
@@ -34,6 +35,8 @@ add_costs_to_summary(
 \item{reference_1L_chr}{Reference (a character vector of length one), Default: 'Status quo'}
 
 \item{tfmn_fn}{Transformation (a function), Default: identity}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario",
 "scen_sq", "sq", "summary_scenario")}

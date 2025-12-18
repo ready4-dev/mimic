@@ -10,13 +10,13 @@ write_batch(
   comparator_fn,
   drop_missing_1L_lgl,
   drop_suffix_1L_chr,
+  extra_draws_fn,
   horizon_dtm,
   inputs_ls,
   intervention_fn,
   iterations_ls,
   modifiable_chr,
   prior_batches_1L_int,
-  scale_1L_int,
   seed_1L_int,
   sensitivities_ls,
   start_dtm,
@@ -37,6 +37,8 @@ write_batch(
 
 \item{drop_suffix_1L_chr}{Drop suffix (a character vector of length one)}
 
+\item{extra_draws_fn}{Extra draws (a function)}
+
 \item{horizon_dtm}{Horizon (a date vector)}
 
 \item{inputs_ls}{Inputs (a list)}
@@ -48,8 +50,6 @@ write_batch(
 \item{modifiable_chr}{Modifiable (a character vector)}
 
 \item{prior_batches_1L_int}{Prior batches (an integer vector of length one)}
-
-\item{scale_1L_int}{Scale (an integer vector of length one)}
 
 \item{seed_1L_int}{Seed (an integer vector of length one)}
 

@@ -195,7 +195,7 @@ update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
                                    utilities_chr,
                                    update_fn = function(X_Ready4useDyad){identity(X_Ready4useDyad)},
                                    combined_suffixes_chr = c("","S01", "S02", "S10", "S11", "S12"),
-                                   timestamp_1L_chr = "_YR1",
+                                   timestamp_1L_chr = get_timestamp(),
                                    # outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
                                    ...) {#results_xx$total_ls$X
   outcome_sensitivities_chr <- setdiff(combined_suffixes_chr %>% purrr::map_chr(~stringr::str_sub(.x,start =3)) %>% unique() %>% sort(),c("","0"))

@@ -5,13 +5,13 @@
 #' @param comparator_fn Comparator (a function)
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
+#' @param extra_draws_fn Extra draws (a function)
 #' @param horizon_dtm Horizon (a date vector)
 #' @param inputs_ls Inputs (a list)
 #' @param intervention_fn Intervention (a function)
 #' @param iterations_ls Iterations (a list)
 #' @param modifiable_chr Modifiable (a character vector)
 #' @param prior_batches_1L_int Prior batches (an integer vector of length one)
-#' @param scale_1L_int Scale (an integer vector of length one)
 #' @param seed_1L_int Seed (an integer vector of length one)
 #' @param sensitivities_ls Sensitivities (a list)
 #' @param start_dtm Start (a date vector)
@@ -26,8 +26,8 @@
 #' @importFrom ready4use Ready4useDyad
 #' @keywords internal
 write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_lgl, 
-    drop_suffix_1L_chr, horizon_dtm, inputs_ls, intervention_fn, 
-    iterations_ls, modifiable_chr, prior_batches_1L_int, scale_1L_int, 
+    drop_suffix_1L_chr, extra_draws_fn, horizon_dtm, inputs_ls, 
+    intervention_fn, iterations_ls, modifiable_chr, prior_batches_1L_int, 
     seed_1L_int, sensitivities_ls, start_dtm, tfmn_ls, utilities_chr, 
     write_to_1L_chr, ...) 
 {

@@ -7,8 +7,16 @@
 make_project_results_synthesis(
   inputs_ls,
   results_ls,
-  modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
-  type_1L_chr = c("D", "AB", "C")
+  comparator_1L_chr = "Comparator",
+  drop_chr = make_project_2_vars("drop"),
+  exclude_chr = character(0),
+  exclude_suffixes_chr = c("_change", "_date", "_previous"),
+  keep_chr = make_project_2_vars("keep"),
+  intervention_1L_chr = "Intervention",
+  modifiable_chr = make_project_2_vars("modify"),
+  stratification_fn = identity,
+  type_1L_chr = c("D", "AB", "C"),
+  uid_tfmn_fn = as.numeric
 )
 }
 \arguments{
@@ -16,9 +24,25 @@ make_project_results_synthesis(
 
 \item{results_ls}{Results (a list)}
 
-\item{modifiable_chr}{Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")}
+\item{comparator_1L_chr}{Comparator (a character vector of length one), Default: 'Comparator'}
+
+\item{drop_chr}{Drop (a character vector), Default: make_project_2_vars("drop")}
+
+\item{exclude_chr}{Exclude (a character vector), Default: character(0)}
+
+\item{exclude_suffixes_chr}{Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")}
+
+\item{keep_chr}{Keep (a character vector), Default: make_project_2_vars("keep")}
+
+\item{intervention_1L_chr}{Intervention (a character vector of length one), Default: 'Intervention'}
+
+\item{modifiable_chr}{Modifiable (a character vector), Default: make_project_2_vars("modify")}
+
+\item{stratification_fn}{Stratification (a function), Default: identity}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
+
+\item{uid_tfmn_fn}{Unique identifier transformation (a function), Default: as.numeric}
 }
 \value{
 X (A dataset and data dictionary pair.)

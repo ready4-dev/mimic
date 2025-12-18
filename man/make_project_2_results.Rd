@@ -13,6 +13,7 @@ make_project_2_results(
   modifiable_chr = character(0),
   outcomes_chr = character(0),
   threshold_1L_dbl = 96000,
+  timestamp_1L_chr = get_timestamp(),
   utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
 )
 }
@@ -32,6 +33,8 @@ make_project_2_results(
 \item{outcomes_chr}{Outcomes (a character vector), Default: character(0)}
 
 \item{threshold_1L_dbl}{Threshold (a double vector of length one), Default: 96000}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")}
 }

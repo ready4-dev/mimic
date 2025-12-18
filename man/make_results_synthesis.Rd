@@ -7,15 +7,12 @@
 make_results_synthesis(
   X_Ready4useDyad,
   add_severity_1L_lgl = TRUE,
-  exclude_chr = c("Adult", "Period", "MeasurementWeek", "treatment_fraction",
-    "treatment_measurement", "treatment_start"),
-  exclude_suffixes_chr = c("_change", "_date", "_previous", "52_Weeks"),
-  keep_chr = c("platform", "clinic_state", "clinic_type", "Age", "gender",
-    "employment_status"),
+  exclude_chr = character(0),
+  exclude_suffixes_chr = c("_change", "_date", "_previous"),
+  keep_chr = character(0),
   modifiable_chr = character(0),
   results_ls = NULL,
-  severity_fn = make_k10_severity_cuts,
-  severity_var_1L_chr = "k10_start",
+  stratification_fn = identity,
   type_1L_chr = c("D", "AB", "C"),
   Y_Ready4useDyad = ready4use::Ready4useDyad(),
   Z_Ready4useDyad = ready4use::Ready4useDyad()
@@ -26,21 +23,17 @@ make_results_synthesis(
 
 \item{add_severity_1L_lgl}{Add severity (a logical vector of length one), Default: TRUE}
 
-\item{exclude_chr}{Exclude (a character vector), Default: c("Adult", "Period", "MeasurementWeek", "treatment_fraction",
-"treatment_measurement", "treatment_start")}
+\item{exclude_chr}{Exclude (a character vector), Default: character(0)}
 
-\item{exclude_suffixes_chr}{Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous", "52_Weeks")}
+\item{exclude_suffixes_chr}{Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")}
 
-\item{keep_chr}{Keep (a character vector), Default: c("platform", "clinic_state", "clinic_type", "Age", "gender",
-"employment_status")}
+\item{keep_chr}{Keep (a character vector), Default: character(0)}
 
 \item{modifiable_chr}{Modifiable (a character vector), Default: character(0)}
 
 \item{results_ls}{Results (a list), Default: NULL}
 
-\item{severity_fn}{Severity (a function), Default: make_k10_severity_cuts}
-
-\item{severity_var_1L_chr}{Severity variable (a character vector of length one), Default: 'k10_start'}
+\item{stratification_fn}{Stratification (a function), Default: identity}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("D", "AB", "C")}
 

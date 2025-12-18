@@ -303,6 +303,26 @@ get_regression <- function (regressions_ls, what_1L_chr, constrained_1L_lgl = lo
     }
     return(model_xx)
 }
+#' Get timestamp
+#' @description get_timestamp() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get timestamp. The function returns Timestamp (a character vector of length one).
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
+#' @param prefix_1L_chr Prefix (a character vector of length one), Default: '_'
+#' @param what_1L_chr What (a character vector of length one), Default: c("outcomes", "costs")
+#' @return Timestamp (a character vector of length one)
+#' @rdname get_timestamp
+#' @export 
+#' @importFrom purrr keep_at pluck
+#' @keywords internal
+get_timestamp <- function (sensitivities_ls = make_sensitivities_ls(), prefix_1L_chr = "_", 
+    what_1L_chr = c("outcomes", "costs")) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    names_chr <- sensitivities_ls %>% purrr::keep_at(paste0(what_1L_chr, 
+        "_ls")) %>% purrr::pluck(1) %>% names()
+    timestamp_1L_chr <- paste0(prefix_1L_chr, names_chr[nchar(names_chr) == 
+        min(nchar(names_chr))])
+    return(timestamp_1L_chr)
+}
 #' Get unit cost detail
 #' @description get_unit_cost_detail() is a Get function that extracts data from an object. Specifically, this function implements an algorithm to get unit cost detail. The function returns Detail (an output object of multiple potential types).
 #' @param unit_costs_tb Unit costs (a tibble)

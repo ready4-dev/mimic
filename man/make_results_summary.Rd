@@ -10,6 +10,7 @@ make_results_summary(
   group_by_chr = character(0),
   min_cell_size_1L_int = 1L,
   threshold_1L_dbl = 96000,
+  timestamp_1L_chr = get_timestamp(),
   utilities_chr = c("AQoL6D", "CHU9D")
 )
 }
@@ -23,6 +24,8 @@ make_results_summary(
 \item{min_cell_size_1L_int}{Minimum cell size (an integer vector of length one), Default: 1}
 
 \item{threshold_1L_dbl}{Threshold (a double vector of length one), Default: 96000}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL6D", "CHU9D")}
 }
