@@ -389,28 +389,30 @@ transform_integer_dates <- function(dates_int){
   return(dates_dtm)
 }
 predict_with_sim <- function (inputs_ls, 
-                              modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), # Remove default
-                              utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
                               arms_chr = c("Intervention", "Comparator"), 
                               comparator_fn = predict_comparator_pathway, 
                               drop_missing_1L_lgl = FALSE, 
                               drop_suffix_1L_chr = character(0), 
+                              extra_draws_fn = NULL,
                               intervention_fn = predict_digital_pathway, 
                               iterations_ls = make_batch(5, of_1L_int = 20), 
                               horizon_dtm = lubridate::years(1), 
+                              modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), # Remove default
                               prior_batches_1L_int = 0, 
                               purge_1L_lgl = TRUE, 
-                              scale_1L_int = 10L, 
                               seed_1L_int = 2001L, 
                               sensitivities_ls = make_sensitivities_ls(), 
+                              synthesis_fn = make_project_results_synthesis,
                               start_dtm = Sys.Date(), 
                               tfmn_ls = make_class_tfmns(),
                               type_1L_chr = c("D", "AB", "C", "NULL"), 
                               unlink_1L_lgl = FALSE, 
+                              utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
                               write_to_1L_chr = character(0),
                               # NEED TO MAKE EXPLICT CALLS TO THE BELOW FOR PROJECT ONE
                               # add_logic_fn = add_project_offset_logic, # Make part of ...
                               # base_for_rates_int = c(1000L, 1L, 1L), 
+                              # extra_draws_fn = add_draws_from_pool, # instead of: scale_1L_int = 10L, 
                               # tx_duration_dtm = lubridate::weeks(12), 
                               # variable_unit_1L_chr = "Minutes",
                               ...) 
@@ -437,13 +439,14 @@ predict_with_sim <- function (inputs_ls,
                     comparator_fn = comparator_fn, 
                     drop_missing_1L_lgl = drop_missing_1L_lgl, 
                     drop_suffix_1L_chr = drop_suffix_1L_chr, 
+                    extra_draws_fn = extra_draws_fn,
                     horizon_dtm = horizon_dtm, 
                     inputs_ls = inputs_ls, 
                     intervention_fn = intervention_fn, 
                     iterations_ls = iterations_ls, 
                     modifiable_chr = modifiable_chr, 
                     prior_batches_1L_int = prior_batches_1L_int, 
-                    scale_1L_int = scale_1L_int, 
+                    # scale_1L_int = scale_1L_int, 
                     seed_1L_int = seed_1L_int, 
                     sensitivities_ls = sensitivities_ls, 
                     start_dtm = start_dtm, 
@@ -463,8 +466,7 @@ predict_with_sim <- function (inputs_ls,
                                                            "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
   }
   if (type_1L_chr != "NULL") {
-    output_xx <- make_project_results_synthesis(inputs_ls, 
-                                                output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+    output_xx <- synthesis_fn(inputs_ls, results_ls = output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   }
   return(output_xx)
 }

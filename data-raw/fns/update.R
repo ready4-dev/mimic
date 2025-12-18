@@ -192,10 +192,20 @@ update_order <- function (X_Ready4useDyad,
   return(X_Ready4useDyad)
 }
 update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
+                                   utilities_chr,
                                    update_fn = function(X_Ready4useDyad){identity(X_Ready4useDyad)},
                                    combined_suffixes_chr = c("","S01", "S02", "S10", "S11", "S12"),
-                                   outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
+                                   timestamp_1L_chr = "_YR1",
+                                   # outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
                                    ...) {#results_xx$total_ls$X
+  outcome_sensitivities_chr <- setdiff(combined_suffixes_chr %>% purrr::map_chr(~stringr::str_sub(.x,start =3)) %>% unique() %>% sort(),c("","0"))
+  outcome_suffixes_chr <- c("",
+                            if(!identical(character(0), outcome_sensitivities_chr)){
+                              paste0(timestamp_1L_chr,paste0("_S", outcome_sensitivities_chr)) 
+                              }else{
+                                character(0)
+                                })
+  # outcome_suffixes_chr = c("","_YR1_S1", "_YR1_S2"),
   qalys_chr <- purrr::map(outcome_suffixes_chr, ~ paste0(paste0(utilities_chr, "_QALYs"),.x)) %>% purrr::flatten_chr()
   icers_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("ICER_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
   ces_chr <- purrr::map(combined_suffixes_chr, ~ paste0(paste0("CE_",utilities_chr), paste0(ifelse(.x=="","","_"), .x))) %>% purrr::flatten_chr()
@@ -211,7 +221,8 @@ update_partial_results <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
                                                                        "Cost", 
                                                                        paste0("Cost_S",stringr::str_sub(.y,start=2, end=2))) # "Cost_S1"
                                                  effect_1L_chr <- ifelse(.y %in% c("", "S10"), "_QALYs", 
-                                                                         paste0( "_QALYs_YR1_S", stringr::str_sub(.y,start = -1)))
+                                                                         paste0(paste0("_QALYs",ifelse(length(outcome_suffixes_chr)<2, "ERROR",stringr::str_sub(outcome_suffixes_chr[2],end = -2))), # "_QALYs_YR1_S", 
+                                                                                 stringr::str_sub(.y,start = -1)))
                                                  last_1L_chr <- .y
                                                  purrr::reduce(utilities_chr,
                                                                .init = data_tb,

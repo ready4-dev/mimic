@@ -33,7 +33,45 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations 
   ready4_type_1L_chr = "modelling",
   zenodo_badge_1L_chr = "[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15232854.svg)](https://doi.org/10.5281/zenodo.15232854"# 10.5281/zenodo.15232854
   )
-y <- ready4class::ready4class_constructor()
+y <- ready4class::ready4class_constructor() %>%
+  dplyr::bind_rows(ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Inputs",
+                                                                slots_ls = list("models_ls","x_Ready4useDyad", "y_Ready4useDyad") %>% list(), 
+                                                                pt_ls = list("list","Ready4useDyad", "Ready4useDyad") %>% list(),
+                                                                class_desc_chr = "Model input data (regression models, population and parameters).",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Repos",
+                                                                slots_ls = list("batch_to_1L_chr",
+                                                                                "divider_1L_chr",
+                                                                                "outp_data_dir_1L_chr",
+                                                                                "path_to_private_1L_chr",
+                                                                                "path_to_output_1L_chr",
+                                                                                "processed_dir_1L_chr",
+                                                                                "r_dir_1L_chr",
+                                                                                "reports_dir_1L_chr",
+                                                                                "x_Ready4useRepos") %>% list(),
+                                                                pt_ls = list("character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "Ready4useRepos") %>% list(),
+                                                                class_desc_chr= "Local and remote repositories for model input and output data.",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Configuration",
+                                                                slots_ls = list("a_Ready4usePointer","b_Ready4useIngest") %>% list(), # Change
+                                                                pt_ls = list("Ready4usePointer","Ready4useIngest") %>% list(),
+                                                                class_desc_chr= "Ingested data, descriptive metadata and provenance details.",
+                                                                parent_class_chr = "Ready4Module",
+                                                                inc_clss_ls = list("Ready4usePointer","Ready4useIngest") %>% list())
+                   
+                                      
+  )
 z <- ready4pack::make_pt_ready4pack_manifest(x,
                                              constructor_r3 = y) %>%
   ready4pack::ready4pack_manifest()
