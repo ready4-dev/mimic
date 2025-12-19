@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,8 +41,16 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">make_project_results_synthesis</span><span class="op">(</span></span>
 <span>  <span class="va">inputs_ls</span>,</span>
 <span>  <span class="va">results_ls</span>,</span>
-<span>  modifiable_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"treatment_status"</span>, <span class="st">"Minutes"</span>, <span class="st">"k10"</span>, <span class="st">"AQoL6D"</span>, <span class="st">"CHU9D"</span><span class="op">)</span>,</span>
-<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D"</span>, <span class="st">"AB"</span>, <span class="st">"C"</span><span class="op">)</span></span>
+<span>  comparator_1L_chr <span class="op">=</span> <span class="st">"Comparator"</span>,</span>
+<span>  drop_chr <span class="op">=</span> <span class="fu"><a href="make_project_2_vars.html">make_project_2_vars</a></span><span class="op">(</span><span class="st">"drop"</span><span class="op">)</span>,</span>
+<span>  exclude_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  exclude_suffixes_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_change"</span>, <span class="st">"_date"</span>, <span class="st">"_previous"</span><span class="op">)</span>,</span>
+<span>  keep_chr <span class="op">=</span> <span class="fu"><a href="make_project_2_vars.html">make_project_2_vars</a></span><span class="op">(</span><span class="st">"keep"</span><span class="op">)</span>,</span>
+<span>  intervention_1L_chr <span class="op">=</span> <span class="st">"Intervention"</span>,</span>
+<span>  modifiable_chr <span class="op">=</span> <span class="fu"><a href="make_project_2_vars.html">make_project_2_vars</a></span><span class="op">(</span><span class="st">"modify"</span><span class="op">)</span>,</span>
+<span>  stratification_fn <span class="op">=</span> <span class="va">identity</span>,</span>
+<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D"</span>, <span class="st">"AB"</span>, <span class="st">"C"</span><span class="op">)</span>,</span>
+<span>  uid_tfmn_fn <span class="op">=</span> <span class="va">as.numeric</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -58,12 +66,44 @@
 <dd><p>Results (a list)</p></dd>
 
 
+<dt id="arg-comparator-l-chr">comparator_1L_chr<a class="anchor" aria-label="anchor" href="#arg-comparator-l-chr"></a></dt>
+<dd><p>Comparator (a character vector of length one), Default: 'Comparator'</p></dd>
+
+
+<dt id="arg-drop-chr">drop_chr<a class="anchor" aria-label="anchor" href="#arg-drop-chr"></a></dt>
+<dd><p>Drop (a character vector), Default: make_project_2_vars("drop")</p></dd>
+
+
+<dt id="arg-exclude-chr">exclude_chr<a class="anchor" aria-label="anchor" href="#arg-exclude-chr"></a></dt>
+<dd><p>Exclude (a character vector), Default: character(0)</p></dd>
+
+
+<dt id="arg-exclude-suffixes-chr">exclude_suffixes_chr<a class="anchor" aria-label="anchor" href="#arg-exclude-suffixes-chr"></a></dt>
+<dd><p>Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")</p></dd>
+
+
+<dt id="arg-keep-chr">keep_chr<a class="anchor" aria-label="anchor" href="#arg-keep-chr"></a></dt>
+<dd><p>Keep (a character vector), Default: make_project_2_vars("keep")</p></dd>
+
+
+<dt id="arg-intervention-l-chr">intervention_1L_chr<a class="anchor" aria-label="anchor" href="#arg-intervention-l-chr"></a></dt>
+<dd><p>Intervention (a character vector of length one), Default: 'Intervention'</p></dd>
+
+
 <dt id="arg-modifiable-chr">modifiable_chr<a class="anchor" aria-label="anchor" href="#arg-modifiable-chr"></a></dt>
-<dd><p>Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")</p></dd>
+<dd><p>Modifiable (a character vector), Default: make_project_2_vars("modify")</p></dd>
+
+
+<dt id="arg-stratification-fn">stratification_fn<a class="anchor" aria-label="anchor" href="#arg-stratification-fn"></a></dt>
+<dd><p>Stratification (a function), Default: identity</p></dd>
 
 
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
 <dd><p>Type (a character vector of length one), Default: c("D", "AB", "C")</p></dd>
+
+
+<dt id="arg-uid-tfmn-fn">uid_tfmn_fn<a class="anchor" aria-label="anchor" href="#arg-uid-tfmn-fn"></a></dt>
+<dd><p>Unique identifier transformation (a function), Default: as.numeric</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -80,7 +120,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

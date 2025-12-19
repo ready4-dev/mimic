@@ -1,0 +1,52 @@
+# mimic
+
+## Implement Microsimulations to Economically Evaluate Mental Health Services
+
+Tools for developing simple microsimulations of mental health services
+and exporting outputs for cost-utility analyses. Designed for use with
+the ready4 framework (<https://ready4-dev.github.io/ready4/>). This
+early development version of mimic has been made available as part of
+the process of testing and documenting the library. If you have any
+questions, please contact the authors (<matthew.hamilton1@monash.edu>).
+
+To install a development version of this software, run the following
+commands in your R console:
+
+``` r
+utils::install.packages("devtools")
+
+devtools::install_github("ready4-dev/mimic")
+```
+
+# Package index
+
+## S4 Classes
+
+- [`MimicInputs-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
+  [`MimicInputs`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
+  : MimicInputs
+- [`MimicRepos-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
+  [`MimicRepos`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
+  : MimicRepos
+- [`MimicConfiguration-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
+  [`MimicConfiguration`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
+  : MimicConfiguration
+
+## Functions
+
+- [`predict_comparator_pathway()`](https://ready4-dev.github.io/mimic/dev/reference/predict_comparator_pathway.md)
+  : Predict comparator pathway
+- [`predict_digital_pathway()`](https://ready4-dev.github.io/mimic/dev/reference/predict_digital_pathway.md)
+  : Predict digital pathway
+- [`predict_from_pool()`](https://ready4-dev.github.io/mimic/dev/reference/predict_from_pool.md)
+  : Predict from pool
+- [`predict_project_2_pathway()`](https://ready4-dev.github.io/mimic/dev/reference/predict_project_2_pathway.md)
+  : Predict project 2 pathway
+- [`predict_with_sim()`](https://ready4-dev.github.io/mimic/dev/reference/predict_with_sim.md)
+  : Predict with sim
+
+# Articles
+
+### All vignettes
+
+- [mimic](https://ready4-dev.github.io/mimic/dev/articles/mimic.md):

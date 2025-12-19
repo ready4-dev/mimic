@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">make_synthetic_tests</span><span class="op">(</span></span>
 <span>  <span class="va">population_ls</span>,</span>
 <span>  model_data_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  original_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  comparison_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"OutcomesJoinersImputed"</span>, <span class="st">"Joiners"</span>, <span class="st">"OutcomesJoiners"</span>,</span>
 <span>    <span class="st">"Outcomes"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -57,6 +58,10 @@
 
 <dt id="arg-model-data-ls">model_data_ls<a class="anchor" aria-label="anchor" href="#arg-model-data-ls"></a></dt>
 <dd><p>Model data (a list), Default: NULL</p></dd>
+
+
+<dt id="arg-original-tb">original_tb<a class="anchor" aria-label="anchor" href="#arg-original-tb"></a></dt>
+<dd><p>Original (a tibble), Default: NULL</p></dd>
 
 
 <dt id="arg-comparison-l-chr">comparison_1L_chr<a class="anchor" aria-label="anchor" href="#arg-comparison-l-chr"></a></dt>
@@ -81,7 +86,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

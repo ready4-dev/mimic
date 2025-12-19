@@ -1,0 +1,69 @@
+# MimicConfiguration
+
+Configuration details for a simulation run.
+
+## Slots
+
+- `arms_chr`:
+
+  Arms (a character vector)
+
+- `drop_missing_1L_lgl`:
+
+  Drop missing (a logical vector of length one)
+
+- `drop_suffix_1L_chr`:
+
+  Drop suffix (a character vector of length one)
+
+- `functions_ls`:
+
+  Functions (a list)
+
+- `horizon_dtm`:
+
+  Horizon (a date vector)
+
+- `inputs_ls`:
+
+  Inputs (a list)
+
+- `iterations_ls`:
+
+  Iterations (a list)
+
+- `modifiable_chr`:
+
+  Modifiable (a character vector)
+
+- `prior_batches_1L_int`:
+
+  Prior batches (an integer vector of length one)
+
+- `seed_1L_int`:
+
+  Seed (an integer vector of length one)
+
+- `sensitivities_ls`:
+
+  Sensitivities (a list)
+
+- `start_dtm`:
+
+  Start (a date vector)
+
+- `utilities_chr`:
+
+  Utilities (a character vector)
+
+- `x_MimicInputs`:
+
+  (an instance of the MimicInputs class)
+
+- `x_MimicRepos`:
+
+  (an instance of the MimicRepos class)
+
+- `dissemination_1L_chr`:
+
+  Dissemination (a character vector of length one)

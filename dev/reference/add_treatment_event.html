@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,7 @@
 <span>  bl_week_1L_dbl <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  iterations_int <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100L</span>,</span>
 <span>  measurement_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  prefix_1L_chr <span class="op">=</span> <span class="st">"treatment"</span>,</span>
 <span>  tx_duration_dtm <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">weeks</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -77,6 +78,10 @@
 <dd><p>Measurement (an integer vector of length one), Default: integer(0)</p></dd>
 
 
+<dt id="arg-prefix-l-chr">prefix_1L_chr<a class="anchor" aria-label="anchor" href="#arg-prefix-l-chr"></a></dt>
+<dd><p>Prefix (a character vector of length one), Default: 'treatment'</p></dd>
+
+
 <dt id="arg-tx-duration-dtm">tx_duration_dtm<a class="anchor" aria-label="anchor" href="#arg-tx-duration-dtm"></a></dt>
 <dd><p>Treatment duration (a date vector), Default: lubridate::weeks(12)</p></dd>
 
@@ -95,7 +100,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,13 +41,12 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">make_results_synthesis</span><span class="op">(</span></span>
 <span>  <span class="va">X_Ready4useDyad</span>,</span>
 <span>  add_severity_1L_lgl <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  exclude_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Adult"</span>, <span class="st">"Period"</span>, <span class="st">"MeasurementWeek"</span>, <span class="st">"treatment_fraction"</span>,</span>
-<span>    <span class="st">"treatment_measurement"</span>, <span class="st">"treatment_start"</span><span class="op">)</span>,</span>
-<span>  exclude_suffixes_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_change"</span>, <span class="st">"_date"</span>, <span class="st">"_previous"</span>, <span class="st">"52_Weeks"</span><span class="op">)</span>,</span>
-<span>  keep_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"platform"</span>, <span class="st">"clinic_state"</span>, <span class="st">"clinic_type"</span>, <span class="st">"Age"</span>, <span class="st">"gender"</span>,</span>
-<span>    <span class="st">"employment_status"</span><span class="op">)</span>,</span>
+<span>  exclude_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  exclude_suffixes_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_change"</span>, <span class="st">"_date"</span>, <span class="st">"_previous"</span><span class="op">)</span>,</span>
+<span>  keep_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  modifiable_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  results_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratification_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D"</span>, <span class="st">"AB"</span>, <span class="st">"C"</span><span class="op">)</span>,</span>
 <span>  Y_Ready4useDyad <span class="op">=</span> <span class="fu">ready4use</span><span class="fu">::</span><span class="fu"><a href="https://ready4-dev.github.io/ready4use/reference/Ready4useDyad-class.html" class="external-link">Ready4useDyad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  Z_Ready4useDyad <span class="op">=</span> <span class="fu">ready4use</span><span class="fu">::</span><span class="fu"><a href="https://ready4-dev.github.io/ready4use/reference/Ready4useDyad-class.html" class="external-link">Ready4useDyad</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -67,17 +66,15 @@
 
 
 <dt id="arg-exclude-chr">exclude_chr<a class="anchor" aria-label="anchor" href="#arg-exclude-chr"></a></dt>
-<dd><p>Exclude (a character vector), Default: c("Adult", "Period", "MeasurementWeek", "treatment_fraction",
-"treatment_measurement", "treatment_start")</p></dd>
+<dd><p>Exclude (a character vector), Default: character(0)</p></dd>
 
 
 <dt id="arg-exclude-suffixes-chr">exclude_suffixes_chr<a class="anchor" aria-label="anchor" href="#arg-exclude-suffixes-chr"></a></dt>
-<dd><p>Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous", "52_Weeks")</p></dd>
+<dd><p>Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")</p></dd>
 
 
 <dt id="arg-keep-chr">keep_chr<a class="anchor" aria-label="anchor" href="#arg-keep-chr"></a></dt>
-<dd><p>Keep (a character vector), Default: c("platform", "clinic_state", "clinic_type", "Age", "gender",
-"employment_status")</p></dd>
+<dd><p>Keep (a character vector), Default: character(0)</p></dd>
 
 
 <dt id="arg-modifiable-chr">modifiable_chr<a class="anchor" aria-label="anchor" href="#arg-modifiable-chr"></a></dt>
@@ -86,6 +83,10 @@
 
 <dt id="arg-results-ls">results_ls<a class="anchor" aria-label="anchor" href="#arg-results-ls"></a></dt>
 <dd><p>Results (a list), Default: NULL</p></dd>
+
+
+<dt id="arg-stratification-fn">stratification_fn<a class="anchor" aria-label="anchor" href="#arg-stratification-fn"></a></dt>
+<dd><p>Stratification (a function), Default: identity</p></dd>
 
 
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
@@ -114,7 +115,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

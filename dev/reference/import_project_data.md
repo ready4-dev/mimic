@@ -1,0 +1,59 @@
+# Import project data
+
+import_project_data() is an Import function that reads a data object in
+its native format and converts it to an R object. Specifically, this
+function implements an algorithm to import project data. The function
+returns Data (a list).
+
+## Usage
+
+``` r
+import_project_data(
+  path_to_private_1L_chr,
+  dir_1L_chr,
+  custom_1L_chr = character(0),
+  r_dir_1L_chr = "R",
+  divider_1L_chr = "\\",
+  names_ls = NULL,
+  type_1L_chr = c("raw", "experts", "custom", "forecasts", "processed", "modelling",
+    "pooled", "population", "regressions", "results", "simulation", "summaries",
+    "validation")
+)
+```
+
+## Arguments
+
+- path_to_private_1L_chr:
+
+  Path to private (a character vector of length one)
+
+- dir_1L_chr:
+
+  Directory (a character vector of length one)
+
+- custom_1L_chr:
+
+  Custom (a character vector of length one), Default: character(0)
+
+- r_dir_1L_chr:
+
+  R directory (a character vector of length one), Default: 'R'
+
+- divider_1L_chr:
+
+  Divider (a character vector of length one), Default: '\\
+
+- names_ls:
+
+  Names (a list), Default: NULL
+
+- type_1L_chr:
+
+  Type (a character vector of length one), Default: c("raw", "experts",
+  "custom", "forecasts", "processed", "modelling", "pooled",
+  "population", "regressions", "results", "simulation", "summaries",
+  "validation")
+
+## Value
+
+Data (a list)

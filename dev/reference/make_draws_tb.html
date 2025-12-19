@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,8 +40,10 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">make_draws_tb</span><span class="op">(</span></span>
 <span>  <span class="va">inputs_ls</span>,</span>
+<span>  drop_missing_1L_lgl <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  drop_suffix_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  extra_draws_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  iterations_int <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span>,</span>
-<span>  scale_1L_int <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  seed_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -54,12 +56,20 @@
 <dd><p>Inputs (a list)</p></dd>
 
 
+<dt id="arg-drop-missing-l-lgl">drop_missing_1L_lgl<a class="anchor" aria-label="anchor" href="#arg-drop-missing-l-lgl"></a></dt>
+<dd><p>Drop missing (a logical vector of length one), Default: FALSE</p></dd>
+
+
+<dt id="arg-drop-suffix-l-chr">drop_suffix_1L_chr<a class="anchor" aria-label="anchor" href="#arg-drop-suffix-l-chr"></a></dt>
+<dd><p>Drop suffix (a character vector of length one), Default: character(0)</p></dd>
+
+
+<dt id="arg-extra-draws-fn">extra_draws_fn<a class="anchor" aria-label="anchor" href="#arg-extra-draws-fn"></a></dt>
+<dd><p>Extra draws (a function), Default: NULL</p></dd>
+
+
 <dt id="arg-iterations-int">iterations_int<a class="anchor" aria-label="anchor" href="#arg-iterations-int"></a></dt>
 <dd><p>Iterations (an integer vector), Default: 1:100</p></dd>
-
-
-<dt id="arg-scale-l-int">scale_1L_int<a class="anchor" aria-label="anchor" href="#arg-scale-l-int"></a></dt>
-<dd><p>Scale (an integer vector of length one), Default: 1</p></dd>
 
 
 <dt id="arg-seed-l-int">seed_1L_int<a class="anchor" aria-label="anchor" href="#arg-seed-l-int"></a></dt>
@@ -80,7 +90,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

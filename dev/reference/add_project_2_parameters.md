@@ -1,0 +1,121 @@
+# Add project 2 parameters
+
+add_project_2_parameters() is an Add function that updates an object by
+adding new values to new or empty fields. Specifically, this function
+implements an algorithm to add project 2 parameters. The function
+returns Parameters (a tibble).
+
+## Usage
+
+``` r
+add_project_2_parameters(
+  params_tb = NULL,
+  additions_tb = NULL,
+  comparator_1L_chr = character(0),
+  comparator_filter_fn = identity,
+  comparator_int = integer(0),
+  comparator_share_1L_dbl = 1,
+  cost_1L_dbl = numeric(0),
+  data_ls = NULL,
+  denominator_1L_dbl = 100000,
+  exposed_1L_dbl = numeric(),
+  intervention_1L_chr = character(0),
+  intervention_filter_fn = identity,
+  intervention_share_1L_dbl = 1,
+  n_1L_dbl = numeric(),
+  rate_1L_dbl = numeric(),
+  source_1L_chr = "add_project_2_parameters",
+  test_1L_chr = character(0),
+  time_1L_dbl = numeric(0),
+  values_dbl = numeric(0),
+  what_1L_chr = c("default", "costs", "iar", "offsets")
+)
+```
+
+## Arguments
+
+- params_tb:
+
+  Parameters (a tibble), Default: NULL
+
+- additions_tb:
+
+  Additions (a tibble), Default: NULL
+
+- comparator_1L_chr:
+
+  Comparator (a character vector of length one), Default: character(0)
+
+- comparator_filter_fn:
+
+  Comparator filter (a function), Default: identity
+
+- comparator_int:
+
+  Comparator (an integer vector), Default: integer(0)
+
+- comparator_share_1L_dbl:
+
+  Comparator share (a double vector of length one), Default: 1
+
+- cost_1L_dbl:
+
+  Cost (a double vector of length one), Default: numeric(0)
+
+- data_ls:
+
+  Data (a list), Default: NULL
+
+- denominator_1L_dbl:
+
+  Denominator (a double vector of length one), Default: 100000
+
+- exposed_1L_dbl:
+
+  Exposed (a double vector of length one), Default: numeric()
+
+- intervention_1L_chr:
+
+  Intervention (a character vector of length one), Default: character(0)
+
+- intervention_filter_fn:
+
+  Intervention filter (a function), Default: identity
+
+- intervention_share_1L_dbl:
+
+  Intervention share (a double vector of length one), Default: 1
+
+- n_1L_dbl:
+
+  N (a double vector of length one), Default: numeric()
+
+- rate_1L_dbl:
+
+  Rate (a double vector of length one), Default: numeric()
+
+- source_1L_chr:
+
+  Source (a character vector of length one), Default:
+  'add_project_2_parameters'
+
+- test_1L_chr:
+
+  Test (a character vector of length one), Default: character(0)
+
+- time_1L_dbl:
+
+  Time (a double vector of length one), Default: numeric(0)
+
+- values_dbl:
+
+  Values (a double vector), Default: numeric(0)
+
+- what_1L_chr:
+
+  What (a character vector of length one), Default: c("default",
+  "costs", "iar", "offsets")
+
+## Value
+
+Parameters (a tibble)

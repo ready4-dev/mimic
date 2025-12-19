@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.0.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
 <span>  cost_tfmn_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  reference_1L_chr <span class="op">=</span> <span class="st">"Status quo"</span>,</span>
 <span>  tfmn_fn <span class="op">=</span> <span class="va">identity</span>,</span>
+<span>  timestamp_1L_chr <span class="op">=</span> <span class="fu"><a href="get_timestamp.html">get_timestamp</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"change_scenario"</span>, <span class="st">"change_scen_sq"</span>, <span class="st">"change_sq"</span>, <span class="st">"scenario"</span>,</span>
 <span>    <span class="st">"scen_sq"</span>, <span class="st">"sq"</span>, <span class="st">"summary_scenario"</span><span class="op">)</span>,</span>
 <span>  unit_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minutes"</span>, <span class="st">"clients"</span><span class="op">)</span></span>
@@ -89,6 +90,10 @@
 <dd><p>Transformation (a function), Default: identity</p></dd>
 
 
+<dt id="arg-timestamp-l-chr">timestamp_1L_chr<a class="anchor" aria-label="anchor" href="#arg-timestamp-l-chr"></a></dt>
+<dd><p>Timestamp (a character vector of length one), Default: get_timestamp()</p></dd>
+
+
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
 <dd><p>Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario",
 "scen_sq", "sq", "summary_scenario")</p></dd>
@@ -112,7 +117,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

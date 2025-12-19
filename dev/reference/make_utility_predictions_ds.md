@@ -1,0 +1,91 @@
+# Make utility predictions dataset
+
+make_utility_predictions_ds() is a Make function that creates a new R
+object. Specifically, this function implements an algorithm to make
+utility predictions dataset. The function is called for its side effects
+and does not return a value.
+
+## Usage
+
+``` r
+make_utility_predictions_ds(
+  X_Ready4useDyad = ready4use::Ready4useDyad(),
+  Y_Ready4useDyad = ready4use::Ready4useDyad(),
+  Z_Ready4useDyad = ready4use::Ready4useDyad(),
+  model_mdl,
+  utility_1L_chr = c("AQoL6D", "CHU9D"),
+  follow_up_1L_int = 12,
+  iterations_1L_int = 100L,
+  join_with_chr = character(0),
+  maintain_for_1L_int = 12,
+  timestamp_1L_chr = get_timestamp(),
+  tfmn_1L_chr = "NTF",
+  type_1L_chr = c("predict", "simulate"),
+  with_1L_chr = "_sim_mean",
+  what_1L_chr = c("old", "new")
+)
+```
+
+## Arguments
+
+- X_Ready4useDyad:
+
+  PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+
+- Y_Ready4useDyad:
+
+  PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+
+- Z_Ready4useDyad:
+
+  PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+
+- model_mdl:
+
+  Model (a model)
+
+- utility_1L_chr:
+
+  Utility (a character vector of length one), Default: c("AQoL6D",
+  "CHU9D")
+
+- follow_up_1L_int:
+
+  Follow up (an integer vector of length one), Default: 12
+
+- iterations_1L_int:
+
+  Iterations (an integer vector of length one), Default: 100
+
+- join_with_chr:
+
+  Join with (a character vector), Default: character(0)
+
+- maintain_for_1L_int:
+
+  Maintain for (an integer vector of length one), Default: 12
+
+- timestamp_1L_chr:
+
+  Timestamp (a character vector of length one), Default: get_timestamp()
+
+- tfmn_1L_chr:
+
+  Transformation (a character vector of length one), Default: 'NTF'
+
+- type_1L_chr:
+
+  Type (a character vector of length one), Default: c("predict",
+  "simulate")
+
+- with_1L_chr:
+
+  With (a character vector of length one), Default: '\_sim_mean'
+
+- what_1L_chr:
+
+  What (a character vector of length one), Default: c("old", "new")
+
+## Value
+
+Y (A dataset and data dictionary pair.)

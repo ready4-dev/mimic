@@ -1,0 +1,64 @@
+# Add project 1 K10 draws
+
+add_project_1_k10_draws() is an Add function that updates an object by
+adding new values to new or empty fields. Specifically, this function
+implements an algorithm to add project 1 k10 draws. The function is
+called for its side effects and does not return a value.
+
+## Usage
+
+``` r
+add_project_1_k10_draws(
+  X_Ready4useDyad,
+  iterations_int = 1:100L,
+  k10_var_1L_chr = "k10",
+  k10_vars_chr = character(0),
+  prefix_1L_chr = "treatment",
+  sensitivities_ls = make_sensitivities_ls(),
+  severity_ls = make_k10_severity_cuts(),
+  var_1L_chr = "k10_12_Weeks",
+  ...
+)
+```
+
+## Arguments
+
+- X_Ready4useDyad:
+
+  PARAM_DESCRIPTION
+
+- iterations_int:
+
+  Iterations (an integer vector), Default: 1:100L
+
+- k10_var_1L_chr:
+
+  K10 variable (a character vector of length one), Default: 'k10'
+
+- k10_vars_chr:
+
+  K10 variables (a character vector), Default: character(0)
+
+- prefix_1L_chr:
+
+  Prefix (a character vector of length one), Default: 'treatment'
+
+- sensitivities_ls:
+
+  Sensitivities (a list), Default: make_sensitivities_ls()
+
+- severity_ls:
+
+  Severity (a list), Default: make_k10_severity_cuts()
+
+- var_1L_chr:
+
+  Variable (a character vector of length one), Default: 'k10_12_Weeks'
+
+- ...:
+
+  Additional arguments
+
+## Value
+
+X (A dataset and data dictionary pair.)

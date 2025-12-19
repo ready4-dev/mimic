@@ -1,0 +1,64 @@
+# Add cost calculations
+
+add_cost_calculations() is an Add function that updates an object by
+adding new values to new or empty fields. Specifically, this function
+implements an algorithm to add cost calculations. The function returns
+Data (a tibble).
+
+## Usage
+
+``` r
+add_cost_calculations(
+  data_tb,
+  inputs_ls,
+  add_fixed_1L_lgl = FALSE,
+  add_logic_fn = identity,
+  add_offsets_1L_lgl = FALSE,
+  add_variable_1L_lgl = TRUE,
+  base_for_rates_int = 1L,
+  offsets_chr = character(0),
+  variable_unit_1L_chr = "Minutes"
+)
+```
+
+## Arguments
+
+- data_tb:
+
+  Data (a tibble)
+
+- inputs_ls:
+
+  Inputs (a list)
+
+- add_fixed_1L_lgl:
+
+  Add fixed (a logical vector of length one), Default: FALSE
+
+- add_logic_fn:
+
+  Add logic (a function), Default: identity
+
+- add_offsets_1L_lgl:
+
+  Add offsets (a logical vector of length one), Default: FALSE
+
+- add_variable_1L_lgl:
+
+  Add variable (a logical vector of length one), Default: TRUE
+
+- base_for_rates_int:
+
+  Base for rates (an integer vector), Default: 1
+
+- offsets_chr:
+
+  Offsets (a character vector), Default: character(0)
+
+- variable_unit_1L_chr:
+
+  Variable unit (a character vector of length one), Default: 'Minutes'
+
+## Value
+
+Data (a tibble)
