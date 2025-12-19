@@ -22,6 +22,7 @@ Y <- renewSlot(Y,
                                     fn_to_call_chr = "period",
                                     default_val_chr = "",
                                     old_class_lgl = FALSE) %>%
+                   dplyr::distinct() %>%
                    dplyr::arrange(tolower(pt_ns_chr), tolower(pt_ns_chr))
                  # ,
                  # seed_obj_lup_tb = seed_obj_lup_tb,

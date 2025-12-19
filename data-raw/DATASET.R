@@ -67,77 +67,78 @@ y <- ready4class::ready4class_constructor() %>%
                                                                              "character",
                                                                              "Ready4useRepos") %>% list(),
                                                                 class_desc_chr= "Local and remote repositories for model input and output data.",
-                                                                parent_class_chr = "Ready4Module"),
-                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
-                                                                name_stub_chr = "Configuration",
-                                                                slots_ls = list(
-                                                                  "arms_chr",                                                                   # = c("Intervention", "Comparator"), 
-                                                                  "drop_missing_1L_lgl",                                                                  # = FALSE, 
-                                                                  "drop_suffix_1L_chr",                            # = character(0), 
-                                                                  "functions_ls",
-                                                                  # = list(comparator_fn = predict_comparator_pathway,
-                                                                  #                     extra_draws_fn = NULL,
-                                                                  #                     intervention_fn = predict_digital_pathway,
-                                                                  #                     synthesis_fn = make_project_results_synthesis,
-                                                                  #                     tfmn_ls = make_class_tfmns()),
-                                                                  "horizon_dtm", # = lubridate::years(1),
-                                                                  "inputs_ls", 
-                                                                  "iterations_ls",  # = make_batch(5, of_1L_int = 20), 
-                                                                                                                                   # = lubridate::years(1), 
-                                                                  "modifiable_chr" , # = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D") remove default
-                                                                  "prior_batches_1L_int", # = 0, 
-                                                                  # purge_1L_lgl, = TRUE, 
-                                                                  "seed_1L_int",# = 2001L, 
-                                                                  "sensitivities_ls",  # = make_sensitivities_ls(), 
-                                                                  "start_dtm",      # = Sys.Date(), 
-                                                                  # "type_1L_chr",  # = c("D", "AB", "C", "NULL"), 
-                                                                  # "unlink_1L_lgl",# = FALSE, 
-                                                                  "utilities_chr",# = c("AQoL6D", "CHU9D"), # Remove default
-                                                                  # write_to_1L_chr = character(0),# ,
-                                                                  "x_MimicInputs",
-                                                                  "x_MimicRepos"
-                                                                                ) %>% list(), # Change
-                                                                pt_ls = list(
-                                                                  "character", 
-                                                                  "logical",                                                                  # = FALSE, 
-                                                                  "character", 
-                                                                  "list",
-                                                                  "period", 
-                                                                  "list", 
-                                                                  "list",  # = make_batch(5, of_1L_int = 20), 
-                                                                  "character",
-                                                                  "integer", # = 0, 
-                                                                  # purge_1L_lgl, = TRUE, 
-                                                                  "integer",# = 2001L, 
-                                                                  "list",  # = make_sensitivities_ls(), 
-                                                                  "POSIXt",      # = Sys.Date(), 
-                                                                  # 
-                                                                  # 
-                                                                  "character",
-                                                                  "MimicInputs",
-                                                                  "MimicRepos") %>% list(),
-                                                                vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
-                                                                               drop_missing_1L_lgl = "FALSE", 
-                                                                               drop_suffix_1L_chr = "character(0)", 
-                                                                               # iterations_ls = make_batch(5, of_1L_int = 20), 
-                                                                               horizon_dtm = "lubridate::years(1)", 
-                                                                               modifiable_chr = "character(0)", # Remove default
-                                                                               prior_batches_1L_int = "0", 
-                                                                               # purge_1L_lgl = TRUE, 
-                                                                               seed_1L_int = "2001L", 
-                                                                               # sensitivities_ls = make_sensitivities_ls(), 
-                                                                               start_dtm = "Sys.Date()"
-                                                                               # , 
-                                                                               # tfmn_ls = make_class_tfmns(),
-                                                                               # type_1L_chr = c("D", "AB", "C", "NULL"), 
-                                                                               # unlink_1L_lgl = FALSE, 
-                                                                               # utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
-                                                                               # write_to_1L_chr = character(0)
-                                                                               )),
-                                                                class_desc_chr= "Configuration details for a simulation run.",
-                                                                parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicInputs","MimicRepos") %>% list())
-                   
+                                                                parent_class_chr = "Ready4Module")
+                   # ,
+                   # ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                   #                                              name_stub_chr = "Configuration",
+                   #                                              slots_ls = list(
+                   #                                                "arms_chr",                                                                   # = c("Intervention", "Comparator"), 
+                   #                                                "drop_missing_1L_lgl",                                                                  # = FALSE, 
+                   #                                                "drop_suffix_1L_chr",                            # = character(0), 
+                   #                                                "functions_ls",
+                   #                                                # = list(comparator_fn = predict_comparator_pathway,
+                   #                                                #                     extra_draws_fn = NULL,
+                   #                                                #                     intervention_fn = predict_digital_pathway,
+                   #                                                #                     synthesis_fn = make_project_results_synthesis,
+                   #                                                #                     tfmn_ls = make_class_tfmns()),
+                   #                                                "horizon_dtm", # = lubridate::years(1),
+                   #                                                "inputs_ls", 
+                   #                                                "iterations_ls",  # = make_batch(5, of_1L_int = 20), 
+                   #                                                                                                                 # = lubridate::years(1), 
+                   #                                                "modifiable_chr" , # = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D") remove default
+                   #                                                "prior_batches_1L_int", # = 0, 
+                   #                                                # purge_1L_lgl, = TRUE, 
+                   #                                                "seed_1L_int",# = 2001L, 
+                   #                                                "sensitivities_ls",  # = make_sensitivities_ls(), 
+                   #                                                "start_dtm",      # = Sys.Date(), 
+                   #                                                # "type_1L_chr",  # = c("D", "AB", "C", "NULL"), 
+                   #                                                # "unlink_1L_lgl",# = FALSE, 
+                   #                                                "utilities_chr",# = c("AQoL6D", "CHU9D"), # Remove default
+                   #                                                # write_to_1L_chr = character(0),# ,
+                   #                                                "x_MimicInputs",
+                   #                                                "x_MimicRepos"
+                   #                                                              ) %>% list(), # Change
+                   #                                              pt_ls = list(
+                   #                                                "character", 
+                   #                                                "logical",                                                                  # = FALSE, 
+                   #                                                "character", 
+                   #                                                "list",
+                   #                                                "Period", 
+                   #                                                "list", 
+                   #                                                "list",  # = make_batch(5, of_1L_int = 20), 
+                   #                                                "character",
+                   #                                                "integer", # = 0, 
+                   #                                                # purge_1L_lgl, = TRUE, 
+                   #                                                "integer",# = 2001L, 
+                   #                                                "list",  # = make_sensitivities_ls(), 
+                   #                                                "POSIXt",      # = Sys.Date(), 
+                   #                                                # 
+                   #                                                # 
+                   #                                                "character",
+                   #                                                "MimicInputs",
+                   #                                                "MimicRepos") %>% list(),
+                   #                                              vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
+                   #                                                             drop_missing_1L_lgl = "FALSE", 
+                   #                                                             drop_suffix_1L_chr = "character(0)", 
+                   #                                                             # iterations_ls = make_batch(5, of_1L_int = 20), 
+                   #                                                             # horizon_dtm = "lubridate::years(1)", 
+                   #                                                             modifiable_chr = "character(0)", # Remove default
+                   #                                                             prior_batches_1L_int = "0L", 
+                   #                                                             # purge_1L_lgl = TRUE, 
+                   #                                                             seed_1L_int = "2001L", 
+                   #                                                             # sensitivities_ls = make_sensitivities_ls(), 
+                   #                                                             start_dtm = "Sys.Date()"
+                   #                                                             # , 
+                   #                                                             # tfmn_ls = make_class_tfmns(),
+                   #                                                             # type_1L_chr = c("D", "AB", "C", "NULL"), 
+                   #                                                             # unlink_1L_lgl = FALSE, 
+                   #                                                             # utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
+                   #                                                             # write_to_1L_chr = character(0)
+                   #                                                             )),
+                   #                                              class_desc_chr= "Configuration details for a simulation run.",
+                   #                                              parent_class_chr = "Ready4Module",
+                   #                                              inc_clss_ls = list("MimicInputs","MimicRepos") %>% list())
+                   # 
                                       
   )
 z <- ready4pack::make_pt_ready4pack_manifest(x,
