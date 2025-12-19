@@ -1875,8 +1875,7 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
 #' @param colour_1L_chr Colour (a character vector of length one), Default: character(0)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(1, 
-#'    9)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param imputed_1L_lgl Imputed (a logical vector of length one), Default: T
 #' @param iterations_1L_int Iterations (an integer vector of length one), Default: 100
 #' @param join_with_chr Join with (a character vector), Default: character(0)
@@ -1905,15 +1904,18 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 #' @importFrom tidyr pivot_longer
 #' @keywords internal
 add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_1L_chr = character(0), 
-    colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
-        type_1L_chr = "unicol")[c(1, 9)], imputed_1L_lgl = T, 
-    iterations_1L_int = 100, join_with_chr = character(0), max_1L_dbl = numeric(0), 
-    min_1L_dbl = numeric(0), model_1L_int = integer(0), plot_tfmn_fn = identity, 
-    summary_1L_lgl = FALSE, tfmn_fn = identity, type_1L_chr = c("models", 
-        "candidates"), uid_1L_chr = "UID", use_1L_chr = character(0), 
-    var_1L_chr = character(0), x_label_1L_chr = NA_character_) 
+    colours_chr = character(0), imputed_1L_lgl = T, iterations_1L_int = 100, 
+    join_with_chr = character(0), max_1L_dbl = numeric(0), min_1L_dbl = numeric(0), 
+    model_1L_int = integer(0), plot_tfmn_fn = identity, summary_1L_lgl = FALSE, 
+    tfmn_fn = identity, type_1L_chr = c("models", "candidates"), 
+    uid_1L_chr = "UID", use_1L_chr = character(0), var_1L_chr = character(0), 
+    x_label_1L_chr = NA_character_) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(1, 9)]
+    }
     if (identical(colour_1L_chr, character(0))) {
         colour_1L_chr <- colours_chr[1]
     }
@@ -2909,8 +2911,7 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @description add_project_assessments() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project assessments. The function returns Regressions (a list).
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 
-#'    1, 5)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param confusion_1L_lgl Confusion (a logical vector of length one), Default: F
 #' @param exclude_int Exclude (an integer vector), Default: integer(0)
 #' @param group_ls Group (a list), Default: list(Treatments = c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged"))
@@ -2924,20 +2925,23 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @return Regressions (a list)
 #' @rdname add_project_assessments
 #' @export 
-#' @importFrom ready4use get_colour_codes Ready4useDyad
+#' @importFrom ready4use Ready4useDyad get_colour_codes
 #' @importFrom purrr pluck map assign_in
 #' @importFrom stats setNames
 #' @importFrom stringr str_remove
 #' @keywords internal
-add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
-    style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
-    5)], confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
-    "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
+add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = character(0), 
+    confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
+        "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
     rank_1L_lgl = TRUE, residual_1L_chr = "normal", two_part_1L_lgl = FALSE, 
     type_1L_chr = c("candidates", "tests", "models"), var_1L_chr = character(0), 
     X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(9, 1, 5)]
+    }
     if (what_1L_chr %in% names(group_ls)) {
         updated_ls <- group_ls %>% purrr::pluck(what_1L_chr) %>% 
             purrr::map(~make_regression_report(regressions_ls, 

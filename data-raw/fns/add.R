@@ -1451,7 +1451,7 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 }
 add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, 
                              colour_1L_chr = character(0),#ready4use::get_colour_codes(), 
-                             colours_chr = ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(1,9)],
+                             colours_chr = character(0),
                              imputed_1L_lgl = T, iterations_1L_int = 100, join_with_chr = character(0), 
                              max_1L_dbl = numeric(0), min_1L_dbl = numeric(0), model_1L_int = integer(0), 
                              plot_tfmn_fn = identity,
@@ -1460,6 +1460,9 @@ add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr,
                              var_1L_chr = character(0), x_label_1L_chr = NA_character_) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
+  if(identical(colours_chr, character(0))){
+    colours_chr <- ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(1,9)]
+  }
   if(identical(colour_1L_chr, character(0))){
     colour_1L_chr <- colours_chr[1]
   }
@@ -2146,7 +2149,7 @@ add_outcomes_update <- function(X_Ready4useDyad,
 }
 
 add_project_assessments <- function (regressions_ls, what_1L_chr, 
-                                     colours_chr = ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9,1,5)],
+                                     colours_chr = character(0),
                                      confusion_1L_lgl = F, 
                                      exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
                                                                                               "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
@@ -2155,6 +2158,9 @@ add_project_assessments <- function (regressions_ls, what_1L_chr,
                                      X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
+  if(identical(colours_chr, character(0))){
+    colours_chr <- ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9,1,5)]
+  }
   if (what_1L_chr %in% names(group_ls)) {
     updated_ls <- group_ls %>% purrr::pluck(what_1L_chr) %>% 
       purrr::map(~make_regression_report(regressions_ls, 

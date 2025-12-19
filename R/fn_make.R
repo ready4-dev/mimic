@@ -5107,8 +5107,7 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @description make_regression_report() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make regression report. The function returns Report (an output object of multiple potential types).
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 
-#'    1, 5)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param digits_1L_int Digits (an integer vector of length one), Default: integer(0)
 #' @param drop_chr Drop (a character vector), Default: character(0)
 #' @param exclude_int Exclude (an integer vector), Default: integer(0)
@@ -5124,7 +5123,7 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @return Report (an output object of multiple potential types)
 #' @rdname make_regression_report
 #' @export 
-#' @importFrom ready4use get_colour_codes Ready4useDyad
+#' @importFrom ready4use Ready4useDyad get_colour_codes
 #' @importFrom purrr map
 #' @importFrom stats setNames
 #' @importFrom performance check_model compare_performance test_performance
@@ -5134,17 +5133,20 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @importFrom stringr str_remove
 #' @importFrom broom tidy
 #' @keywords internal
-make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
-    style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
-    5)], digits_1L_int = integer(0), drop_chr = character(0), 
-    exclude_int = integer(0), model_1L_int = integer(0), part_1L_int = integer(0), 
-    report_1L_chr = c("all", "main", "check", "compare", "confusion", 
-        "estimates", "test"), rank_1L_lgl = TRUE, residual_1L_chr = "normal", 
+make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = character(0), 
+    digits_1L_int = integer(0), drop_chr = character(0), exclude_int = integer(0), 
+    model_1L_int = integer(0), part_1L_int = integer(0), report_1L_chr = c("all", 
+        "main", "check", "compare", "confusion", "estimates", 
+        "test"), rank_1L_lgl = TRUE, residual_1L_chr = "normal", 
     type_1L_chr = c("candidates", "tests", "models"), var_1L_chr = character(0), 
     X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     report_1L_chr <- match.arg(report_1L_chr)
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(9, 1, 5)]
+    }
     if (report_1L_chr %in% c("all", "main")) {
         if (report_1L_chr == "all") {
             use_int <- 1:5

@@ -4068,7 +4068,7 @@ make_project_tx_mdls <- function(X_Ready4useDyad,
   return(tx_mdls_ls)
 }
 make_regression_report <- function (regressions_ls, what_1L_chr, 
-                                    colours_chr = ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9,1,5)],
+                                    colours_chr = character(0),
                                     digits_1L_int = integer(0), 
                                     drop_chr = character(0), exclude_int = integer(0), model_1L_int = integer(0), 
                                     part_1L_int = integer(0), report_1L_chr = c("all", "main", 
@@ -4078,6 +4078,9 @@ make_regression_report <- function (regressions_ls, what_1L_chr,
 {
   report_1L_chr <- match.arg(report_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
+  if(identical(colours_chr, character(0))){
+    colours_chr <- ready4use::get_colour_codes(9,style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9,1,5)]
+  }
   if (report_1L_chr %in% c("all", "main")) {
     if (report_1L_chr == "all") {
       use_int <- 1:5
