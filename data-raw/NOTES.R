@@ -15,12 +15,12 @@ Y <- renewSlot(Y,
                  # classes_lup = classes_lup,
                  # object_type_lup = object_type_lup,
                  prototype_lup = Y@b_Ready4useIngest@objects_ls$prototype_lup %>%
-                   dplyr::filter(type_chr != "period") %>%
-                   tibble::add_case(type_chr = "Period",
-                                    val_chr = "lubridate::period()",
-                                    pt_ns_chr = "lubridate",
-                                    fn_to_call_chr = "period",
-                                    default_val_chr = "",
+                   # dplyr::filter(type_chr != "period") %>%
+                   tibble::add_case(type_chr = "function",
+                                    val_chr = "function() NULL",
+                                    pt_ns_chr = "base",
+                                    fn_to_call_chr = "",
+                                    default_val_chr = "function() NULL",
                                     old_class_lgl = FALSE) %>%
                    dplyr::distinct() %>%
                    dplyr::arrange(tolower(pt_ns_chr), tolower(pt_ns_chr))

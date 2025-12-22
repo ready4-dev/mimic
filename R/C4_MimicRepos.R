@@ -23,7 +23,7 @@
 MimicRepos <- methods::setClass("MimicRepos",
 contains = "Ready4Module",
 slots = c(batch_to_1L_chr = "character",divider_1L_chr = "character",outp_data_dir_1L_chr = "character",path_to_keys_1L_chr = "character",path_to_output_1L_chr = "character",path_to_param_data_1L_chr = "character",path_to_private_1L_chr = "character",processed_dir_1L_chr = "character",r_dir_1L_chr = "character",raw_dir_1L_chr = "character",reports_dir_1L_chr = "character",x_Ready4useRepos = "Ready4useRepos",dissemination_1L_chr = "character"),
-prototype =  list(batch_to_1L_chr = NA_character_,divider_1L_chr = NA_character_,outp_data_dir_1L_chr = NA_character_,path_to_keys_1L_chr = NA_character_,path_to_output_1L_chr = NA_character_,path_to_param_data_1L_chr = NA_character_,path_to_private_1L_chr = NA_character_,processed_dir_1L_chr = NA_character_,r_dir_1L_chr = NA_character_,raw_dir_1L_chr = NA_character_,reports_dir_1L_chr = NA_character_,x_Ready4useRepos = ready4use::Ready4useRepos()))
+prototype =  list(batch_to_1L_chr = 'BatchedSimResults',divider_1L_chr = '',outp_data_dir_1L_chr = 'Output',path_to_keys_1L_chr = NA_character_,path_to_output_1L_chr = NA_character_,path_to_param_data_1L_chr = NA_character_,path_to_private_1L_chr = NA_character_,processed_dir_1L_chr = 'Processed',r_dir_1L_chr = 'R',raw_dir_1L_chr = NA_character_,reports_dir_1L_chr = 'Reports',x_Ready4useRepos = ready4use::Ready4useRepos()))
 
 
 methods::setValidity(methods::className("MimicRepos"),

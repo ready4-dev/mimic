@@ -17,8 +17,6 @@ Configuration details for a simulation run.
 
 \item{\code{drop_suffix_1L_chr}}{Drop suffix (a character vector of length one)}
 
-\item{\code{functions_ls}}{Functions (a list)}
-
 \item{\code{horizon_dtm}}{Horizon (a date vector)}
 
 \item{\code{inputs_ls}}{Inputs (a list)}
@@ -31,11 +29,11 @@ Configuration details for a simulation run.
 
 \item{\code{seed_1L_int}}{Seed (an integer vector of length one)}
 
-\item{\code{sensitivities_ls}}{Sensitivities (a list)}
-
 \item{\code{start_dtm}}{Start (a date vector)}
 
 \item{\code{utilities_chr}}{Utilities (a character vector)}
+
+\item{\code{x_MimicAlgorithms}}{(an instance of the MimicAlgorithms class)}
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}
 

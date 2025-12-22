@@ -21,7 +21,8 @@ write_batch <- function (batch_1L_int,
   iterations_int <- iterations_ls[[batch_1L_int]]
   draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
                             drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
-                            scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
+                            # scale_1L_int = scale_1L_int,
+                            seed_1L_int = seed_1L_int + 
                               batch_1L_int)
   extras_ls <- list(...)
   if (!is.null(intervention_fn)) {

@@ -4533,6 +4533,37 @@ make_results_synthesis <- function (X_Ready4useDyad,
 }
 make_sensitivities_ls <- function(timestamp_1L_chr = "_YR1"){
   prefix_1L_chr <- ifelse(stringr::str_sub(timestamp_1L_chr, end=1)=="_", stringr::str_sub(timestamp_1L_chr,start=2), timestamp_1L_chr)
+  ## THE NEXT 3 FNS ARE DEFINED WITHIN THIS FUNCTION AS A TEMPORARY FIX DUE TO CURRENT LIMITATIONS WITH READY4CLASS IN BUILDING PACKAGE
+  add_projected_decay <- function(X_Ready4useDyad,
+                                  outcome_1L_chr, 
+                                  suffix_1L_chr,
+                                  proportion_1L_dbl = 1,
+                                  tfmn_fn = identity,
+                                  ...){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, "_previous")) + (!!rlang::sym(paste0(outcome_1L_chr, "_start")) - !!rlang::sym(paste0(outcome_1L_chr, "_previous"))) * proportion_1L_dbl))))
+    return(X_Ready4useDyad)
+  }
+  add_projected_growth <- function(X_Ready4useDyad,
+                                   outcome_1L_chr, 
+                                   suffix_1L_chr,
+                                   proportion_1L_dbl = 0.2,
+                                   tfmn_fn = identity,
+                                   ...){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, "_previous")) + (!!rlang::sym(paste0(outcome_1L_chr, "_previous")) - !!rlang::sym(paste0(outcome_1L_chr, "_start"))) * proportion_1L_dbl))))
+    return(X_Ready4useDyad)
+  }
+  add_projected_maintenance <- function(X_Ready4useDyad,
+                                        outcome_1L_chr, 
+                                        suffix_1L_chr,
+                                        tfmn_fn = identity,
+                                        ...){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                   dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, "_previous"))))))
+    return(X_Ready4useDyad)
+  }
+  ##
   sensitivities_ls <- list(costs_ls = list(),
                            outcomes_ls =  list(add_projected_maintenance,
                                                add_projected_decay,
@@ -4548,6 +4579,38 @@ make_simulated_draws <- function(model_mdl,
   simulations_df <- replicate(iterations_1L_int, sample_fn(rep(1, length(predictions_num)), predictions_num)) %>% 
     as.data.frame() %>% stats::setNames(paste0("sim_",iterations_int)) 
   return(simulations_df)
+}
+make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "sensitivity", "transformation"),
+                                   comparator_fn = identity,
+                                   extra_draws_fn = NULL,
+                                   intervention_fn = identity,
+                                   sensitivities_ls = make_sensitivities_ls(),
+                                   synthesis_fn = make_project_results_synthesis,
+                                   transformation_ls = make_class_tfmns(),
+                                   ...){
+  type_1L_chr <- match.arg(type_1L_chr)
+  extras_ls <- list(...)
+    simulation_fns_ls <- list(comparator_fn = comparator_fn,
+                              extra_draws_fn = extra_draws_fn ,
+                              intervention_fn = intervention_fn,
+                              synthesis_fn = synthesis_fn,
+                              sensitivities_ls = sensitivities_ls,
+                              transformation_ls = transformation_ls) %>%
+    append(extras_ls)
+    if(type_1L_chr=="main"){
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn","intervention_fn"))
+    }
+    if(type_1L_chr=="processing"){
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn","synthesis_fn"))
+    }
+    if(type_1L_chr=="sensitivity"){
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls"))
+    }
+    if(type_1L_chr=="transformation"){
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls"))
+    }
+
+  return(simulation_fns_ls)
 }
 make_structural_vars <- function (data_1L_chr = "Data",
                                   uid_1L_chr = character(0)) {
