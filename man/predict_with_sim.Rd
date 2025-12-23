@@ -12,7 +12,7 @@ predict_with_sim(
   drop_suffix_1L_chr = character(0),
   extra_draws_fn = NULL,
   intervention_fn = predict_digital_pathway,
-  iterations_ls = make_batch(5, of_1L_int = 20),
+  iterations_ls = make_batches(5, of_1L_int = 20),
   horizon_dtm = lubridate::years(1),
   modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
   prior_batches_1L_int = 0,
@@ -44,7 +44,7 @@ predict_with_sim(
 
 \item{intervention_fn}{Intervention (a function), Default: predict_digital_pathway}
 
-\item{iterations_ls}{Iterations (a list), Default: make_batch(5, of_1L_int = 20)}
+\item{iterations_ls}{Iterations (a list), Default: make_batches(5, of_1L_int = 20)}
 
 \item{horizon_dtm}{Horizon (a date vector), Default: lubridate::years(1)}
 

@@ -19,8 +19,6 @@ Configuration details for a simulation run.
 
 \item{\code{horizon_dtm}}{Horizon (a date vector)}
 
-\item{\code{inputs_ls}}{Inputs (a list)}
-
 \item{\code{iterations_ls}}{Iterations (a list)}
 
 \item{\code{modifiable_chr}}{Modifiable (a character vector)}
@@ -36,8 +34,6 @@ Configuration details for a simulation run.
 \item{\code{x_MimicAlgorithms}}{(an instance of the MimicAlgorithms class)}
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}
-
-\item{\code{x_MimicRepos}}{(an instance of the MimicRepos class)}
 
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}

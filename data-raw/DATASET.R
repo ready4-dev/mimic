@@ -102,9 +102,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   #                     synthesis_fn = make_project_results_synthesis,
                                                                   #                     tfmn_ls = make_class_tfmns()),
                                                                   "horizon_dtm", # = lubridate::years(1),
-                                                                  "inputs_ls",
+                                                                  # "inputs_ls",
                                                                   "iterations_ls",  # = make_batch(5, of_1L_int = 20),
-                                                                                                                                   # = lubridate::years(1),
                                                                   "modifiable_chr" , # = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D") remove default
                                                                   "prior_batches_1L_int", # = 0,
                                                                   # purge_1L_lgl, = TRUE,
@@ -116,8 +115,9 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "utilities_chr",# = c("AQoL6D", "CHU9D"), # Remove default
                                                                   # write_to_1L_chr = character(0),# ,
                                                                   "x_MimicAlgorithms",
-                                                                  "x_MimicInputs",
-                                                                  "x_MimicRepos"
+                                                                  "x_MimicInputs"
+                                                                  # ,
+                                                                  # "x_MimicRepos"
                                                                                 ) %>% list(), # Change
                                                                 pt_ls = list(
                                                                   "character",
@@ -125,7 +125,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "character",
                                                                   # "list",
                                                                   "Period",
-                                                                  "list",
+                                                                  # "list",
                                                                   "list",  # = make_batch(5, of_1L_int = 20),
                                                                   "character",
                                                                   "integer", # = 0,
@@ -137,14 +137,17 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   #
                                                                   "character",
                                                                   "MimicAlgorithms",
-                                                                  "MimicInputs",
-                                                                  "MimicRepos") %>% list(),
+                                                                  "MimicInputs"
+                                                                  # ,
+                                                                  # "MimicRepos"
+                                                                  ) %>% list(),
                                                                 vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
                                                                                drop_missing_1L_lgl = "FALSE",
-                                                                               drop_suffix_1L_chr = "character(0)",
-                                                                               # iterations_ls = make_batch(5, of_1L_int = 20),
-                                                                               # horizon_dtm = "lubridate::years(1)",
-                                                                               modifiable_chr = "character(0)", # Remove default
+                                                                               drop_suffix_1L_chr = "NA_character_", # "character(0)"
+                                                                               
+                                                                               horizon_dtm = "lubridate::years(1)",
+                                                                               iterations_ls = "make_batches(5, of_1L_int = 20)",
+                                                                               modifiable_chr = "NA_character_", # "character(0)" Remove default
                                                                                prior_batches_1L_int = "0L",
                                                                                # purge_1L_lgl = TRUE,
                                                                                seed_1L_int = "2001L",

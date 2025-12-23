@@ -1,4 +1,3 @@
-# x <- mimic::MimicConfiguration()
 Prognosticate_MimicConfiguration <- function(x,
                                              # batch_dir_1L_chr = "BatchedSimResults",
                                              consent_1L_chr = "",
@@ -17,15 +16,26 @@ Prognosticate_MimicConfiguration <- function(x,
   ready4::write_new_dirs(write_to_1L_chr,
                          consent_1L_chr = consent_1L_chr)
   extras_ls <- list(...)
+  
   args_ls <- list(arms_chr = x@arms_chr,
                   comparator_fn = x@x_MimicAlgorithms@main_ls$comparator_fn,
                   drop_missing_1L_lgl = x@drop_missing_1L_lgl,
-                  drop_suffix_1L_chr = x@drop_suffix_1L_chr,
+                  drop_suffix_1L_chr = if(is.na(x@drop_suffix_1L_chr)){
+                    character(0)
+                  }else{
+                    x@drop_suffix_1L_chr 
+                  },
                   horizon_dtm = x@horizon_dtm,
-                  inputs_ls = x@inputs_ls,
+                  inputs_ls = list(models_ls = x@x_MimicInputs@models_ls,
+                                   params_tb = x@x_MimicInputs@x_Ready4useDyad@ds_tb,
+                                   Synthetic_r4 = x@x_MimicInputs@y_Ready4useDyad),
                   intervention_fn = x@x_MimicAlgorithms@main_ls$intervention_fn,
                   iterations_ls = x@iterations_ls,
-                  modifiable_chr = x@modifiable_chr,
+                  modifiable_chr = if(is.na(x@modifiable_chr)){
+                    character(0)
+                  }else{
+                    x@modifiable_chr 
+                  },
                   purge_1L_lgl = purge_1L_lgl, 
                   seed_1L_int = x@seed_1L_int,
                   sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls,

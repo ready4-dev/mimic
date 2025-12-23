@@ -430,7 +430,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
 #' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param intervention_fn Intervention (a function), Default: predict_digital_pathway
-#' @param iterations_ls Iterations (a list), Default: make_batch(5, of_1L_int = 20)
+#' @param iterations_ls Iterations (a list), Default: make_batches(5, of_1L_int = 20)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
 #' @param prior_batches_1L_int Prior batches (an integer vector of length one), Default: 0
@@ -454,7 +454,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 predict_with_sim <- function (inputs_ls, arms_chr = c("Intervention", "Comparator"), 
     comparator_fn = predict_comparator_pathway, drop_missing_1L_lgl = FALSE, 
     drop_suffix_1L_chr = character(0), extra_draws_fn = NULL, 
-    intervention_fn = predict_digital_pathway, iterations_ls = make_batch(5, 
+    intervention_fn = predict_digital_pathway, iterations_ls = make_batches(5, 
         of_1L_int = 20), horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
         "Minutes", "k10", "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, 
     purge_1L_lgl = TRUE, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
