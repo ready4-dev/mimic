@@ -2,6 +2,9 @@
 
 ## S4 Classes
 
+- [`MimicAlgorithms-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
+  [`MimicAlgorithms`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
+  : MimicAlgorithms
 - [`MimicInputs-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   [`MimicInputs`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   : MimicInputs
@@ -24,3 +27,8 @@
   : Predict project 2 pathway
 - [`predict_with_sim()`](https://ready4-dev.github.io/mimic/dev/reference/predict_with_sim.md)
   : Predict with sim
+
+## Methods
+
+- [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
+  : Prognosticate (make predictions) by solving a forward problem

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.0.9002</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@
 <span>  drop_suffix_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  extra_draws_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  intervention_fn <span class="op">=</span> <span class="va">predict_digital_pathway</span>,</span>
-<span>  iterations_ls <span class="op">=</span> <span class="fu">make_batch</span><span class="op">(</span><span class="fl">5</span>, of_1L_int <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>,</span>
+<span>  iterations_ls <span class="op">=</span> <span class="fu"><a href="make_batches.html">make_batches</a></span><span class="op">(</span><span class="fl">5</span>, of_1L_int <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>,</span>
 <span>  horizon_dtm <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">years</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
 <span>  modifiable_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"treatment_status"</span>, <span class="st">"Minutes"</span>, <span class="st">"k10"</span>, <span class="st">"AQoL6D"</span>, <span class="st">"CHU9D"</span><span class="op">)</span>,</span>
 <span>  prior_batches_1L_int <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -97,7 +97,7 @@
 
 
 <dt id="arg-iterations-ls">iterations_ls<a class="anchor" aria-label="anchor" href="#arg-iterations-ls"></a></dt>
-<dd><p>Iterations (a list), Default: make_batch(5, of_1L_int = 20)</p></dd>
+<dd><p>Iterations (a list), Default: make_batches(5, of_1L_int = 20)</p></dd>
 
 
 <dt id="arg-horizon-dtm">horizon_dtm<a class="anchor" aria-label="anchor" href="#arg-horizon-dtm"></a></dt>

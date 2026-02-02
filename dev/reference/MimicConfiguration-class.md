@@ -16,17 +16,9 @@ Configuration details for a simulation run.
 
   Drop suffix (a character vector of length one)
 
-- `functions_ls`:
-
-  Functions (a list)
-
 - `horizon_dtm`:
 
   Horizon (a date vector)
-
-- `inputs_ls`:
-
-  Inputs (a list)
 
 - `iterations_ls`:
 
@@ -44,10 +36,6 @@ Configuration details for a simulation run.
 
   Seed (an integer vector of length one)
 
-- `sensitivities_ls`:
-
-  Sensitivities (a list)
-
 - `start_dtm`:
 
   Start (a date vector)
@@ -56,13 +44,13 @@ Configuration details for a simulation run.
 
   Utilities (a character vector)
 
+- `x_MimicAlgorithms`:
+
+  (an instance of the MimicAlgorithms class)
+
 - `x_MimicInputs`:
 
   (an instance of the MimicInputs class)
-
-- `x_MimicRepos`:
-
-  (an instance of the MimicRepos class)
 
 - `dissemination_1L_chr`:
 

@@ -4,6 +4,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/articles/mimic.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/authors.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/index.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.html</loc></url>
@@ -206,6 +207,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_results_synthesis.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_sensitivities_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_simulated_draws.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_simulation_fns_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_structural_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_suffix.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_synthetic_data.html</loc></url>
@@ -234,6 +236,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/predict_with_sim.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/print_cmprsns.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/print_errors.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_dates.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_ds_to_wide.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_integer_dates.html</loc></url>
