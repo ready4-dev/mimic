@@ -173,6 +173,9 @@ z <- ready4::author(z)
 #
 # Manual step required to address:
 # C4_MimicRepos.R:5: @include requires a value.
+# This is one of two issues signaling required fixes in ready4pack
+# The other is need to order classes tibble based on dependencies.
+# Currently, the build workflow will fail unless dependencies are already present in R dir.
 #
 #ready4::write_extra_pkgs_to_actions(path_to_dir_1L_chr = ".github/workflows", consent_1L_chr = "Y")
 ready4::write_to_edit_workflow("pkgdown.yaml", consent_1L_chr = "Y") # In other packages, run for "test-coverage.yaml" as well.

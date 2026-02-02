@@ -1,4 +1,4 @@
-Prognosticate_MimicConfiguration <- function(x,
+prognosticate_MimicConfiguration <- function(x,
                                              # batch_dir_1L_chr = "BatchedSimResults",
                                              consent_1L_chr = "",
                                              purge_1L_lgl = FALSE,
