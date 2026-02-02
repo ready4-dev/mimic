@@ -8,8 +8,8 @@ make_draws_tb(
   inputs_ls,
   drop_missing_1L_lgl = FALSE,
   drop_suffix_1L_chr = character(0),
+  extra_draws_fn = NULL,
   iterations_int = 1:100,
-  scale_1L_int = 1L,
   seed_1L_int = integer(0)
 )
 }
@@ -20,9 +20,9 @@ make_draws_tb(
 
 \item{drop_suffix_1L_chr}{Drop suffix (a character vector of length one), Default: character(0)}
 
-\item{iterations_int}{Iterations (an integer vector), Default: 1:100}
+\item{extra_draws_fn}{Extra draws (a function), Default: NULL}
 
-\item{scale_1L_int}{Scale (an integer vector of length one), Default: 1}
+\item{iterations_int}{Iterations (an integer vector), Default: 1:100}
 
 \item{seed_1L_int}{Seed (an integer vector of length one), Default: integer(0)}
 }

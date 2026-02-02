@@ -1,6 +1,8 @@
 library(ready4)
 library(ready4use)
 library(ready4fun)
+# library(specific)
+# library(serious)
 # MANUAL STEP. Write all your functions to R files in the new "fns" directory.
 x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations To Economically Evaluate Mental Health Services",
                                  pkg_desc_1L_chr = "Tools for developing simple microsimulations of mental health services and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/).
@@ -33,11 +35,145 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations 
   ready4_type_1L_chr = "modelling",
   zenodo_badge_1L_chr = "[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15232854.svg)](https://doi.org/10.5281/zenodo.15232854"# 10.5281/zenodo.15232854
   )
-y <- ready4class::ready4class_constructor()
+y <- ready4class::ready4class_constructor() %>%
+  dplyr::bind_rows(ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Algorithms",
+                                                                slots_ls = list("main_ls", #"comparator_fn", "intervention_fn", 
+                                                                                "processing_ls",#"extra_draws_fn", "synthesis_fn", 
+                                                                                "sensitivities_ls", 
+                                                                                "transformations_ls") %>% list(), 
+                                                                pt_ls = list("list", "list", "list", "list") %>% list(),
+                                                                vals_ls = list(list(main_ls = "make_simulation_fns_ls('main')",
+                                                                                    processing_ls = "make_simulation_fns_ls('processing')",
+                                                                                    sensitivities_ls = "make_simulation_fns_ls('sensitivity')",
+                                                                                    transformations_ls = "make_simulation_fns_ls('transformation')")),
+                                                                class_desc_chr = "The core set of functions that define simulation behaviour.",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Inputs",
+                                                                slots_ls = list("models_ls","x_Ready4useDyad", "y_Ready4useDyad") %>% list(), 
+                                                                pt_ls = list("list","Ready4useDyad", "Ready4useDyad") %>% list(),
+                                                                class_desc_chr = "Model input data (regression models, population and parameters).",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Repos",
+                                                                slots_ls = list("batch_to_1L_chr",
+                                                                                "divider_1L_chr",
+                                                                                "outp_data_dir_1L_chr",
+                                                                                "path_to_keys_1L_chr",
+                                                                                "path_to_output_1L_chr",
+                                                                                "path_to_param_data_1L_chr",
+                                                                                "path_to_private_1L_chr",
+                                                                                "processed_dir_1L_chr",
+                                                                                "r_dir_1L_chr",
+                                                                                "raw_dir_1L_chr",
+                                                                                "reports_dir_1L_chr",
+                                                                                "x_Ready4useRepos") %>% list(),
+                                                                pt_ls = list("character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "character",
+                                                                             "Ready4useRepos") %>% list(),
+                                                                vals_ls = list(list(batch_to_1L_chr = "'BatchedSimResults'",
+                                                                                    divider_1L_chr = "'\'",
+                                                                                    outp_data_dir_1L_chr = "'Output'",
+                                                                                    processed_dir_1L_chr = "'Processed'",
+                                                                                    r_dir_1L_chr = "'R'",
+                                                                                    reports_dir_1L_chr = "'Reports'")),
+                                                                class_desc_chr= "Local and remote repositories for model input and output data.",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Configuration",
+                                                                slots_ls = list(
+                                                                  "arms_chr",                                                                   # = c("Intervention", "Comparator"),
+                                                                  "drop_missing_1L_lgl",                                                                  # = FALSE,
+                                                                  "drop_suffix_1L_chr",                            # = character(0),
+                                                                  # "functions_ls",
+                                                                  # = list(comparator_fn = predict_comparator_pathway,
+                                                                  #                     extra_draws_fn = NULL,
+                                                                  #                     intervention_fn = predict_digital_pathway,
+                                                                  #                     synthesis_fn = make_project_results_synthesis,
+                                                                  #                     tfmn_ls = make_class_tfmns()),
+                                                                  "horizon_dtm", # = lubridate::years(1),
+                                                                  # "inputs_ls",
+                                                                  "iterations_ls",  # = make_batch(5, of_1L_int = 20),
+                                                                  "modifiable_chr" , # = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D") remove default
+                                                                  "prior_batches_1L_int", # = 0,
+                                                                  # purge_1L_lgl, = TRUE,
+                                                                  "seed_1L_int",# = 2001L,
+                                                                  # "sensitivities_ls",  # = make_sensitivities_ls(),
+                                                                  "start_dtm",      # = Sys.Date(),
+                                                                  # "type_1L_chr",  # = c("D", "AB", "C", "NULL"),
+                                                                  # "unlink_1L_lgl",# = FALSE,
+                                                                  "utilities_chr",# = c("AQoL6D", "CHU9D"), # Remove default
+                                                                  # write_to_1L_chr = character(0),# ,
+                                                                  "x_MimicAlgorithms",
+                                                                  "x_MimicInputs"
+                                                                  # ,
+                                                                  # "x_MimicRepos"
+                                                                                ) %>% list(), # Change
+                                                                pt_ls = list(
+                                                                  "character",
+                                                                  "logical",                                                                  # = FALSE,
+                                                                  "character",
+                                                                  # "list",
+                                                                  "Period",
+                                                                  # "list",
+                                                                  "list",  # = make_batch(5, of_1L_int = 20),
+                                                                  "character",
+                                                                  "integer", # = 0,
+                                                                  # purge_1L_lgl, = TRUE,
+                                                                  "integer",# = 2001L,
+                                                                  # "list",  # = make_sensitivities_ls(),
+                                                                  "POSIXt",      # = Sys.Date(),
+                                                                  #
+                                                                  #
+                                                                  "character",
+                                                                  "MimicAlgorithms",
+                                                                  "MimicInputs"
+                                                                  # ,
+                                                                  # "MimicRepos"
+                                                                  ) %>% list(),
+                                                                vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
+                                                                               drop_missing_1L_lgl = "FALSE",
+                                                                               drop_suffix_1L_chr = "NA_character_", # "character(0)"
+                                                                               
+                                                                               horizon_dtm = "lubridate::years(1)",
+                                                                               iterations_ls = "make_batches(5, of_1L_int = 20)",
+                                                                               modifiable_chr = "NA_character_", # "character(0)" Remove default
+                                                                               prior_batches_1L_int = "0L",
+                                                                               # purge_1L_lgl = TRUE,
+                                                                               seed_1L_int = "2001L",
+                                                                               # sensitivities_ls = make_sensitivities_ls(),
+                                                                               start_dtm = "Sys.Date()"
+                                                                               # ,
+                                                                               # tfmn_ls = make_class_tfmns(),
+                                                                               # type_1L_chr = c("D", "AB", "C", "NULL"),
+                                                                               # unlink_1L_lgl = FALSE,
+                                                                               # utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
+                                                                               # write_to_1L_chr = character(0)
+                                                                               )),
+                                                                class_desc_chr= "Configuration details for a simulation run.",
+                                                                parent_class_chr = "Ready4Module",
+                                                                inc_clss_ls = list("MimicInputs","MimicRepos") %>% list())
+                   # 
+                                      
+  )
 z <- ready4pack::make_pt_ready4pack_manifest(x,
                                              constructor_r3 = y) %>%
   ready4pack::ready4pack_manifest()
 z <- ready4::author(z)
+#
+# Manual step required to address:
+# C4_MimicRepos.R:5: @include requires a value.
+#
 #ready4::write_extra_pkgs_to_actions(path_to_dir_1L_chr = ".github/workflows", consent_1L_chr = "Y")
 ready4::write_to_edit_workflow("pkgdown.yaml", consent_1L_chr = "Y") # In other packages, run for "test-coverage.yaml" as well.
 write_to_tidy_pkg(z$x_ready4fun_manifest,
@@ -71,3 +207,4 @@ paste0(".github/workflows/", c("pkgdown.yaml", "R-CMD-check.yaml")) %>%
         writeLines(path_1L_chr)
     }
   })
+

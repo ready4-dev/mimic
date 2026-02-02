@@ -6,16 +6,19 @@
 \usage{
 update_partial_results(
   X_Ready4useDyad = ready4use::Ready4useDyad(),
+  utilities_chr,
   update_fn = function(X_Ready4useDyad) {
      identity(X_Ready4useDyad)
  },
   combined_suffixes_chr = c("", "S01", "S02", "S10", "S11", "S12"),
-  outcome_suffixes_chr = c("", "_YR1_S1", "_YR1_S2"),
+  timestamp_1L_chr = get_timestamp(),
   ...
 )
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
+
+\item{utilities_chr}{Utilities (a character vector)}
 
 \item{update_fn}{Update (a function), Default: function(X_Ready4useDyad) {
 identity(X_Ready4useDyad)
@@ -23,7 +26,7 @@ identity(X_Ready4useDyad)
 
 \item{combined_suffixes_chr}{Combined suffixes (a character vector), Default: c("", "S01", "S02", "S10", "S11", "S12")}
 
-\item{outcome_suffixes_chr}{Outcome suffixes (a character vector), Default: c("", "_YR1_S1", "_YR1_S2")}
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{...}{Additional arguments}
 }

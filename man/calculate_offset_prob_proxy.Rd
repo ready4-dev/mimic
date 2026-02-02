@@ -9,7 +9,7 @@ calculate_offset_prob_proxy(
   exposed_1L_dbl,
   rate_1L_dbl,
   risk_1L_dbl,
-  denominator_1L_dbl = 1e+05,
+  denominator_1L_dbl = 100000,
   time_1L_dbl = 1
 )
 }
@@ -22,7 +22,7 @@ calculate_offset_prob_proxy(
 
 \item{risk_1L_dbl}{Risk (a double vector of length one)}
 
-\item{denominator_1L_dbl}{Denominator (a double vector of length one), Default: 1e+05}
+\item{denominator_1L_dbl}{Denominator (a double vector of length one), Default: 100000}
 
 \item{time_1L_dbl}{Time (a double vector of length one), Default: 1}
 }

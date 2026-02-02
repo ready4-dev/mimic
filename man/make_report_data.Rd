@@ -14,6 +14,7 @@ make_report_data(
   regressions_ls = NULL,
   sim_results_ls = NULL,
   timepoint_1L_chr = character(0),
+  timestamp_1L_chr = get_timestamp(),
   transformations_chr = character(0),
   type_1L_chr = "full_combos",
   ungroup_1L_lgl = FALSE,
@@ -42,6 +43,8 @@ make_report_data(
 \item{sim_results_ls}{Sim results (a list), Default: NULL}
 
 \item{timepoint_1L_chr}{Timepoint (a character vector of length one), Default: character(0)}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{transformations_chr}{Transformations (a character vector), Default: character(0)}
 

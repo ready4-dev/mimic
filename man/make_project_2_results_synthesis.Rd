@@ -9,6 +9,7 @@ make_project_2_results_synthesis(
   results_ls,
   comparator_1L_chr = "Comparator",
   drop_chr = make_project_2_vars("drop"),
+  exclude_chr = character(0),
   keep_chr = make_project_2_vars("keep"),
   intervention_1L_chr = "Intervention",
   modifiable_chr = make_project_2_vars("modify"),
@@ -24,6 +25,8 @@ make_project_2_results_synthesis(
 \item{comparator_1L_chr}{Comparator (a character vector of length one), Default: 'Comparator'}
 
 \item{drop_chr}{Drop (a character vector), Default: make_project_2_vars("drop")}
+
+\item{exclude_chr}{Exclude (a character vector), Default: character(0)}
 
 \item{keep_chr}{Keep (a character vector), Default: make_project_2_vars("keep")}
 

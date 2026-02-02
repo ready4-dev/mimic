@@ -1,7 +1,7 @@
 Package: mimic
 Title: Implement Microsimulations to Economically Evaluate Mental Health
     Services
-Version: 0.2.0
+Version: 0.3.0.9007
 Authors@R: 
     person("Matthew", "Hamilton", , "matthew.hamilton1@monash.edu", role = c("aut", "cph", "cre"),
            comment = c(ORCID = "0000-0001-7407-9194"))
@@ -18,7 +18,7 @@ URL: https://ready4-dev.github.io/mimic/,
     https://ready4-dev.github.io/mimic/
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     knitrBootstrap,
@@ -53,11 +53,11 @@ Imports:
     purrr,
     readxl,
     ready4show (>= 0.0.0.9115),
-    ready4use (>= 0.0.0.9249),
+    ready4use (>= 0.0.0.9250),
     rlang,
     scales,
     scorz (>= 0.0.0.9068),
-    serious (>= 0.0.1.9002),
+    serious (>= 0.0.0.9014),
     SHELF,
     specific (>= 0.0.0.9108),
     stats,
@@ -71,6 +71,26 @@ Imports:
     yardstick,
     youthu (>= 0.0.0.9122),
     youthvars (>= 0.0.0.9129)
+Collate: 
+    'fn_make.R'
+    'C4_MimicAlgorithms.R'
+    'C4_MimicRepos.R'
+    'C4_MimicInputs.R'
+    'C4_MimicConfiguration.R'
+    'fn_add.R'
+    'fn_calculate.R'
+    'fn_get.R'
+    'fn_import.R'
+    'fn_plot.R'
+    'fn_predict.R'
+    'fn_print.R'
+    'fn_transform.R'
+    'fn_update.R'
+    'fn_write.R'
+    'imp_fns.R'
+    'imp_mthds.R'
+    'mimic-package.R'
+    'pkg_mimic.R'
 Depends: 
     ready4
 Remotes: 

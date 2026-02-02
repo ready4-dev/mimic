@@ -14,6 +14,7 @@ make_utility_predictions_ds(
   iterations_1L_int = 100L,
   join_with_chr = character(0),
   maintain_for_1L_int = 12,
+  timestamp_1L_chr = get_timestamp(),
   tfmn_1L_chr = "NTF",
   type_1L_chr = c("predict", "simulate"),
   with_1L_chr = "_sim_mean",
@@ -38,6 +39,8 @@ make_utility_predictions_ds(
 \item{join_with_chr}{Join with (a character vector), Default: character(0)}
 
 \item{maintain_for_1L_int}{Maintain for (an integer vector of length one), Default: 12}
+
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: get_timestamp()}
 
 \item{tfmn_1L_chr}{Transformation (a character vector of length one), Default: 'NTF'}
 

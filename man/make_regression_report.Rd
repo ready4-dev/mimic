@@ -7,8 +7,7 @@
 make_regression_report(
   regressions_ls,
   what_1L_chr,
-  colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr =
-    "unicol")[c(9, 1, 5)],
+  colours_chr = character(0),
   digits_1L_int = integer(0),
   drop_chr = character(0),
   exclude_int = integer(0),
@@ -27,8 +26,7 @@ make_regression_report(
 
 \item{what_1L_chr}{What (a character vector of length one)}
 
-\item{colours_chr}{Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")\link[=c(9, 
-1, 5)]{c(9, 1, 5)}}
+\item{colours_chr}{Colours (a character vector), Default: character(0)}
 
 \item{digits_1L_int}{Digits (an integer vector of length one), Default: integer(0)}
 

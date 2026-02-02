@@ -7,6 +7,7 @@
 add_project_2_model_data(
   model_data_ls,
   sample_ls,
+  filter_true_1L_chr = "FlexPsych",
   intervention_1L_chr = "Intervention",
   cut_off_date_1L_chr = "2025-01-01"
 )
@@ -15,6 +16,8 @@ add_project_2_model_data(
 \item{model_data_ls}{Model data (a list)}
 
 \item{sample_ls}{Sample (a list)}
+
+\item{filter_true_1L_chr}{Filter true (a character vector of length one), Default: 'FlexPsych'}
 
 \item{intervention_1L_chr}{Intervention (a character vector of length one), Default: 'Intervention'}
 

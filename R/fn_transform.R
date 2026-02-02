@@ -320,18 +320,18 @@ transform_to_long_results <- function (X_Ready4useDyad, var_1L_chr, add_means_1L
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param vars_chr Variables (a character vector)
 #' @param max_1L_dbl Maximum (a double vector of length one), Default: 0.999999
-#' @param min_1L_dbl Minimum (a double vector of length one), Default: 1e-06
+#' @param min_1L_dbl Minimum (a double vector of length one), Default: 0.000001
 #' @return Y (A dataset and data dictionary pair.)
 #' @rdname transform_to_min_and_max
 #' @export 
 #' @importFrom dplyr mutate across
 #' @importFrom purrr map_dbl
 #' @keywords internal
-transform_to_min_and_max <- function (X_Ready4useDyad, vars_chr, max_1L_dbl = 0.999999, min_1L_dbl = 1e-06) 
+transform_to_min_and_max <- function (X_Ready4useDyad, vars_chr, max_1L_dbl = 0.999999, min_1L_dbl = 0.000001) 
 {
     Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::mutate(dplyr::across(vars_chr, ~.x %>% purrr::map_dbl(~min(max(.x, 
-            1e-06), 0.999999)))))
+            0.000001), 0.999999)))))
     return(Y_Ready4useDyad)
 }
 #' Transform to remove duplicates

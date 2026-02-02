@@ -212,6 +212,14 @@ get_regression <- function (regressions_ls,
   }
   return(model_xx)
 }
+get_timestamp <- function(sensitivities_ls = make_sensitivities_ls(),
+                          prefix_1L_chr = "_",
+                          what_1L_chr = c("outcomes","costs")){
+  what_1L_chr <- match.arg(what_1L_chr)
+  names_chr <- sensitivities_ls %>% purrr::keep_at(paste0(what_1L_chr,"_ls")) %>% purrr::pluck(1) %>% names()
+  timestamp_1L_chr <- paste0(prefix_1L_chr,names_chr[nchar(names_chr) ==min(nchar(names_chr))])
+  return(timestamp_1L_chr)
+}
 get_unit_cost_detail <- function(unit_costs_tb,
                                  what_1L_chr = c("scenarios", "fixed", "names", "variable")){
   what_1L_chr <- match.arg(what_1L_chr)

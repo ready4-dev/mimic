@@ -32,3 +32,4 @@
 ^data-raw/fns/write\.R$
 ^data-raw/fns/calculate\.R$
 ^data-raw/fns/print\.R$
+^data-raw/s4_fns/prognosticate\.R$

@@ -296,26 +296,36 @@ update_order <- function (X_Ready4useDyad, structural_chr = make_structural_vars
 #' Update partial results
 #' @description update_partial_results() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update partial results. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param utilities_chr Utilities (a character vector)
 #' @param update_fn Update (a function), Default: function(X_Ready4useDyad) {
 #'    identity(X_Ready4useDyad)
 #'}
 #' @param combined_suffixes_chr Combined suffixes (a character vector), Default: c("", "S01", "S02", "S10", "S11", "S12")
-#' @param outcome_suffixes_chr Outcome suffixes (a character vector), Default: c("", "_YR1_S1", "_YR1_S2")
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param ... Additional arguments
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname update_partial_results
 #' @export 
 #' @importFrom ready4use Ready4useDyad
-#' @importFrom purrr map flatten_chr reduce
-#' @importFrom rlang exec
+#' @importFrom purrr map_chr map flatten_chr reduce
 #' @importFrom stringr str_sub
+#' @importFrom rlang exec
 #' @keywords internal
-update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), update_fn = function(X_Ready4useDyad) {
-    identity(X_Ready4useDyad)
-}, combined_suffixes_chr = c("", "S01", "S02", "S10", "S11", 
-    "S12"), outcome_suffixes_chr = c("", "_YR1_S1", "_YR1_S2"), 
-    ...) 
+update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), utilities_chr, 
+    update_fn = function(X_Ready4useDyad) {
+        identity(X_Ready4useDyad)
+    }, combined_suffixes_chr = c("", "S01", "S02", "S10", "S11", 
+        "S12"), timestamp_1L_chr = get_timestamp(), ...) 
 {
+    outcome_sensitivities_chr <- setdiff(combined_suffixes_chr %>% 
+        purrr::map_chr(~stringr::str_sub(.x, start = 3)) %>% 
+        unique() %>% sort(), c("", "0"))
+    outcome_suffixes_chr <- c("", if (!identical(character(0), 
+        outcome_sensitivities_chr)) {
+        paste0(timestamp_1L_chr, paste0("_S", outcome_sensitivities_chr))
+    } else {
+        character(0)
+    })
     qalys_chr <- purrr::map(outcome_suffixes_chr, ~paste0(paste0(utilities_chr, 
         "_QALYs"), .x)) %>% purrr::flatten_chr()
     icers_chr <- purrr::map(combined_suffixes_chr, ~paste0(paste0("ICER_", 
@@ -335,7 +345,9 @@ update_partial_results <- function (X_Ready4useDyad = ready4use::Ready4useDyad()
                 "Cost", paste0("Cost_S", stringr::str_sub(.y, 
                   start = 2, end = 2)))
             effect_1L_chr <- ifelse(.y %in% c("", "S10"), "_QALYs", 
-                paste0("_QALYs_YR1_S", stringr::str_sub(.y, start = -1)))
+                paste0(paste0("_QALYs", ifelse(length(outcome_suffixes_chr) < 
+                  2, "ERROR", stringr::str_sub(outcome_suffixes_chr[2], 
+                  end = -2))), stringr::str_sub(.y, start = -1)))
             last_1L_chr <- .y
             purrr::reduce(utilities_chr, .init = data_tb, ~{
                 .x %>% add_dominated(effect_1L_chr = paste0(.y, 
@@ -593,13 +605,14 @@ update_processed_tb <- function (data_tb, first_eight_1L_lgl = NA, program_1L_ch
 #' Update project 2 parameter names
 #' @description update_project_2_param_names() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update project 2 parameter names. The function returns Parameters (a tibble).
 #' @param params_tb Parameters (a tibble)
+#' @param intervention_1L_chr Intervention (a character vector of length one)
 #' @return Parameters (a tibble)
 #' @rdname update_project_2_param_names
 #' @export 
 #' @importFrom dplyr mutate case_when arrange
 #' @importFrom stringr str_replace str_replace_all
 #' @keywords internal
-update_project_2_param_names <- function (params_tb) 
+update_project_2_param_names <- function (params_tb, intervention_1L_chr) 
 {
     params_tb <- params_tb %>% dplyr::mutate(Parameter = Parameter %>% 
         stringr::str_replace("AmbulanceOffset", "Ambulance attendance") %>% 

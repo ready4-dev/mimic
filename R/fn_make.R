@@ -483,8 +483,8 @@ make_disciplines <- function (arrange_1L_chr = c("default", "semi", "ordered"), 
 #' @param inputs_ls Inputs (a list)
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one), Default: FALSE
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
+#' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100
-#' @param scale_1L_int Scale (an integer vector of length one), Default: 1
 #' @param seed_1L_int Seed (an integer vector of length one), Default: integer(0)
 #' @return Draws (a tibble)
 #' @rdname make_draws_tb
@@ -493,12 +493,12 @@ make_disciplines <- function (arrange_1L_chr = c("default", "semi", "ordered"), 
 #' @importFrom tidyselect any_of
 #' @importFrom janitor row_to_names
 #' @importFrom tibble rownames_to_column as_tibble
-#' @importFrom purrr reduce
-#' @importFrom rlang sym
+#' @importFrom purrr keep_at
+#' @importFrom rlang exec
 #' @importFrom stringr str_remove
 #' @keywords internal
 make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
-    iterations_int = 1:100, scale_1L_int = 1L, seed_1L_int = integer(0)) 
+    extra_draws_fn = NULL, iterations_int = 1:100, seed_1L_int = integer(0)) 
 {
     if (!identical(seed_1L_int, integer(0))) {
         set.seed(seed_1L_int)
@@ -515,21 +515,12 @@ make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1
         dplyr::across(dplyr::where(is.numeric), list(mean = ~rnorm(iterations_1L_int, 
             mean = dplyr::first(.x), sd = dplyr::nth(.x, 2)), 
             sd = ~dplyr::last(.x))))
-    if (!is.null(inputs_ls$pooled_ls)) {
-        draws_tb <- 1:length(inputs_ls$pooled_ls) %>% purrr::reduce(.init = draws_tb, 
-            ~{
-                pooled_mdl <- inputs_ls$pooled_ls[[.y]]$model_ls
-                args_ls <- inputs_ls$pooled_ls[[.y]]$arguments_ls
-                name_1L_chr <- names(inputs_ls$pooled_ls)[.y]
-                predictions_dbl <- predict_from_pool(pooled_mdl, 
-                  adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
-                  distributions_chr = args_ls$distributions_chr, 
-                  n_1L_int = iterations_1L_int * scale_1L_int, 
-                  seed_1L_int = seed_1L_int, resample_1L_lgl = T, 
-                  what_1L_chr = name_1L_chr)
-                .x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ParamPool", 
-                  name_1L_chr)), sample(predictions_dbl, size = iterations_1L_int)))
-            })
+    if (!is.null(extra_draws_fn)) {
+        args_ls <- list(inputs_ls = inputs_ls, iterations_1L_int = iterations_1L_int, 
+            iterations_int = iterations_int, seed_1L_int = seed_1L_int) %>% 
+            purrr::keep_at(intersect(c("iterations_1L_int", "seed_1L_int", 
+                "inputs_ls", "iterations_int"), names(formals(extra_draws_fn))))
+        draws_tb <- rlang::exec(extra_draws_fn, draws_tb, !!!args_ls)
     }
     draws_tb <- draws_tb %>% dplyr::select(-tidyselect::any_of(c("Iteration_mean", 
         "Iteration_sd")))
@@ -1149,6 +1140,7 @@ make_mds_expenditure_tb <- function (raw_expenditure_tb = NULL, path_to_param_da
 #' @param age_min_1L_int Age minimum (an integer vector of length one), Default: integer(0)
 #' @param disciplines_chr Disciplines (a character vector), Default: make_disciplines()
 #' @param distinct_orgs_1L_lgl Distinct organisations (a logical vector of length one), Default: TRUE
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param impute_below_1L_dbl Impute below (a double vector of length one), Default: 40
 #' @param imputations_1L_int Imputations (an integer vector of length one), Default: 1
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intv'
@@ -1174,9 +1166,9 @@ make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_l
     after_dtm = as.Date("2022-07-01"), add_programs_int = c(1, 
         4), age_max_1L_int = integer(0), age_min_1L_int = integer(0), 
     disciplines_chr = make_disciplines(), distinct_orgs_1L_lgl = TRUE, 
-    impute_below_1L_dbl = 40, imputations_1L_int = 1, intervention_1L_chr = "Intv", 
-    jurisdiction_1L_chr = "Jurisdiction", mature_only_1L_lgl = TRUE, 
-    max_iterations_1L_int = 2, missing_after_dtm = Sys.Date(), 
+    filter_true_1L_chr = "FlexPsych", impute_below_1L_dbl = 40, 
+    imputations_1L_int = 1, intervention_1L_chr = "Intv", jurisdiction_1L_chr = "Jurisdiction", 
+    mature_only_1L_lgl = TRUE, max_iterations_1L_int = 2, missing_after_dtm = Sys.Date(), 
     postcode_lup = NULL, program_true_1L_chr = "is_program", 
     require_complete_chr = character(0)) 
 {
@@ -1248,9 +1240,9 @@ make_mds_modelling_ds <- function (processed_ls, outcomes_ls, program_services_l
             impute_chr), date_vars_chr = X_Ready4useDyad@ds_tb %>% 
             dplyr::select(dplyr::where(function(x) inherits(x, 
                 "Date"))) %>% names(), extras_chr = character(0), 
-        ignore_x_chr = do_not_impute_chr, imputations_1L_int = imputations_1L_int, 
-        max_iterations_1L_int = max_iterations_1L_int, method_1L_chr = "rf", 
-        post_imputation_fn = function(x) add_mds_minutes_totals(x, 
+        filter_true_1L_chr = filter_true_1L_chr, ignore_x_chr = do_not_impute_chr, 
+        imputations_1L_int = imputations_1L_int, max_iterations_1L_int = max_iterations_1L_int, 
+        method_1L_chr = "rf", post_imputation_fn = function(x) add_mds_minutes_totals(x, 
             add_chr = "Use"), uid_var_1L_chr = "RecordID")
     model_data_ls$unimputed_ls$missing_tb <- missing_tb
     return(model_data_ls)
@@ -2031,6 +2023,31 @@ make_project_1_params_tb <- function ()
             as.vector(), 0, 0)
     return(params_tb)
 }
+#' Make project 1 results synthesis
+#' @description make_project_1_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 1 results synthesis. The function is called for its side effects and does not return a value.
+#' @param inputs_ls Inputs (a list)
+#' @param results_ls Results (a list)
+#' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
+#' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname make_project_1_results_synthesis
+#' @export 
+#' @keywords internal
+make_project_1_results_synthesis <- function (inputs_ls, results_ls, modifiable_chr = c("treatment_status", 
+    "Minutes", "k10", "AQoL6D", "CHU9D"), type_1L_chr = c("D", 
+    "AB", "C")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
+        results_ls = results_ls, exclude_chr = c("Adult", "Period", 
+            "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
+            "treatment_start"), exclude_suffixes_chr = c("_change", 
+            "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
+            "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
+        stratification_fn = add_severity_cuts, modifiable_chr = modifiable_chr, 
+        type_1L_chr = type_1L_chr)
+    return(X_Ready4useDyad)
+}
 #' Make project 2 days models
 #' @description make_project_2_days_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 days models. The function returns Tpm models (a list).
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2454,6 +2471,7 @@ make_project_2_regressions_ls <- function ()
 #' @param select_1L_chr Select (a character vector of length one), Default: character(0)
 #' @param sim_results_ls Sim results (a list), Default: NULL
 #' @param timepoint_1L_chr Timepoint (a character vector of length one), Default: character(0)
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param transformations_chr Transformations (a character vector), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: 'full_combos'
 #' @param ungroup_1L_lgl Ungroup (a logical vector of length one), Default: FALSE
@@ -2470,10 +2488,11 @@ make_project_2_regressions_ls <- function ()
 make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, period_dtm = lubridate::years(1), 
     platform_1L_chr = "Intervention", processed_ls = NULL, regressions_ls = NULL, 
     select_1L_chr = character(0), sim_results_ls = NULL, timepoint_1L_chr = character(0), 
-    transformations_chr = character(0), type_1L_chr = "full_combos", 
-    ungroup_1L_lgl = FALSE, weeks_int = integer(0), what_1L_chr = c("paramscost", 
-        "paramsk10", "resultsaqol", "resultseq5d", "resultseconomic", 
-        "resultsoutcomes", "resultsutility", "serviceuse", "serviceusecost")) 
+    timestamp_1L_chr = get_timestamp(), transformations_chr = character(0), 
+    type_1L_chr = "full_combos", ungroup_1L_lgl = FALSE, weeks_int = integer(0), 
+    what_1L_chr = c("paramscost", "paramsk10", "resultsaqol", 
+        "resultseq5d", "resultseconomic", "resultsoutcomes", 
+        "resultsutility", "serviceuse", "serviceusecost")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (what_1L_chr == "paramscost") {
@@ -2489,29 +2508,34 @@ make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, pe
     if (what_1L_chr == "resultsaqol") {
         data_xx <- sim_results_ls %>% make_project_2_sim_summary(arms_chr = arms_chr, 
             platform_1L_chr = platform_1L_chr, select_1L_chr = "AQoL-8D", 
-            type_1L_chr = "economic", what_1L_chr = type_1L_chr)
+            timestamp_1L_chr = timestamp_1L_chr, type_1L_chr = "economic", 
+            what_1L_chr = type_1L_chr)
     }
     if (what_1L_chr == "resultseq5d") {
         data_xx <- sim_results_ls %>% make_project_2_sim_summary(arms_chr = arms_chr, 
             platform_1L_chr = platform_1L_chr, select_1L_chr = "EQ-5D", 
-            type_1L_chr = "economic", what_1L_chr = type_1L_chr)
+            timestamp_1L_chr = timestamp_1L_chr, type_1L_chr = "economic", 
+            what_1L_chr = type_1L_chr)
     }
     if (what_1L_chr == "resultsutility") {
         data_xx <- sim_results_ls %>% make_project_2_sim_summary(type_1L_chr = "economic", 
             arms_chr = arms_chr, platform_1L_chr = platform_1L_chr, 
-            what_1L_chr = type_1L_chr, select_1L_chr = select_1L_chr)
+            timestamp_1L_chr = timestamp_1L_chr, what_1L_chr = type_1L_chr, 
+            select_1L_chr = select_1L_chr)
     }
     if (what_1L_chr == "resultsoutcomes") {
         data_xx <- sim_results_ls %>% make_project_2_sim_summary(arms_chr = arms_chr, 
-            platform_1L_chr = platform_1L_chr) %>% dplyr::mutate(Outcome = Outcome %>% 
-            stringr::str_replace_all("k10", "K10") %>% stringr::str_replace_all("_change", 
-            " change from baseline") %>% stringr::str_replace_all("_", 
-            " ")) %>% dplyr::arrange(Outcome)
+            platform_1L_chr = platform_1L_chr, timestamp_1L_chr = timestamp_1L_chr) %>% 
+            dplyr::mutate(Outcome = Outcome %>% stringr::str_replace_all("k10", 
+                "K10") %>% stringr::str_replace_all("_change", 
+                " change from baseline") %>% stringr::str_replace_all("_", 
+                " ")) %>% dplyr::arrange(Outcome)
     }
     if (what_1L_chr == "resultseconomic") {
         data_xx <- sim_results_ls %>% make_project_2_sim_summary(arms_chr = arms_chr, 
             platform_1L_chr = platform_1L_chr, select_1L_chr = select_1L_chr, 
-            type_1L_chr = "economic", what_1L_chr = type_1L_chr)
+            timestamp_1L_chr = timestamp_1L_chr, type_1L_chr = "economic", 
+            what_1L_chr = type_1L_chr)
         if (!identical(select_1L_chr, character(0))) {
             data_xx <- data_xx %>% dplyr::filter(QALYs == select_1L_chr) %>% 
                 dplyr::select(-QALYs)
@@ -2533,6 +2557,7 @@ make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, pe
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
 #' @param outcomes_chr Outcomes (a character vector), Default: character(0)
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
 #' @return Sim results (a list)
 #' @rdname make_project_2_results
@@ -2542,8 +2567,8 @@ make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, pe
 make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_chr = "Comparator", 
     intervention_1L_chr = "Intervention", min_cell_size_1L_int = 30L, 
     modifiable_chr = character(0), outcomes_chr = character(0), 
-    threshold_1L_dbl = 96000, utilities_chr = c("AQoL8D", "EQ5D", 
-        "EQ5DM2", "SF6D", "SF6DM2")) 
+    threshold_1L_dbl = 96000, timestamp_1L_chr = get_timestamp(), 
+    utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")) 
 {
     if (identical(outcomes_chr, character(0))) {
         outcomes_chr <- make_outcomes_vars(inputs_ls$Synthetic_r4, 
@@ -2560,15 +2585,17 @@ make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_ch
     }
     full_combos_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Diagnosis", 
         "Distress"), min_cell_size_1L_int = min_cell_size_1L_int, 
-        outcomes_chr = outcomes_chr, utilities_chr = utilities_chr)
+        outcomes_chr = outcomes_chr, timestamp_1L_chr = timestamp_1L_chr, 
+        utilities_chr = utilities_chr)
     diagnosis_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Diagnosis"), 
         min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
-        utilities_chr = utilities_chr)
+        timestamp_1L_chr = timestamp_1L_chr, utilities_chr = utilities_chr)
     distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"), 
         min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
-        utilities_chr = utilities_chr)
+        timestamp_1L_chr = timestamp_1L_chr, utilities_chr = utilities_chr)
     total_ls <- make_results_summary(X_Ready4useDyad, min_cell_size_1L_int = min_cell_size_1L_int, 
-        outcomes_chr = outcomes_chr, utilities_chr = utilities_chr)
+        timestamp_1L_chr = timestamp_1L_chr, outcomes_chr = outcomes_chr, 
+        utilities_chr = utilities_chr)
     sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad, 
         diagnosis_ls = diagnosis_ls, distress_ls = distress_ls, 
         full_combos_ls = full_combos_ls, total_ls = total_ls, 
@@ -2582,6 +2609,7 @@ make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_ch
 #' @param results_ls Results (a list)
 #' @param comparator_1L_chr Comparator (a character vector of length one), Default: 'Comparator'
 #' @param drop_chr Drop (a character vector), Default: make_project_2_vars("drop")
+#' @param exclude_chr Exclude (a character vector), Default: character(0)
 #' @param keep_chr Keep (a character vector), Default: make_project_2_vars("keep")
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intervention'
 #' @param modifiable_chr Modifiable (a character vector), Default: make_project_2_vars("modify")
@@ -2590,48 +2618,19 @@ make_project_2_results <- function (X_Ready4useDyad, inputs_ls, comparator_1L_ch
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname make_project_2_results_synthesis
 #' @export 
-#' @importFrom purrr map reduce
-#' @importFrom dplyr mutate across where filter select arrange case_when
-#' @importFrom rlang sym
-#' @importFrom tidyselect any_of
 #' @keywords internal
 make_project_2_results_synthesis <- function (inputs_ls, results_ls, comparator_1L_chr = "Comparator", 
-    drop_chr = make_project_2_vars("drop"), keep_chr = make_project_2_vars("keep"), 
-    intervention_1L_chr = "Intervention", modifiable_chr = make_project_2_vars("modify"), 
-    type_1L_chr = c("D", "AB", "C"), uid_tfmn_fn = as.numeric) 
+    drop_chr = make_project_2_vars("drop"), exclude_chr = character(0), 
+    keep_chr = make_project_2_vars("keep"), intervention_1L_chr = "Intervention", 
+    modifiable_chr = make_project_2_vars("modify"), type_1L_chr = c("D", 
+        "AB", "C"), uid_tfmn_fn = as.numeric) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
-    tfd_results_ls <- purrr::map(results_ls, ~renewSlot(.x, "ds_tb", 
-        .x@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
-            ~as.numeric(.x))) %>% dplyr::filter(!is.na(!!rlang::sym(modifiable_chr[1])))))
-    groups_chr <- c(comparator_1L_chr, "Difference", intervention_1L_chr) %>% 
-        sort()
-    comparator_1L_int <- which(groups_chr == comparator_1L_chr)
-    intervention_1L_int <- which(groups_chr == intervention_1L_chr)
-    X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
-        results_ls = tfd_results_ls, add_severity_1L_lgl = T, 
-        exclude_chr = character(0), exclude_suffixes_chr = c("_change", 
-            "_date", "_previous"), keep_chr = keep_chr, modifiable_chr = modifiable_chr, 
-        severity_var_1L_chr = "K10_start", type_1L_chr = type_1L_chr)
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::select(-tidyselect::any_of(drop_chr)))
-    numerics_chr <- X_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(is.numeric)) %>% 
-        names() %>% sort()
-    numerics_chr <- numerics_chr[!endsWith(numerics_chr, paste0("_", 
-        comparator_1L_chr))]
-    numerics_chr <- numerics_chr[!endsWith(numerics_chr, paste0("_", 
-        intervention_1L_chr))]
-    numerics_chr <- numerics_chr %>% setdiff(c(keep_chr, "Iteration"))
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", numerics_chr %>% 
-        purrr::reduce(.init = X_Ready4useDyad@ds_tb %>% dplyr::mutate(UID = UID %>% 
-            uid_tfmn_fn()) %>% dplyr::arrange(Iteration, UID, 
-            Data), ~{
-            var_1L_chr <- .y
-            .x %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
-                dplyr::case_when(Data == "Difference" ~ !!rlang::sym(paste0(var_1L_chr, 
-                  "_", intervention_1L_chr)) - !!rlang::sym(paste0(var_1L_chr, 
-                  "_", comparator_1L_chr)), T ~ !!rlang::sym(var_1L_chr))))
-        }))
+    X_Ready4useDyad <- make_project_results_synthesis(inputs_ls, 
+        results_ls = results_ls, comparator_1L_chr = comparator_1L_chr, 
+        drop_chr = drop_chr, exclude_chr = exclude_chr, keep_chr = keep_chr, 
+        intervention_1L_chr = intervention_1L_chr, modifiable_chr = modifiable_chr, 
+        type_1L_chr = type_1L_chr, uid_tfmn_fn = uid_tfmn_fn)
     return(X_Ready4useDyad)
 }
 #' Make project 2 results tibble
@@ -2733,6 +2732,7 @@ make_project_2_results_tb <- function (sim_results_ls, comparator_1L_chr, interv
             "Episodes of care")) %>% dplyr::filter(!Group %in% 
             c("Ambulance", "Fixed", "IAR-DST", "Wait time, days", 
                 disciplines_chr)) %>% dplyr::select(-Group)
+        results_tb <- results_tb %>% dplyr::filter(!is.na(Difference))
     }
     if (type_1L_chr == "use") {
         results_tb <- results_tb %>% dplyr::filter(endsWith(Group, 
@@ -2773,6 +2773,7 @@ make_project_2_sensitivities_ls <- function ()
 #' @param convert_1L_lgl Convert (a logical vector of length one), Default: TRUE
 #' @param platform_1L_chr Platform (a character vector of length one), Default: 'Intervention'
 #' @param select_1L_chr Select (a character vector of length one), Default: 'all'
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param type_1L_chr Type (a character vector of length one), Default: c("outcomes", "economic")
 #' @param what_1L_chr What (a character vector of length one), Default: c("total", "diagnosis", "iar", "full_combos")
 #' @return Summary (a tibble)
@@ -2790,8 +2791,9 @@ make_project_2_sensitivities_ls <- function ()
 make_project_2_sim_summary <- function (sim_results_ls, arms_chr, element_1L_chr = "Z", groupings_chr = c("Diagnosis", 
     "Distress"), order_1L_lgl = TRUE, convert_1L_lgl = TRUE, 
     platform_1L_chr = "Intervention", select_1L_chr = "all", 
-    type_1L_chr = c("outcomes", "economic"), what_1L_chr = c("total", 
-        "diagnosis", "iar", "full_combos")) 
+    timestamp_1L_chr = get_timestamp(), type_1L_chr = c("outcomes", 
+        "economic"), what_1L_chr = c("total", "diagnosis", "iar", 
+        "full_combos")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
@@ -2827,7 +2829,7 @@ make_project_2_sim_summary <- function (sim_results_ls, arms_chr, element_1L_chr
     }
     x_tb <- x_tb %>% dplyr::rename(`:=`(!!rlang::sym(platform_1L_chr), 
         !!rlang::sym(arms_chr[1]))) %>% dplyr::mutate(Parameter = Parameter %>% 
-        stringr::str_replace_all("_YR1", "") %>% purrr::map_chr(~ifelse(startsWith(.x, 
+        stringr::str_replace_all(timestamp_1L_chr, "") %>% purrr::map_chr(~ifelse(startsWith(.x, 
         "QALYs_S"), paste0("QALYs (Utility sensitivity ", stringr::str_sub(.x, 
         start = 8), ")"), ifelse(startsWith(.x, "Cost_S"), paste0("Cost (Cost sensitivity ", 
         stringr::str_sub(.x, start = 7), ")"), .x))) %>% stringr::str_replace_all("AmbulanceOffsetCost", 
@@ -3824,6 +3826,7 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
 #' @param characteristics_chr Characteristics (a character vector), Default: c("Diagnosis", "Employment")
 #' @param date_vars_chr Date variables (a character vector), Default: 'Date'
 #' @param extras_chr Extras (a character vector), Default: character(0)
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param ignore_x_chr Ignore x (a character vector), Default: character(0)
 #' @param ignore_y_chr Ignore y (a character vector), Default: character(0)
 #' @param imputations_1L_int Imputations (an integer vector of length one), Default: 5
@@ -3846,13 +3849,13 @@ make_project_ds <- function (raw_data_ls, platform_1L_chr, age_1L_chr = "Age", c
 make_project_imputations <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready4useDyad(), 
     add_cumulatives_1L_lgl = FALSE, characteristics_chr = c("Diagnosis", 
         "Employment"), date_vars_chr = "Date", extras_chr = character(0), 
-    ignore_x_chr = character(0), ignore_y_chr = character(0), 
-    imputations_1L_int = 5, max_iterations_1L_int = 2, method_1L_chr = "rf", 
-    post_imputation_fn = identity, uid_var_1L_chr = "UID") 
+    filter_true_1L_chr = "FlexPsych", ignore_x_chr = character(0), 
+    ignore_y_chr = character(0), imputations_1L_int = 5, max_iterations_1L_int = 2, 
+    method_1L_chr = "rf", post_imputation_fn = identity, uid_var_1L_chr = "UID") 
 {
     model_data_ls <- list(imputed_ls = list(), unimputed_ls = list())
     model_data_ls$unimputed_ls <- list(X_Ready4useDyad = X_Ready4useDyad %>% 
-        update_mds_modelling_ds())
+        update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr))
     if (!identical(ignore_x_chr, character(0))) {
         A_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::select(tidyselect::all_of(c(uid_var_1L_chr, 
@@ -4534,6 +4537,7 @@ make_project_recode_lup <- function ()
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
 #' @param outcomes_chr Outcomes (a character vector), Default: character(0)
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @return Sim results (a list)
 #' @rdname make_project_results
 #' @export 
@@ -4541,7 +4545,7 @@ make_project_recode_lup <- function ()
 #' @keywords internal
 make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_int = 30L, 
     modifiable_chr = character(0), outcomes_chr = character(0), 
-    threshold_1L_dbl = 96000) 
+    threshold_1L_dbl = 96000, timestamp_1L_chr = get_timestamp()) 
 {
     if (identical(outcomes_chr, character(0))) {
         outcomes_chr <- make_outcomes_vars(inputs_ls$Synthetic_r4, 
@@ -4557,18 +4561,22 @@ make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_i
     }
     full_combos_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type", 
         "treatment_status_start", "Distress"), min_cell_size_1L_int = min_cell_size_1L_int, 
-        outcomes_chr = outcomes_chr)
+        outcomes_chr = outcomes_chr, timestamp_1L_chr = timestamp_1L_chr)
     clinic_stage_ls <- make_results_summary(X_Ready4useDyad, 
         group_by_chr = c("clinic_type", "treatment_status_start"), 
-        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
+        timestamp_1L_chr = timestamp_1L_chr)
     stage_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("treatment_status_start"), 
-        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
+        timestamp_1L_chr = timestamp_1L_chr)
     clinic_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("clinic_type"), 
-        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
+        timestamp_1L_chr = timestamp_1L_chr)
     distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"), 
-        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr)
+        min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
+        timestamp_1L_chr = timestamp_1L_chr)
     total_ls <- make_results_summary(X_Ready4useDyad, min_cell_size_1L_int = min_cell_size_1L_int, 
-        outcomes_chr = outcomes_chr)
+        outcomes_chr = outcomes_chr, timestamp_1L_chr = timestamp_1L_chr)
     sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad, 
         clinic_ls = clinic_ls, clinic_stage_ls = clinic_stage_ls, 
         distress_ls = distress_ls, full_combos_ls = full_combos_ls, 
@@ -4579,24 +4587,63 @@ make_project_results <- function (X_Ready4useDyad, inputs_ls, min_cell_size_1L_i
 #' @description make_project_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project results synthesis. The function is called for its side effects and does not return a value.
 #' @param inputs_ls Inputs (a list)
 #' @param results_ls Results (a list)
-#' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
+#' @param comparator_1L_chr Comparator (a character vector of length one), Default: 'Comparator'
+#' @param drop_chr Drop (a character vector), Default: make_project_2_vars("drop")
+#' @param exclude_chr Exclude (a character vector), Default: character(0)
+#' @param exclude_suffixes_chr Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")
+#' @param keep_chr Keep (a character vector), Default: make_project_2_vars("keep")
+#' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intervention'
+#' @param modifiable_chr Modifiable (a character vector), Default: make_project_2_vars("modify")
+#' @param stratification_fn Stratification (a function), Default: identity
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
+#' @param uid_tfmn_fn Unique identifier transformation (a function), Default: as.numeric
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname make_project_results_synthesis
 #' @export 
+#' @importFrom purrr map reduce
+#' @importFrom dplyr mutate across where filter select arrange case_when
+#' @importFrom rlang sym
+#' @importFrom tidyselect any_of
 #' @keywords internal
-make_project_results_synthesis <- function (inputs_ls, results_ls, modifiable_chr = c("treatment_status", 
-    "Minutes", "k10", "AQoL6D", "CHU9D"), type_1L_chr = c("D", 
-    "AB", "C")) 
+make_project_results_synthesis <- function (inputs_ls, results_ls, comparator_1L_chr = "Comparator", 
+    drop_chr = make_project_2_vars("drop"), exclude_chr = character(0), 
+    exclude_suffixes_chr = c("_change", "_date", "_previous"), 
+    keep_chr = make_project_2_vars("keep"), intervention_1L_chr = "Intervention", 
+    modifiable_chr = make_project_2_vars("modify"), stratification_fn = identity, 
+    type_1L_chr = c("D", "AB", "C"), uid_tfmn_fn = as.numeric) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    tfd_results_ls <- purrr::map(results_ls, ~renewSlot(.x, "ds_tb", 
+        .x@ds_tb %>% dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+            ~as.numeric(.x))) %>% dplyr::filter(!is.na(!!rlang::sym(modifiable_chr[1])))))
+    groups_chr <- c(comparator_1L_chr, "Difference", intervention_1L_chr) %>% 
+        sort()
+    comparator_1L_int <- which(groups_chr == comparator_1L_chr)
+    intervention_1L_int <- which(groups_chr == intervention_1L_chr)
     X_Ready4useDyad <- make_results_synthesis(inputs_ls$Synthetic_r4, 
-        results_ls = results_ls, add_severity_1L_lgl = T, exclude_chr = c("Adult", 
-            "Period", "MeasurementWeek", "treatment_fraction", 
-            "treatment_measurement", "treatment_start"), exclude_suffixes_chr = c("_change", 
-            "_date", "_previous", "52_Weeks"), keep_chr = c("platform", 
-            "clinic_state", "clinic_type", "Age", "gender", "employment_status"), 
-        modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+        results_ls = tfd_results_ls, exclude_chr = exclude_chr, 
+        exclude_suffixes_chr = exclude_suffixes_chr, keep_chr = keep_chr, 
+        modifiable_chr = modifiable_chr, stratification_fn = stratification_fn, 
+        type_1L_chr = type_1L_chr)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::select(-tidyselect::any_of(drop_chr)))
+    numerics_chr <- X_Ready4useDyad@ds_tb %>% dplyr::select(dplyr::where(is.numeric)) %>% 
+        names() %>% sort()
+    numerics_chr <- numerics_chr[!endsWith(numerics_chr, paste0("_", 
+        comparator_1L_chr))]
+    numerics_chr <- numerics_chr[!endsWith(numerics_chr, paste0("_", 
+        intervention_1L_chr))]
+    numerics_chr <- numerics_chr %>% setdiff(c(keep_chr, "Iteration"))
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", numerics_chr %>% 
+        purrr::reduce(.init = X_Ready4useDyad@ds_tb %>% dplyr::mutate(UID = UID %>% 
+            uid_tfmn_fn()) %>% dplyr::arrange(Iteration, UID, 
+            Data), ~{
+            var_1L_chr <- .y
+            .x %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                dplyr::case_when(Data == "Difference" ~ !!rlang::sym(paste0(var_1L_chr, 
+                  "_", intervention_1L_chr)) - !!rlang::sym(paste0(var_1L_chr, 
+                  "_", comparator_1L_chr)), T ~ !!rlang::sym(var_1L_chr))))
+        }))
     return(X_Ready4useDyad)
 }
 #' Make project service use dataset
@@ -4710,6 +4757,7 @@ make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POS
 #' @param convert_1L_lgl Convert (a logical vector of length one), Default: TRUE
 #' @param platform_1L_chr Platform (a character vector of length one), Default: 'Intervention'
 #' @param select_1L_chr Select (a character vector of length one), Default: c("both", "AQoL-6D", "CHU-9D")
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param type_1L_chr Type (a character vector of length one), Default: c("outcomes", "economic")
 #' @param what_1L_chr What (a character vector of length one), Default: c("total", "clinic", "clinic_stage", "distress", "full_combos", 
 #'    "stage")
@@ -4727,9 +4775,10 @@ make_project_service_use_ds <- function (processed_ls, data_extract_dtm = as.POS
 make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", groupings_chr = c("clinic_type", 
     "treatment_status_start", "Distress"), order_1L_lgl = TRUE, 
     convert_1L_lgl = TRUE, platform_1L_chr = "Intervention", 
-    select_1L_chr = c("both", "AQoL-6D", "CHU-9D"), type_1L_chr = c("outcomes", 
-        "economic"), what_1L_chr = c("total", "clinic", "clinic_stage", 
-        "distress", "full_combos", "stage")) 
+    select_1L_chr = c("both", "AQoL-6D", "CHU-9D"), timestamp_1L_chr = get_timestamp(), 
+    type_1L_chr = c("outcomes", "economic"), what_1L_chr = c("total", 
+        "clinic", "clinic_stage", "distress", "full_combos", 
+        "stage")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
@@ -4770,7 +4819,7 @@ make_project_sim_summary <- function (sim_results_ls, element_1L_chr = "Z", grou
     }
     x_tb <- x_tb %>% dplyr::rename(`:=`(!!rlang::sym(platform_1L_chr), 
         Intervention)) %>% dplyr::mutate(Parameter = Parameter %>% 
-        stringr::str_replace_all("_YR1", "") %>% stringr::str_replace_all("QALYs_S1", 
+        stringr::str_replace_all(timestamp_1L_chr, "") %>% stringr::str_replace_all("QALYs_S1", 
         "QALYs (Utility sensitivity 1)") %>% stringr::str_replace_all("QALYs_S2", 
         "QALYs (Utility sensitivity 2)") %>% stringr::str_replace_all("Cost_S1", 
         "Cost (Cost sensitivity 1)")) %>% dplyr::distinct()
@@ -5058,8 +5107,7 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @description make_regression_report() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make regression report. The function returns Report (an output object of multiple potential types).
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 
-#'    1, 5)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param digits_1L_int Digits (an integer vector of length one), Default: integer(0)
 #' @param drop_chr Drop (a character vector), Default: character(0)
 #' @param exclude_int Exclude (an integer vector), Default: integer(0)
@@ -5075,7 +5123,7 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @return Report (an output object of multiple potential types)
 #' @rdname make_regression_report
 #' @export 
-#' @importFrom ready4use get_colour_codes Ready4useDyad
+#' @importFrom ready4use Ready4useDyad get_colour_codes
 #' @importFrom purrr map
 #' @importFrom stats setNames
 #' @importFrom performance check_model compare_performance test_performance
@@ -5085,17 +5133,20 @@ make_project_tx_mdls <- function (X_Ready4useDyad, append_to_ls = list(), predic
 #' @importFrom stringr str_remove
 #' @importFrom broom tidy
 #' @keywords internal
-make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
-    style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
-    5)], digits_1L_int = integer(0), drop_chr = character(0), 
-    exclude_int = integer(0), model_1L_int = integer(0), part_1L_int = integer(0), 
-    report_1L_chr = c("all", "main", "check", "compare", "confusion", 
-        "estimates", "test"), rank_1L_lgl = TRUE, residual_1L_chr = "normal", 
+make_regression_report <- function (regressions_ls, what_1L_chr, colours_chr = character(0), 
+    digits_1L_int = integer(0), drop_chr = character(0), exclude_int = integer(0), 
+    model_1L_int = integer(0), part_1L_int = integer(0), report_1L_chr = c("all", 
+        "main", "check", "compare", "confusion", "estimates", 
+        "test"), rank_1L_lgl = TRUE, residual_1L_chr = "normal", 
     type_1L_chr = c("candidates", "tests", "models"), var_1L_chr = character(0), 
     X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     report_1L_chr <- match.arg(report_1L_chr)
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(9, 1, 5)]
+    }
     if (report_1L_chr %in% c("all", "main")) {
         if (report_1L_chr == "all") {
             use_int <- 1:5
@@ -5215,6 +5266,7 @@ make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), CHU9
 #' @param regressions_ls Regressions (a list), Default: NULL
 #' @param sim_results_ls Sim results (a list), Default: NULL
 #' @param timepoint_1L_chr Timepoint (a character vector of length one), Default: character(0)
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param transformations_chr Transformations (a character vector), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: 'full_combos'
 #' @param ungroup_1L_lgl Ungroup (a logical vector of length one), Default: FALSE
@@ -5240,13 +5292,14 @@ make_regressions_ls <- function (prototype_ls_ls = list(AQoL6D_ls = list(), CHU9
 make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2023-07-01"), 
     date_start_dtm = as.POSIXct("2023-06-01"), period_dtm = lubridate::years(1), 
     platform_1L_chr = "Intervention", processed_ls = NULL, regressions_ls = NULL, 
-    sim_results_ls = NULL, timepoint_1L_chr = character(0), transformations_chr = character(0), 
-    type_1L_chr = "full_combos", ungroup_1L_lgl = FALSE, weeks_int = integer(0), 
-    what_1L_chr = c("descriptives", "composite", "costadj", "costitem", 
-        "costsum", "costunit", "minutes", "mnl-wait", "mnl-tx", 
-        "mnl-disc", "outcomes", "outcomeslong", "paramscost", 
-        "paramsk10", "resultsaqol", "resultschu", "resultsoutcomes", 
-        "resultseconomic", "serviceuse", "serviceusecost")) 
+    sim_results_ls = NULL, timepoint_1L_chr = character(0), timestamp_1L_chr = get_timestamp(), 
+    transformations_chr = character(0), type_1L_chr = "full_combos", 
+    ungroup_1L_lgl = FALSE, weeks_int = integer(0), what_1L_chr = c("descriptives", 
+        "composite", "costadj", "costitem", "costsum", "costunit", 
+        "minutes", "mnl-wait", "mnl-tx", "mnl-disc", "outcomes", 
+        "outcomeslong", "paramscost", "paramsk10", "resultsaqol", 
+        "resultschu", "resultsoutcomes", "resultseconomic", "serviceuse", 
+        "serviceusecost")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (what_1L_chr == "composite") {
@@ -5361,24 +5414,24 @@ make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2
     }
     if (what_1L_chr == "resultsaqol") {
         data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
-            platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
-            select_1L_chr = "AQoL-6D")
+            platform_1L_chr = platform_1L_chr, timestamp_1L_chr = timestamp_1L_chr, 
+            what_1L_chr = type_1L_chr, select_1L_chr = "AQoL-6D")
     }
     if (what_1L_chr == "resultschu") {
         data_xx <- sim_results_ls %>% make_project_sim_summary(type_1L_chr = "economic", 
-            platform_1L_chr = platform_1L_chr, what_1L_chr = type_1L_chr, 
-            select_1L_chr = "CHU-9D")
+            platform_1L_chr = platform_1L_chr, timestamp_1L_chr = timestamp_1L_chr, 
+            what_1L_chr = type_1L_chr, select_1L_chr = "CHU-9D")
     }
     if (what_1L_chr == "resultsoutcomes") {
-        data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr) %>% 
-            dplyr::mutate(Outcome = Outcome %>% stringr::str_replace_all("k10", 
-                "K10") %>% stringr::str_replace_all("_change", 
-                " change from baseline") %>% stringr::str_replace_all("_", 
-                " ")) %>% dplyr::arrange(Outcome)
+        data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr, 
+            timestamp_1L_chr = timestamp_1L_chr) %>% dplyr::mutate(Outcome = Outcome %>% 
+            stringr::str_replace_all("k10", "K10") %>% stringr::str_replace_all("_change", 
+            " change from baseline") %>% stringr::str_replace_all("_", 
+            " ")) %>% dplyr::arrange(Outcome)
     }
     if (what_1L_chr == "resultseconomic") {
         data_xx <- sim_results_ls %>% make_project_sim_summary(platform_1L_chr = platform_1L_chr, 
-            type_1L_chr = "economic")
+            timestamp_1L_chr = timestamp_1L_chr, type_1L_chr = "economic")
     }
     if (what_1L_chr %in% c("serviceuse", "serviceusecost")) {
         if (!is.null(model_data_ls)) {
@@ -5396,15 +5449,15 @@ make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2
                 processed_ls = processed_ls, date_end_dtm = date_end_dtm, 
                 date_start_dtm = date_start_dtm, period_dtm = lubridate::weeks(0), 
                 platform_1L_chr = platform_1L_chr, timepoint_1L_chr = "Week0", 
-                transformations_chr = transformations_chr, what_1L_chr = what_1L_chr) %>% 
-                renewSlot("ds_tb", .@ds_tb %>% dplyr::filter(F)), 
-                ~renewSlot(.x, "ds_tb", dplyr::bind_rows(.x@ds_tb, 
-                  make_report_data(model_data_ls = model_data_ls, 
-                    processed_ls = processed_ls, date_end_dtm = date_end_dtm, 
-                    date_start_dtm = date_start_dtm, period_dtm = lubridate::weeks(.y), 
-                    platform_1L_chr = platform_1L_chr, timepoint_1L_chr = paste0("Week", 
-                      .y), transformations_chr = transformations_chr, 
-                    what_1L_chr = what_1L_chr) %>% procureSlot("ds_tb"))))
+                timestamp_1L_chr = timestamp_1L_chr, transformations_chr = transformations_chr, 
+                what_1L_chr = what_1L_chr) %>% renewSlot("ds_tb", 
+                .@ds_tb %>% dplyr::filter(F)), ~renewSlot(.x, 
+                "ds_tb", dplyr::bind_rows(.x@ds_tb, make_report_data(model_data_ls = model_data_ls, 
+                  processed_ls = processed_ls, date_end_dtm = date_end_dtm, 
+                  date_start_dtm = date_start_dtm, period_dtm = lubridate::weeks(.y), 
+                  platform_1L_chr = platform_1L_chr, timepoint_1L_chr = paste0("Week", 
+                    .y), transformations_chr = transformations_chr, 
+                  what_1L_chr = what_1L_chr) %>% procureSlot("ds_tb"))))
             data_xx <- renewSlot(data_xx, "ds_tb", setdiff(data_xx@ds_tb %>% 
                 dplyr::ungroup() %>% dplyr::select(dplyr::where(is.numeric)) %>% 
                 names(), "Age") %>% purrr::reduce(.init = data_xx@ds_tb %>% 
@@ -5480,6 +5533,7 @@ make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1
 #' @param group_by_chr Group by (a character vector), Default: character(0)
 #' @param min_cell_size_1L_int Minimum cell size (an integer vector of length one), Default: 1
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @return Results summary (a list)
 #' @rdname make_results_summary
@@ -5489,8 +5543,8 @@ make_results_matrix <- function (data_tb, names_chr, arms_1L_chr = "Data", var_1
 #' @importFrom purrr map_dfr
 #' @keywords internal
 make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = character(0), 
-    min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
-        "CHU9D")) 
+    min_cell_size_1L_int = 1L, threshold_1L_dbl = 96000, timestamp_1L_chr = get_timestamp(), 
+    utilities_chr = c("AQoL6D", "CHU9D")) 
 {
     D <- X_Ready4useDyad
     E <- renewSlot(D, "ds_tb", D@ds_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Iteration", 
@@ -5507,7 +5561,7 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
     x_tb <- E@ds_tb
     y_tb <- D@ds_tb %>% dplyr::filter(Data == "Difference")
     z_tb <- E@ds_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, 
-        utilities_chr = utilities_chr)
+        timestamp_1L_chr = timestamp_1L_chr, utilities_chr = utilities_chr)
     E <- renewSlot(E, "ds_tb", z_tb)
     ab_tb <- ab_tb %>% dplyr::group_by(dplyr::across(tidyr::all_of(c("Data", 
         group_by_chr))))
@@ -5530,7 +5584,7 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
     x_tb <- x_tb %>% dplyr::left_join(y_tb) %>% dplyr::ungroup() %>% 
         dplyr::left_join(z_tb)
     x_tb <- x_tb %>% add_cost_effectiveness_stats(threshold_1L_dbl = threshold_1L_dbl, 
-        utilities_chr = utilities_chr)
+        timestamp_1L_chr = timestamp_1L_chr, utilities_chr = utilities_chr)
     x_tb <- dplyr::bind_rows(x_tb, ab_tb %>% dplyr::left_join(ab_tb$Data %>% 
         unique() %>% purrr::map_dfr(~y_tb %>% dplyr::mutate(Data = .x))))
     E <- renewSlot(E, "ds_tb", E@ds_tb %>% dplyr::bind_rows(AB@ds_tb))
@@ -5544,15 +5598,12 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' @description make_results_synthesis() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results synthesis. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param add_severity_1L_lgl Add severity (a logical vector of length one), Default: TRUE
-#' @param exclude_chr Exclude (a character vector), Default: c("Adult", "Period", "MeasurementWeek", "treatment_fraction", 
-#'    "treatment_measurement", "treatment_start")
-#' @param exclude_suffixes_chr Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous", "52_Weeks")
-#' @param keep_chr Keep (a character vector), Default: c("platform", "clinic_state", "clinic_type", "Age", "gender", 
-#'    "employment_status")
+#' @param exclude_chr Exclude (a character vector), Default: character(0)
+#' @param exclude_suffixes_chr Exclude suffixes (a character vector), Default: c("_change", "_date", "_previous")
+#' @param keep_chr Keep (a character vector), Default: character(0)
 #' @param modifiable_chr Modifiable (a character vector), Default: character(0)
 #' @param results_ls Results (a list), Default: NULL
-#' @param severity_fn Severity (a function), Default: make_k10_severity_cuts
-#' @param severity_var_1L_chr Severity variable (a character vector of length one), Default: 'k10_start'
+#' @param stratification_fn Stratification (a function), Default: identity
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C")
 #' @param Y_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
 #' @param Z_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
@@ -5560,16 +5611,11 @@ make_results_summary <- function (X_Ready4useDyad, outcomes_chr, group_by_chr = 
 #' @rdname make_results_synthesis
 #' @export 
 #' @importFrom ready4use Ready4useDyad
-#' @importFrom dplyr mutate case_when
-#' @importFrom rlang sym
 #' @keywords internal
-make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = c("Adult", 
-    "Period", "MeasurementWeek", "treatment_fraction", "treatment_measurement", 
-    "treatment_start"), exclude_suffixes_chr = c("_change", "_date", 
-    "_previous", "52_Weeks"), keep_chr = c("platform", "clinic_state", 
-    "clinic_type", "Age", "gender", "employment_status"), modifiable_chr = character(0), 
-    results_ls = NULL, severity_fn = make_k10_severity_cuts, 
-    severity_var_1L_chr = "k10_start", type_1L_chr = c("D", "AB", 
+make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, exclude_chr = character(0), 
+    exclude_suffixes_chr = c("_change", "_date", "_previous"), 
+    keep_chr = character(0), modifiable_chr = character(0), results_ls = NULL, 
+    stratification_fn = identity, type_1L_chr = c("D", "AB", 
         "C"), Y_Ready4useDyad = ready4use::Ready4useDyad(), Z_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
@@ -5582,32 +5628,58 @@ make_results_synthesis <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE,
         exclude_chr = exclude_chr, exclude_suffixes_chr = exclude_suffixes_chr, 
         keep_chr = keep_chr, modifiable_chr = modifiable_chr, 
         type_1L_chr = type_1L_chr)
-    if (add_severity_1L_lgl) {
-        severity_ls <- severity_fn()
-        A_Ready4useDyad <- renewSlot(A_Ready4useDyad, "ds_tb", 
-            A_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                severity_ls$Low[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                severity_ls$Low[2] ~ "Low", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                severity_ls$Moderate[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                severity_ls$Moderate[2] ~ "Moderate", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                severity_ls$High[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                severity_ls$High[2] ~ "High", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                severity_ls$VeryHigh[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
-    }
+    A_Ready4useDyad <- stratification_fn(A_Ready4useDyad)
     return(A_Ready4useDyad)
 }
 #' Make sensitivities list
 #' @description make_sensitivities_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make sensitivities list. The function returns Sensitivities (a list).
-
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: '_YR1'
 #' @return Sensitivities (a list)
 #' @rdname make_sensitivities_ls
 #' @export 
+#' @importFrom stringr str_sub
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @importFrom stats setNames
 #' @keywords internal
-make_sensitivities_ls <- function () 
+make_sensitivities_ls <- function (timestamp_1L_chr = "_YR1") 
 {
-    sensitivities_ls <- list(costs_ls = list(), outcomes_ls = list(YR1 = add_projected_maintenance, 
-        YR1_S1 = add_projected_decay, YR1_S2 = add_projected_growth))
+    prefix_1L_chr <- ifelse(stringr::str_sub(timestamp_1L_chr, 
+        end = 1) == "_", stringr::str_sub(timestamp_1L_chr, start = 2), 
+        timestamp_1L_chr)
+    add_projected_decay <- function(X_Ready4useDyad, outcome_1L_chr, 
+        suffix_1L_chr, proportion_1L_dbl = 1, tfmn_fn = identity, 
+        ...) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, 
+                suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, 
+                "_previous")) + (!!rlang::sym(paste0(outcome_1L_chr, 
+                "_start")) - !!rlang::sym(paste0(outcome_1L_chr, 
+                "_previous"))) * proportion_1L_dbl))))
+        return(X_Ready4useDyad)
+    }
+    add_projected_growth <- function(X_Ready4useDyad, outcome_1L_chr, 
+        suffix_1L_chr, proportion_1L_dbl = 0.2, tfmn_fn = identity, 
+        ...) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, 
+                suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, 
+                "_previous")) + (!!rlang::sym(paste0(outcome_1L_chr, 
+                "_previous")) - !!rlang::sym(paste0(outcome_1L_chr, 
+                "_start"))) * proportion_1L_dbl))))
+        return(X_Ready4useDyad)
+    }
+    add_projected_maintenance <- function(X_Ready4useDyad, outcome_1L_chr, 
+        suffix_1L_chr, tfmn_fn = identity, ...) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(paste0(outcome_1L_chr, 
+                suffix_1L_chr)), tfmn_fn(!!rlang::sym(paste0(outcome_1L_chr, 
+                "_previous"))))))
+        return(X_Ready4useDyad)
+    }
+    sensitivities_ls <- list(costs_ls = list(), outcomes_ls = list(add_projected_maintenance, 
+        add_projected_decay, add_projected_growth) %>% stats::setNames(paste0(prefix_1L_chr, 
+        c("", "_S1", "_S2"))))
     return(sensitivities_ls)
 }
 #' Make simulated draws
@@ -5630,6 +5702,49 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
         length(predictions_num)), predictions_num)) %>% as.data.frame() %>% 
         stats::setNames(paste0("sim_", iterations_int))
     return(simulations_df)
+}
+#' Make simulation functions list
+#' @description make_simulation_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulation functions list. The function returns Simulation functions (a list).
+#' @param type_1L_chr Type (a character vector of length one), Default: c("all", "main", "processing", "sensitivity", "transformation")
+#' @param comparator_fn Comparator (a function), Default: identity
+#' @param extra_draws_fn Extra draws (a function), Default: NULL
+#' @param intervention_fn Intervention (a function), Default: identity
+#' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
+#' @param synthesis_fn Synthesis (a function), Default: make_project_results_synthesis
+#' @param transformation_ls Transformation (a list), Default: make_class_tfmns()
+#' @param ... Additional arguments
+#' @return Simulation functions (a list)
+#' @rdname make_simulation_fns_ls
+#' @export 
+#' @importFrom purrr keep_at
+#' @keywords internal
+make_simulation_fns_ls <- function (type_1L_chr = c("all", "main", "processing", "sensitivity", 
+    "transformation"), comparator_fn = identity, extra_draws_fn = NULL, 
+    intervention_fn = identity, sensitivities_ls = make_sensitivities_ls(), 
+    synthesis_fn = make_project_results_synthesis, transformation_ls = make_class_tfmns(), 
+    ...) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    extras_ls <- list(...)
+    simulation_fns_ls <- list(comparator_fn = comparator_fn, 
+        extra_draws_fn = extra_draws_fn, intervention_fn = intervention_fn, 
+        synthesis_fn = synthesis_fn, sensitivities_ls = sensitivities_ls, 
+        transformation_ls = transformation_ls) %>% append(extras_ls)
+    if (type_1L_chr == "main") {
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn", 
+            "intervention_fn"))
+    }
+    if (type_1L_chr == "processing") {
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn", 
+            "synthesis_fn"))
+    }
+    if (type_1L_chr == "sensitivity") {
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls"))
+    }
+    if (type_1L_chr == "transformation") {
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls"))
+    }
+    return(simulation_fns_ls)
 }
 #' Make structural variables
 #' @description make_structural_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make structural variables. The function returns Structural (a character vector).
@@ -6134,6 +6249,7 @@ make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k
 #' @param iterations_1L_int Iterations (an integer vector of length one), Default: 100
 #' @param join_with_chr Join with (a character vector), Default: character(0)
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 12
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param tfmn_1L_chr Transformation (a character vector of length one), Default: 'NTF'
 #' @param type_1L_chr Type (a character vector of length one), Default: c("predict", "simulate")
 #' @param with_1L_chr With (a character vector of length one), Default: '_sim_mean'
@@ -6152,8 +6268,9 @@ make_utility_predictions_ds <- function (X_Ready4useDyad = ready4use::Ready4useD
     Z_Ready4useDyad = ready4use::Ready4useDyad(), model_mdl, 
     utility_1L_chr = c("AQoL6D", "CHU9D"), follow_up_1L_int = 12, 
     iterations_1L_int = 100L, join_with_chr = character(0), maintain_for_1L_int = 12, 
-    tfmn_1L_chr = "NTF", type_1L_chr = c("predict", "simulate"), 
-    with_1L_chr = "_sim_mean", what_1L_chr = c("old", "new")) 
+    timestamp_1L_chr = get_timestamp(), tfmn_1L_chr = "NTF", 
+    type_1L_chr = c("predict", "simulate"), with_1L_chr = "_sim_mean", 
+    what_1L_chr = c("old", "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)
@@ -6161,7 +6278,7 @@ make_utility_predictions_ds <- function (X_Ready4useDyad = ready4use::Ready4useD
     var_1L_chr <- paste0(utility_1L_chr, "_", follow_up_1L_int, 
         "_Weeks")
     qaly_vars_chr <- paste0(paste0(utility_1L_chr, "_QALYs"), 
-        c("", "_YR1", "_YR1_S1", "_YR1_S2"))
+        c("", paste0(timestamp_1L_chr, c("", "_S1", "_S2"))))
     if (utility_1L_chr == "CHU9D") {
         class_fn <- youthvars::youthvars_chu9d_adolaus
         min_1L_dbl <- -0.2118

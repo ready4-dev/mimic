@@ -9,8 +9,7 @@ add_model_tests(
   regressions_ls,
   what_1L_chr,
   colour_1L_chr = character(0),
-  colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr =
-    "unicol")[c(1, 9)],
+  colours_chr = character(0),
   imputed_1L_lgl = T,
   iterations_1L_int = 100,
   join_with_chr = character(0),
@@ -36,8 +35,7 @@ add_model_tests(
 
 \item{colour_1L_chr}{Colour (a character vector of length one), Default: character(0)}
 
-\item{colours_chr}{Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")\link[=c(1, 
-9)]{c(1, 9)}}
+\item{colours_chr}{Colours (a character vector), Default: character(0)}
 
 \item{imputed_1L_lgl}{Imputed (a logical vector of length one), Default: T}
 

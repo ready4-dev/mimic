@@ -277,78 +277,83 @@ add_cost_effectiveness <- function (data_tb, cost_1L_chr = "Cost", dominance_1L_
 #' @description add_cost_effectiveness_stats() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add cost effectiveness statistics. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)
 #' @param threshold_1L_dbl Threshold (a double vector of length one), Default: 96000
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @return Data (a tibble)
 #' @rdname add_cost_effectiveness_stats
 #' @export 
 #' @importFrom purrr reduce
 #' @keywords internal
-add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, utilities_chr = c("AQoL6D", 
-    "CHU9D")) 
+add_cost_effectiveness_stats <- function (data_tb, threshold_1L_dbl = 96000, timestamp_1L_chr = get_timestamp(), 
+    utilities_chr = c("AQoL6D", "CHU9D")) 
 {
     data_tb <- purrr::reduce(utilities_chr, .init = data_tb, 
         ~{
             utility_1L_chr <- .y
             .x %>% add_dominated(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S10")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                "_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "_S01")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                "_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "_S02")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), "_S1"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S01")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), "_S2"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S02")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), "_S1"), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S11")) %>% add_dominated(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), "_S2"), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S12")) %>% add_icer(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "")) %>% add_icer(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S10")) %>% add_icer(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                "_S1"), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "_S01")) %>% add_icer(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                "_S2"), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                "_S02")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), "_S1"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S01")) %>% add_icer(cost_1L_chr = paste0("Cost", 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), "_S2"), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, "_S02")) %>% add_icer(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), "_S1"), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S11")) %>% add_icer(cost_1L_chr = paste0("Cost", 
                 "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
+                paste0("_QALYs", timestamp_1L_chr), "_S2"), suffix_1L_chr = paste0("_", 
                 utility_1L_chr, "_S12")) %>% add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
-                ""), effect_1L_chr = paste0(utility_1L_chr, "_QALYs_YR1", 
-                ""), suffix_1L_chr = paste0("_", utility_1L_chr, 
-                ""), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                ""), effect_1L_chr = paste0(utility_1L_chr, paste0("_QALYs", 
+                timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
+                utility_1L_chr, ""), threshold_1L_dbl = threshold_1L_dbl) %>% 
                 add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
                   "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                  "_QALYs_YR1", ""), suffix_1L_chr = paste0("_", 
+                  paste0("_QALYs", timestamp_1L_chr), ""), suffix_1L_chr = paste0("_", 
                   utility_1L_chr, "_S10"), threshold_1L_dbl = threshold_1L_dbl) %>% 
                 add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
                   ""), effect_1L_chr = paste0(utility_1L_chr, 
-                  "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
-                  utility_1L_chr, "_S01"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                  paste0("_QALYs", timestamp_1L_chr), "_S1"), 
+                  suffix_1L_chr = paste0("_", utility_1L_chr, 
+                    "_S01"), threshold_1L_dbl = threshold_1L_dbl) %>% 
                 add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
                   ""), effect_1L_chr = paste0(utility_1L_chr, 
-                  "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
-                  utility_1L_chr, "_S02"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                  paste0("_QALYs", timestamp_1L_chr), "_S2"), 
+                  suffix_1L_chr = paste0("_", utility_1L_chr, 
+                    "_S02"), threshold_1L_dbl = threshold_1L_dbl) %>% 
                 add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
                   "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                  "_QALYs_YR1", "_S1"), suffix_1L_chr = paste0("_", 
-                  utility_1L_chr, "_S11"), threshold_1L_dbl = threshold_1L_dbl) %>% 
+                  paste0("_QALYs", timestamp_1L_chr), "_S1"), 
+                  suffix_1L_chr = paste0("_", utility_1L_chr, 
+                    "_S11"), threshold_1L_dbl = threshold_1L_dbl) %>% 
                 add_cost_effectiveness(cost_1L_chr = paste0("Cost", 
                   "_S1"), effect_1L_chr = paste0(utility_1L_chr, 
-                  "_QALYs_YR1", "_S2"), suffix_1L_chr = paste0("_", 
-                  utility_1L_chr, "_S12"), threshold_1L_dbl = threshold_1L_dbl)
+                  paste0("_QALYs", timestamp_1L_chr), "_S2"), 
+                  suffix_1L_chr = paste0("_", utility_1L_chr, 
+                    "_S12"), threshold_1L_dbl = threshold_1L_dbl)
         })
     return(data_tb)
 }
@@ -480,6 +485,7 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity
 #' @param cost_tfmn_fn Cost transformation (a function), Default: identity
 #' @param reference_1L_chr Reference (a character vector of length one), Default: 'Status quo'
 #' @param tfmn_fn Transformation (a function), Default: identity
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
 #' @param type_1L_chr Type (a character vector of length one), Default: c("change_scenario", "change_scen_sq", "change_sq", "scenario", 
 #'    "scen_sq", "sq", "summary_scenario")
 #' @param unit_1L_chr Unit (a character vector of length one), Default: c("minutes", "clients")
@@ -495,9 +501,10 @@ add_costs_event <- function (X_Ready4useDyad, inputs_ls, add_logic_fn = identity
 #' @keywords internal
 add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 26, arrange_1L_chr = character(0), 
     bind_to_tb = NULL, cost_tfmn_fn = identity, reference_1L_chr = "Status quo", 
-    tfmn_fn = identity, type_1L_chr = c("change_scenario", "change_scen_sq", 
-        "change_sq", "scenario", "scen_sq", "sq", "summary_scenario"), 
-    unit_1L_chr = c("minutes", "clients")) 
+    tfmn_fn = identity, timestamp_1L_chr = get_timestamp(), type_1L_chr = c("change_scenario", 
+        "change_scen_sq", "change_sq", "scenario", "scen_sq", 
+        "sq", "summary_scenario"), unit_1L_chr = c("minutes", 
+        "clients")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     unit_1L_chr <- match.arg(unit_1L_chr)
@@ -537,8 +544,8 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
     if (type_1L_chr %in% c("change_sq", "change_scen_sq")) {
         unformatted_ls <- add_costs_to_summary(summaries_ls, 
             processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
-            reference_1L_chr = reference_1L_chr, type_1L_chr = "sq", 
-            unit_1L_chr = unit_1L_chr)
+            reference_1L_chr = reference_1L_chr, timestamp_1L_chr = timestamp_1L_chr, 
+            type_1L_chr = "sq", unit_1L_chr = unit_1L_chr)
         costs_change_sq_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
@@ -593,8 +600,8 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
     if (type_1L_chr == "change_scenario") {
         unformatted_ls <- add_costs_to_summary(summaries_ls, 
             processed_ls = processed_ls, periods_1L_int = periods_1L_int, 
-            reference_1L_chr = reference_1L_chr, type_1L_chr = "scenario", 
-            unit_1L_chr = unit_1L_chr)
+            reference_1L_chr = reference_1L_chr, timestamp_1L_chr = timestamp_1L_chr, 
+            type_1L_chr = "scenario", unit_1L_chr = unit_1L_chr)
         summaries_ls$scenarios_ls$costs_change_scenarios_tb <- processed_ls$costs_unit@ds_tb$Scenario %>% 
             unique() %>% purrr::map_dfr(~{
             cost_scenario_1L_chr <- .x
@@ -622,7 +629,7 @@ add_costs_to_summary <- function (summaries_ls, processed_ls, periods_1L_int = 2
         X_Ready4useDyad <- make_report_data(processed_ls = processed_ls, 
             date_end_dtm = as.POSIXct("2023-07-31"), date_start_dtm = as.POSIXct("2023-07-01"), 
             period_dtm = lubridate::weeks(14), platform_1L_chr = "MOST", 
-            what_1L_chr = "serviceusecost")
+            timestamp_1L_chr = timestamp_1L_chr, what_1L_chr = "serviceusecost")
         some_1L_dbl <- X_Ready4useDyad@ds_tb %>% dplyr::mutate(Some = Minutes > 
             0) %>% dplyr::summarise(CumulativeMinutes = sum(Minutes), 
             Minutes = mean(Minutes), Some = sum(Some), N = dplyr::n()) %>% 
@@ -710,6 +717,41 @@ add_dominated <- function (data_tb, cost_1L_chr = "Cost", effect_1L_chr = "QALYs
         ~ifelse(.x > 0 & .y < 0, "Dominated", ifelse(.x < 0 & 
             .y > 0, "Dominant", "Ratio")))))
     return(data_tb)
+}
+#' Add draws from pool
+#' @description add_draws_from_pool() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add draws from pool. The function returns Draws (a tibble).
+#' @param draws_tb Draws (a tibble)
+#' @param inputs_ls Inputs (a list)
+#' @param iterations_1L_int Iterations (an integer vector of length one)
+#' @param scale_1L_int Scale (an integer vector of length one), Default: 10
+#' @param seed_1L_int Seed (an integer vector of length one), Default: 1000
+#' @return Draws (a tibble)
+#' @rdname add_draws_from_pool
+#' @export 
+#' @importFrom purrr reduce
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @keywords internal
+add_draws_from_pool <- function (draws_tb, inputs_ls, iterations_1L_int, scale_1L_int = 10L, 
+    seed_1L_int = 1000L) 
+{
+    if (!is.null(inputs_ls$pooled_ls)) {
+        draws_tb <- 1:length(inputs_ls$pooled_ls) %>% purrr::reduce(.init = draws_tb, 
+            ~{
+                pooled_mdl <- inputs_ls$pooled_ls[[.y]]$model_ls
+                args_ls <- inputs_ls$pooled_ls[[.y]]$arguments_ls
+                name_1L_chr <- names(inputs_ls$pooled_ls)[.y]
+                predictions_dbl <- predict_from_pool(pooled_mdl, 
+                  adjustment_1L_dbl = args_ls$adjustment_1L_dbl, 
+                  distributions_chr = args_ls$distributions_chr, 
+                  n_1L_int = iterations_1L_int * scale_1L_int, 
+                  seed_1L_int = seed_1L_int, resample_1L_lgl = T, 
+                  what_1L_chr = name_1L_chr)
+                .x %>% dplyr::mutate(`:=`(!!rlang::sym(paste0("ParamPool", 
+                  name_1L_chr)), sample(predictions_dbl, size = iterations_1L_int)))
+            })
+    }
+    return(draws_tb)
 }
 #' Add enter model event
 #' @description add_enter_model_event() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add enter model event. The function is called for its side effects and does not return a value.
@@ -1833,8 +1875,7 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
 #' @param colour_1L_chr Colour (a character vector of length one), Default: character(0)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(1, 
-#'    9)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param imputed_1L_lgl Imputed (a logical vector of length one), Default: T
 #' @param iterations_1L_int Iterations (an integer vector of length one), Default: 100
 #' @param join_with_chr Join with (a character vector), Default: character(0)
@@ -1863,15 +1904,18 @@ add_minutes_event <- function (X_Ready4useDyad, add_dependency_1L_lgl = T, minut
 #' @importFrom tidyr pivot_longer
 #' @keywords internal
 add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_1L_chr = character(0), 
-    colours_chr = ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
-        type_1L_chr = "unicol")[c(1, 9)], imputed_1L_lgl = T, 
-    iterations_1L_int = 100, join_with_chr = character(0), max_1L_dbl = numeric(0), 
-    min_1L_dbl = numeric(0), model_1L_int = integer(0), plot_tfmn_fn = identity, 
-    summary_1L_lgl = FALSE, tfmn_fn = identity, type_1L_chr = c("models", 
-        "candidates"), uid_1L_chr = "UID", use_1L_chr = character(0), 
-    var_1L_chr = character(0), x_label_1L_chr = NA_character_) 
+    colours_chr = character(0), imputed_1L_lgl = T, iterations_1L_int = 100, 
+    join_with_chr = character(0), max_1L_dbl = numeric(0), min_1L_dbl = numeric(0), 
+    model_1L_int = integer(0), plot_tfmn_fn = identity, summary_1L_lgl = FALSE, 
+    tfmn_fn = identity, type_1L_chr = c("models", "candidates"), 
+    uid_1L_chr = "UID", use_1L_chr = character(0), var_1L_chr = character(0), 
+    x_label_1L_chr = NA_character_) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(1, 9)]
+    }
     if (identical(colour_1L_chr, character(0))) {
         colour_1L_chr <- colours_chr[1]
     }
@@ -2613,6 +2657,7 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @description add_project_2_model_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project 2 model data. The function returns Model data (a list).
 #' @param model_data_ls Model data (a list)
 #' @param sample_ls Sample (a list)
+#' @param filter_true_1L_chr Filter true (a character vector of length one), Default: 'FlexPsych'
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: 'Intervention'
 #' @param cut_off_date_1L_chr Cut off date (a character vector of length one), Default: '2025-01-01'
 #' @return Model data (a list)
@@ -2620,11 +2665,12 @@ add_project_2_k10_draws <- function (X_Ready4useDyad, k10_severity_cuts_ls = mak
 #' @export 
 #' @importFrom dplyr filter mutate across where group_by arrange lag ungroup
 #' @keywords internal
-add_project_2_model_data <- function (model_data_ls, sample_ls, intervention_1L_chr = "Intervention", 
-    cut_off_date_1L_chr = "2025-01-01") 
+add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_chr = "FlexPsych", 
+    intervention_1L_chr = "Intervention", cut_off_date_1L_chr = "2025-01-01") 
 {
     model_data_ls$imputed_ls$Modelling_r4 <- model_data_ls$imputed_ls$Z_Ready4useDyad %>% 
-        update_mds_modelling_ds(sample_ls = sample_ls)
+        update_mds_modelling_ds(filter_true_1L_chr = filter_true_1L_chr, 
+            sample_ls = sample_ls)
     model_data_ls$imputed_ls$Wait_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% 
         renewSlot("ds_tb", .@ds_tb %>% dplyr::filter(!is.na(WaitInDays)))
     model_data_ls$imputed_ls$EpisodeDuration_r4 <- model_data_ls$imputed_ls$Modelling_r4 %>% 
@@ -2752,7 +2798,7 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 #' @param comparator_share_1L_dbl Comparator share (a double vector of length one), Default: 1
 #' @param cost_1L_dbl Cost (a double vector of length one), Default: numeric(0)
 #' @param data_ls Data (a list), Default: NULL
-#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 1e+05
+#' @param denominator_1L_dbl Denominator (a double vector of length one), Default: 100000
 #' @param exposed_1L_dbl Exposed (a double vector of length one), Default: numeric()
 #' @param intervention_1L_chr Intervention (a character vector of length one), Default: character(0)
 #' @param intervention_filter_fn Intervention filter (a function), Default: identity
@@ -2776,11 +2822,12 @@ add_project_2_offsets <- function (X_Ready4useDyad, arms_for_offsets_chr = chara
 add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, comparator_1L_chr = character(0), 
     comparator_filter_fn = identity, comparator_int = integer(0), 
     comparator_share_1L_dbl = 1, cost_1L_dbl = numeric(0), data_ls = NULL, 
-    denominator_1L_dbl = 1e+05, exposed_1L_dbl = numeric(), intervention_1L_chr = character(0), 
-    intervention_filter_fn = identity, intervention_share_1L_dbl = 1, 
-    n_1L_dbl = numeric(), rate_1L_dbl = numeric(), source_1L_chr = "add_project_2_parameters", 
-    test_1L_chr = character(0), time_1L_dbl = numeric(0), values_dbl = numeric(0), 
-    what_1L_chr = c("default", "costs", "iar", "offsets")) 
+    denominator_1L_dbl = 100000, exposed_1L_dbl = numeric(), 
+    intervention_1L_chr = character(0), intervention_filter_fn = identity, 
+    intervention_share_1L_dbl = 1, n_1L_dbl = numeric(), rate_1L_dbl = numeric(), 
+    source_1L_chr = "add_project_2_parameters", test_1L_chr = character(0), 
+    time_1L_dbl = numeric(0), values_dbl = numeric(0), what_1L_chr = c("default", 
+        "costs", "iar", "offsets")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (is.null(params_tb)) {
@@ -2864,8 +2911,7 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @description add_project_assessments() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project assessments. The function returns Regressions (a list).
 #' @param regressions_ls Regressions (a list)
 #' @param what_1L_chr What (a character vector of length one)
-#' @param colours_chr Colours (a character vector), Default: ready4use::get_colour_codes(9, style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 
-#'    1, 5)]
+#' @param colours_chr Colours (a character vector), Default: character(0)
 #' @param confusion_1L_lgl Confusion (a logical vector of length one), Default: F
 #' @param exclude_int Exclude (an integer vector), Default: integer(0)
 #' @param group_ls Group (a list), Default: list(Treatments = c("Tx_Waitlist", "Tx_Treatment", "Tx_Discharged"))
@@ -2879,20 +2925,23 @@ add_project_2_parameters <- function (params_tb = NULL, additions_tb = NULL, com
 #' @return Regressions (a list)
 #' @rdname add_project_assessments
 #' @export 
-#' @importFrom ready4use get_colour_codes Ready4useDyad
+#' @importFrom ready4use Ready4useDyad get_colour_codes
 #' @importFrom purrr pluck map assign_in
 #' @importFrom stats setNames
 #' @importFrom stringr str_remove
 #' @keywords internal
-add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = ready4use::get_colour_codes(9, 
-    style_1L_chr = "monash_2", type_1L_chr = "unicol")[c(9, 1, 
-    5)], confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
-    "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
+add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = character(0), 
+    confusion_1L_lgl = F, exclude_int = integer(0), group_ls = list(Treatments = c("Tx_Waitlist", 
+        "Tx_Treatment", "Tx_Discharged")), model_1L_int = integer(0), 
     rank_1L_lgl = TRUE, residual_1L_chr = "normal", two_part_1L_lgl = FALSE, 
     type_1L_chr = c("candidates", "tests", "models"), var_1L_chr = character(0), 
     X_Ready4useDyad = ready4use::Ready4useDyad()) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
+    if (identical(colours_chr, character(0))) {
+        colours_chr <- ready4use::get_colour_codes(9, style_1L_chr = "monash_2", 
+            type_1L_chr = "unicol")[c(9, 1, 5)]
+    }
     if (what_1L_chr %in% names(group_ls)) {
         updated_ls <- group_ls %>% purrr::pluck(what_1L_chr) %>% 
             purrr::map(~make_regression_report(regressions_ls, 
@@ -2934,6 +2983,198 @@ add_project_assessments <- function (regressions_ls, what_1L_chr, colours_chr = 
             where = paste0(what_1L_chr, "_ls"), value = updated_ls)
     }
     return(regressions_ls)
+}
+#' Add project model data
+#' @description add_project_model_data() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project model data. The function returns Model data (a list).
+#' @param model_data_ls Model data (a list), Default: NULL
+#' @param mdls_lup Models (a lookup table), Default: NULL
+#' @param processed_ls Processed (a list), Default: NULL
+#' @param timestamp_1L_chr Timestamp (a character vector of length one), Default: get_timestamp()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("unimputed", "imputed")
+#' @param what_1L_chr What (a character vector of length one), Default: c("CostWide", "Joiners", "JulyJoiners", "MicroLong", "MicroWide", 
+#'    "MicroWide1Year", "MinutesLong", "Outcomes", "OutcomesJoiners", 
+#'    "Series")
+#' @return Model data (a list)
+#' @rdname add_project_model_data
+#' @export 
+#' @importFrom assertthat assert_that
+#' @importFrom youthu get_mdls_lup get_ttu_dv_dss
+#' @importFrom dplyr filter
+#' @importFrom lubridate years days
+#' @importFrom purrr assign_in
+#' @keywords internal
+add_project_model_data <- function (model_data_ls = NULL, mdls_lup = NULL, processed_ls = NULL, 
+    timestamp_1L_chr = get_timestamp(), type_1L_chr = c("unimputed", 
+        "imputed"), what_1L_chr = c("CostWide", "Joiners", "JulyJoiners", 
+        "MicroLong", "MicroWide", "MicroWide1Year", "MinutesLong", 
+        "Outcomes", "OutcomesJoiners", "Series")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (is.null(model_data_ls)) {
+        model_data_ls <- list(unimputed_ls = list(), imputed_ls = list())
+    }
+    if (what_1L_chr %in% c("Outcomes", "OutcomesJoiners")) {
+        if (what_1L_chr == "Outcomes") {
+            assertthat::assert_that(type_1L_chr == "unimputed")
+            if (is.null(mdls_lup)) {
+                mdls_lup <- youthu::get_mdls_lup(youthu::get_ttu_dv_dss("TTU"), 
+                  utility_type_chr = "AQoL-6D", mdl_predrs_in_ds_chr = c("PHQ9 total score", 
+                    "GAD7 total score"))
+            }
+            model_data_ls <- add_project_outcomes_data(model_data_ls, 
+                mdls_lup = mdls_lup, processed_ls = processed_ls)
+        }
+        if (what_1L_chr == "OutcomesJoiners") {
+            assertthat::assert_that(type_1L_chr == "imputed")
+            model_data_ls <- add_joiners_outcomes_ds(model_data_ls)
+        }
+    }
+    else {
+        if (what_1L_chr == "CostWide") {
+            assertthat::assert_that(type_1L_chr == "imputed")
+            if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                  what_1L_chr = "Joiners")
+            }
+            if (is.null(model_data_ls$imputed_ls$MicroWide_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                  type_1L_chr = "imputed", what_1L_chr = "MicroWide")
+            }
+            X_Ready4useDyad <- make_project_cost_mdlng_ds(model_data_ls$unimputed_ls$Joiners_r4, 
+                X_Ready4useDyad = model_data_ls$imputed_ls$MicroWide_r4)
+        }
+        if (what_1L_chr == "Joiners") {
+            if (type_1L_chr == "unimputed") {
+                X_Ready4useDyad <- make_project_joiners_ds(processed_ls)
+            }
+            else {
+                if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    what_1L_chr = "Joiners")
+                }
+                X_Ready4useDyad <- add_imputed_data(renewSlot(model_data_ls$unimputed_ls$Joiners_r4, 
+                  "ds_tb", model_data_ls$unimputed_ls$Joiners_r4@ds_tb %>% 
+                    dplyr::filter(!duplicated(UID))), Y_Ready4useDyad = model_data_ls$unimputed_ls$Joiners_r4, 
+                  impute_age_1L_lgl = T, treatment_status_1L_int = 1)
+            }
+        }
+        if (what_1L_chr == "JulyJoiners") {
+            if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                  what_1L_chr = "Joiners")
+            }
+            X_Ready4useDyad <- make_report_data(model_data_ls = model_data_ls, 
+                processed_ls = processed_ls, date_end_dtm = as.POSIXct("2023-07-31"), 
+                date_start_dtm = as.POSIXct("2023-07-01"), platform_1L_chr = "MOST", 
+                timestamp_1L_chr = timestamp_1L_chr, transformations_chr = "gender", 
+                what_1L_chr = "serviceusecost", weeks_int = c(14, 
+                  48))
+        }
+        if (what_1L_chr == "MicroLong") {
+            if (type_1L_chr == "unimputed") {
+                X_Ready4useDyad <- make_project_service_use_ds(processed_ls)
+            }
+            else {
+                if (is.null(model_data_ls$unimputed_ls$Joiners_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    what_1L_chr = "Joiners")
+                }
+                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    what_1L_chr = "MicroLong")
+                }
+                X_Ready4useDyad <- add_imputed_data(renewSlot(model_data_ls$imputed_ls$Joiners_r4, 
+                  "ds_tb", model_data_ls$imputed_ls$Joiners_r4@ds_tb %>% 
+                    dplyr::filter(!duplicated(UID))), Y_Ready4useDyad = model_data_ls$unimputed_ls$MicroLong_r4, 
+                  add_cumulatives_1L_lgl = TRUE, ignore_y_chr = c("Episodes", 
+                    "Separations", "Active", "CumulativeEpisodes", 
+                    "CumulativeSeparations"), extras_chr = c("primary_mode", 
+                    "primary_participant", "primary_purpose"), 
+                  treatment_status_1L_int = 1)
+            }
+        }
+        if (what_1L_chr == "MicroWide") {
+            if (type_1L_chr == "unimputed") {
+                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    what_1L_chr = "MicroLong")
+                }
+                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$unimputed_ls$MicroLong_r4, 
+                  processed_ls = processed_ls)
+            }
+            else {
+                if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    type_1L_chr = "imputed", what_1L_chr = "MicroLong")
+                }
+                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$imputed_ls$MicroLong_r4, 
+                  processed_ls = processed_ls)
+            }
+        }
+        if (what_1L_chr == "MicroWide1Year") {
+            if (type_1L_chr == "unimputed") {
+                if (is.null(model_data_ls$unimputed_ls$MicroLong_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    what_1L_chr = "MicroLong")
+                }
+                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$unimputed_ls$MicroLong_r4, 
+                  processed_ls = processed_ls, join_before_dtm = (model_data_ls$unimputed_ls$MicroLong_r4@ds_tb$Date %>% 
+                    max()) - lubridate::years(1) + lubridate::days(1), 
+                  max_periods_1L_int = 1, max_tenure_1L_dbl = 1)
+            }
+            else {
+                if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
+                  model_data_ls <- add_project_model_data(model_data_ls, 
+                    processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                    type_1L_chr = "imputed", what_1L_chr = "MicroLong")
+                }
+                X_Ready4useDyad <- transform_ds_to_wide(model_data_ls$imputed_ls$MicroLong_r4, 
+                  processed_ls = processed_ls, join_before_dtm = (model_data_ls$unimputed_ls$MicroLong_r4@ds_tb$Date %>% 
+                    max()) - lubridate::years(1) + lubridate::days(1), 
+                  max_periods_1L_int = 1, max_tenure_1L_dbl = 1)
+            }
+        }
+        if (what_1L_chr == "MinutesLong") {
+            assertthat::assert_that(type_1L_chr == "imputed")
+            if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                  type_1L_chr = "imputed", what_1L_chr = "MicroLong")
+            }
+            X_Ready4useDyad <- make_project_minutes_ds(processed_ls, 
+                model_data_ls = model_data_ls, cut_weeks_int = c(14, 
+                  53), period_dtm = lubridate::years(1) - lubridate::days(1), 
+                type_1L_chr = "imputed", what_1L_chr = "long")
+        }
+        if (what_1L_chr == "Series") {
+            if (is.null(model_data_ls$imputed_ls$MicroLong_r4)) {
+                model_data_ls <- add_project_model_data(model_data_ls, 
+                  processed_ls = processed_ls, timestamp_1L_chr = timestamp_1L_chr, 
+                  type_1L_chr = "imputed", what_1L_chr = "MicroLong")
+            }
+            X_Ready4useDyad <- make_project_ts_ds(model_data_ls$imputed_ls$MicroLong_r4, 
+                processed_ls = processed_ls)
+        }
+        if (type_1L_chr == "imputed") {
+            model_data_ls$imputed_ls <- purrr::assign_in(model_data_ls$imputed_ls, 
+                where = paste0(what_1L_chr, "_r4"), value = X_Ready4useDyad)
+        }
+        else {
+            model_data_ls$unimputed_ls <- purrr::assign_in(model_data_ls$unimputed_ls, 
+                where = paste0(what_1L_chr, "_r4"), value = X_Ready4useDyad)
+        }
+    }
+    return(model_data_ls)
 }
 #' Add project offset logic
 #' @description add_project_offset_logic() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project offset logic. The function returns Data (a tibble).
@@ -3329,6 +3570,36 @@ add_regressions <- function (regressions_ls, what_1L_chr, model_1L_int = integer
         }
     }
     return(regressions_ls)
+}
+#' Add severity cuts
+#' @description add_severity_cuts() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add severity cuts. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param add_severity_1L_lgl Add severity (a logical vector of length one), Default: TRUE
+#' @param severity_fn Severity (a function), Default: make_k10_severity_cuts
+#' @param severity_var_1L_chr Severity variable (a character vector of length one), Default: 'k10_start'
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_severity_cuts
+#' @export 
+#' @importFrom dplyr mutate case_when
+#' @importFrom rlang sym
+#' @keywords internal
+add_severity_cuts <- function (X_Ready4useDyad, add_severity_1L_lgl = TRUE, severity_fn = make_k10_severity_cuts, 
+    severity_var_1L_chr = "k10_start") 
+{
+    if (add_severity_1L_lgl) {
+        severity_ls <- severity_fn()
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$Low[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$Low[2] ~ "Low", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$Moderate[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$Moderate[2] ~ "Moderate", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$High[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$High[2] ~ "High", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
+                severity_ls$VeryHigh[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
+                severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
+    }
+    return(X_Ready4useDyad)
 }
 #' Add Short Form - Six Dimension from draws
 #' @description add_sf6d_from_draws() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add short form - six dimension from draws. The function is called for its side effects and does not return a value.

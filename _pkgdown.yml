@@ -15,6 +15,12 @@ home:
 development:
   mode: auto
 reference:
+- title: "S4 Classes"
+- contents:
+  - MimicAlgorithms
+  - MimicInputs
+  - MimicRepos
+  - MimicConfiguration
 - title: "Functions"
 - contents:
   - predict_comparator_pathway
@@ -22,3 +28,6 @@ reference:
   - predict_from_pool
   - predict_project_2_pathway
   - predict_with_sim
+- title: "Methods"
+- contents:
+  - prognosticate-

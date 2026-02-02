@@ -424,24 +424,25 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 #' Predict with sim
 #' @description predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function returns Output (an output object of multiple potential types).
 #' @param inputs_ls Inputs (a list)
-#' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
-#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @param arms_chr Arms (a character vector), Default: c("Intervention", "Comparator")
 #' @param comparator_fn Comparator (a function), Default: predict_comparator_pathway
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one), Default: FALSE
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
+#' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param intervention_fn Intervention (a function), Default: predict_digital_pathway
-#' @param iterations_ls Iterations (a list), Default: make_batch(5, of_1L_int = 20)
+#' @param iterations_ls Iterations (a list), Default: make_batches(5, of_1L_int = 20)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
+#' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
 #' @param prior_batches_1L_int Prior batches (an integer vector of length one), Default: 0
 #' @param purge_1L_lgl Purge (a logical vector of length one), Default: TRUE
-#' @param scale_1L_int Scale (an integer vector of length one), Default: 10
 #' @param seed_1L_int Seed (an integer vector of length one), Default: 2001
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
+#' @param synthesis_fn Synthesis (a function), Default: make_project_results_synthesis
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param type_1L_chr Type (a character vector of length one), Default: c("D", "AB", "C", "NULL")
 #' @param unlink_1L_lgl Unlink (a logical vector of length one), Default: FALSE
+#' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @param write_to_1L_chr Write to (a character vector of length one), Default: character(0)
 #' @param ... Additional arguments
 #' @return Output (an output object of multiple potential types)
@@ -450,17 +451,17 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 #' @importFrom lubridate years
 #' @importFrom purrr safely walk map
 #' @importFrom rlang exec
-predict_with_sim <- function (inputs_ls, modifiable_chr = c("treatment_status", "Minutes", 
-    "k10", "AQoL6D", "CHU9D"), utilities_chr = c("AQoL6D", "CHU9D"), 
-    arms_chr = c("Intervention", "Comparator"), comparator_fn = predict_comparator_pathway, 
-    drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
-    intervention_fn = predict_digital_pathway, iterations_ls = make_batch(5, 
-        of_1L_int = 20), horizon_dtm = lubridate::years(1), prior_batches_1L_int = 0, 
-    purge_1L_lgl = TRUE, scale_1L_int = 10L, seed_1L_int = 2001L, 
-    sensitivities_ls = make_sensitivities_ls(), start_dtm = Sys.Date(), 
+predict_with_sim <- function (inputs_ls, arms_chr = c("Intervention", "Comparator"), 
+    comparator_fn = predict_comparator_pathway, drop_missing_1L_lgl = FALSE, 
+    drop_suffix_1L_chr = character(0), extra_draws_fn = NULL, 
+    intervention_fn = predict_digital_pathway, iterations_ls = make_batches(5, 
+        of_1L_int = 20), horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
+        "Minutes", "k10", "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, 
+    purge_1L_lgl = TRUE, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
+    synthesis_fn = make_project_results_synthesis, start_dtm = Sys.Date(), 
     tfmn_ls = make_class_tfmns(), type_1L_chr = c("D", "AB", 
-        "C", "NULL"), unlink_1L_lgl = FALSE, write_to_1L_chr = character(0), 
-    ...) 
+        "C", "NULL"), unlink_1L_lgl = FALSE, utilities_chr = c("AQoL6D", 
+        "CHU9D"), write_to_1L_chr = character(0), ...) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (!identical(seed_1L_int, integer(0))) {
@@ -479,10 +480,10 @@ predict_with_sim <- function (inputs_ls, modifiable_chr = c("treatment_status", 
     output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
         args_ls <- list(batch_1L_int = .x, arms_chr = arms_chr, 
             comparator_fn = comparator_fn, drop_missing_1L_lgl = drop_missing_1L_lgl, 
-            drop_suffix_1L_chr = drop_suffix_1L_chr, horizon_dtm = horizon_dtm, 
-            inputs_ls = inputs_ls, intervention_fn = intervention_fn, 
-            iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
-            prior_batches_1L_int = prior_batches_1L_int, scale_1L_int = scale_1L_int, 
+            drop_suffix_1L_chr = drop_suffix_1L_chr, extra_draws_fn = extra_draws_fn, 
+            horizon_dtm = horizon_dtm, inputs_ls = inputs_ls, 
+            intervention_fn = intervention_fn, iterations_ls = iterations_ls, 
+            modifiable_chr = modifiable_chr, prior_batches_1L_int = prior_batches_1L_int, 
             seed_1L_int = seed_1L_int, sensitivities_ls = sensitivities_ls, 
             start_dtm = start_dtm, tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
             write_to_1L_chr = write_to_1L_chr) %>% append(extras_ls)
@@ -496,8 +497,8 @@ predict_with_sim <- function (inputs_ls, modifiable_chr = c("treatment_status", 
             "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
     }
     if (type_1L_chr != "NULL") {
-        output_xx <- make_project_results_synthesis(inputs_ls, 
-            output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+        output_xx <- synthesis_fn(inputs_ls, results_ls = output_xx, 
+            modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
     }
     return(output_xx)
 }
@@ -519,8 +520,8 @@ transform_integer_dates <- function (dates_int)
     }
     else {
         dates_dtm <- dates_int %>% purrr::map_chr(~{
-            date_1L_chr <- ifelse(.x < 1e+07, paste0("0", as.integer(.x)), 
-                as.integer(.x))
+            date_1L_chr <- ifelse(.x < 10000000, paste0("0", 
+                as.integer(.x)), as.integer(.x))
             paste0(stringr::str_sub(date_1L_chr, start = 5, end = 8), 
                 "-", stringr::str_sub(date_1L_chr, start = 3, 
                   end = 4), "-", stringr::str_sub(date_1L_chr, 

@@ -4,7 +4,10 @@
 \alias{make_sensitivities_ls}
 \title{Make sensitivities list}
 \usage{
-make_sensitivities_ls()
+make_sensitivities_ls(timestamp_1L_chr = "_YR1")
+}
+\arguments{
+\item{timestamp_1L_chr}{Timestamp (a character vector of length one), Default: '_YR1'}
 }
 \value{
 Sensitivities (a list)

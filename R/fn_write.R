@@ -5,13 +5,13 @@
 #' @param comparator_fn Comparator (a function)
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
+#' @param extra_draws_fn Extra draws (a function)
 #' @param horizon_dtm Horizon (a date vector)
 #' @param inputs_ls Inputs (a list)
 #' @param intervention_fn Intervention (a function)
 #' @param iterations_ls Iterations (a list)
 #' @param modifiable_chr Modifiable (a character vector)
 #' @param prior_batches_1L_int Prior batches (an integer vector of length one)
-#' @param scale_1L_int Scale (an integer vector of length one)
 #' @param seed_1L_int Seed (an integer vector of length one)
 #' @param sensitivities_ls Sensitivities (a list)
 #' @param start_dtm Start (a date vector)
@@ -26,16 +26,15 @@
 #' @importFrom ready4use Ready4useDyad
 #' @keywords internal
 write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_lgl, 
-    drop_suffix_1L_chr, horizon_dtm, inputs_ls, intervention_fn, 
-    iterations_ls, modifiable_chr, prior_batches_1L_int, scale_1L_int, 
+    drop_suffix_1L_chr, extra_draws_fn, horizon_dtm, inputs_ls, 
+    intervention_fn, iterations_ls, modifiable_chr, prior_batches_1L_int, 
     seed_1L_int, sensitivities_ls, start_dtm, tfmn_ls, utilities_chr, 
     write_to_1L_chr, ...) 
 {
     iterations_int <- iterations_ls[[batch_1L_int]]
     draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
         drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
-        scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
-            batch_1L_int)
+        seed_1L_int = seed_1L_int + batch_1L_int)
     extras_ls <- list(...)
     if (!is.null(intervention_fn)) {
         args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[1], 

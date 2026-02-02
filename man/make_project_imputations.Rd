@@ -11,6 +11,7 @@ make_project_imputations(
   characteristics_chr = c("Diagnosis", "Employment"),
   date_vars_chr = "Date",
   extras_chr = character(0),
+  filter_true_1L_chr = "FlexPsych",
   ignore_x_chr = character(0),
   ignore_y_chr = character(0),
   imputations_1L_int = 5,
@@ -32,6 +33,8 @@ make_project_imputations(
 \item{date_vars_chr}{Date variables (a character vector), Default: 'Date'}
 
 \item{extras_chr}{Extras (a character vector), Default: character(0)}
+
+\item{filter_true_1L_chr}{Filter true (a character vector of length one), Default: 'FlexPsych'}
 
 \item{ignore_x_chr}{Ignore x (a character vector), Default: character(0)}
 

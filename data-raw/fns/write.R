@@ -5,19 +5,24 @@ write_batch <- function (batch_1L_int,
                          comparator_fn, 
                          drop_missing_1L_lgl, 
                          drop_suffix_1L_chr, 
+                         extra_draws_fn,
                          horizon_dtm, 
                          inputs_ls, intervention_fn, iterations_ls, modifiable_chr, 
-                         prior_batches_1L_int, scale_1L_int, seed_1L_int, sensitivities_ls, 
+                         prior_batches_1L_int, 
+                         # scale_1L_int, 
+                         seed_1L_int, sensitivities_ls, 
                          start_dtm, tfmn_ls, 
                          # tx_duration_dtm, 
                          utilities_chr, 
                          # variable_unit_1L_chr, 
-                         write_to_1L_chr,...) 
+                         write_to_1L_chr,
+                         ...) 
 {
   iterations_int <- iterations_ls[[batch_1L_int]]
   draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
                             drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
-                            scale_1L_int = scale_1L_int, seed_1L_int = seed_1L_int + 
+                            # scale_1L_int = scale_1L_int,
+                            seed_1L_int = seed_1L_int + 
                               batch_1L_int)
   extras_ls <- list(...)
   if (!is.null(intervention_fn)) {
@@ -42,12 +47,16 @@ write_batch <- function (batch_1L_int,
     args_ls <- list(inputs_ls, 
                     arm_1L_chr = arms_chr[2], 
                     # add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
-                    draws_tb = draws_tb, iterations_int = iterations_int, 
-                    horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-                    sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+                    draws_tb = draws_tb, 
+                    iterations_int = iterations_int, 
+                    horizon_dtm = horizon_dtm, 
+                    modifiable_chr = modifiable_chr, 
+                    sensitivities_ls = sensitivities_ls, 
+                    tfmn_ls = tfmn_ls, 
                     # tx_duration_dtm = tx_duration_dtm, 
-                    seed_1L_int = seed_1L_int + 
-                      batch_1L_int, start_dtm = start_dtm, utilities_chr = utilities_chr
+                    seed_1L_int = seed_1L_int + batch_1L_int, 
+                    start_dtm = start_dtm, 
+                    utilities_chr = utilities_chr
                     # , 
                     # variable_unit_1L_chr = variable_unit_1L_chr
     ) %>%
