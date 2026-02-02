@@ -2,7 +2,7 @@ library(ready4)
 library(ready4use)
 library(ready4fun)
 # library(specific)
-# library(serious)
+library(serious)
 # MANUAL STEP. Write all your functions to R files in the new "fns" directory.
 x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations To Economically Evaluate Mental Health Services",
                                  pkg_desc_1L_chr = "Tools for developing simple microsimulations of mental health services and exporting outputs for cost-utility analyses. Designed for use with the ready4 framework (https://ready4-dev.github.io/ready4/).
