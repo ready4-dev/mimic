@@ -14,6 +14,7 @@ predict_comparator_pathway(
   arm_1L_chr = "Comparator",
   base_for_rates_int = c(1000L, 1, 1),
   draws_tb = NULL,
+  extra_draws_fn = add_draws_from_pool,
   iterations_int = 1:100L,
   horizon_dtm = lubridate::years(1),
   modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"),
@@ -48,6 +49,10 @@ predict_comparator_pathway(
 - draws_tb:
 
   Draws (a tibble), Default: NULL
+
+- extra_draws_fn:
+
+  Extra draws (a function), Default: add_draws_from_pool
 
 - iterations_int:
 

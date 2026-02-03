@@ -30,5 +30,11 @@
 
 ## Methods
 
+- [`author(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/author-methods.md)
+  : Author and save files
+- [`ingest(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/ingest-methods.md)
+  : Ingest data
+- [`manufacture(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  : Manufacture a new object
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
   : Prognosticate (make predictions) by solving a forward problem

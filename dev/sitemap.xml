@@ -79,6 +79,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_treatment_status.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_unset_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_utility_event.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/author-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/calculate_aqol8d_from_k10.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/calculate_eq5d_from_k10.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/calculate_erp_for_areas.html</loc></url>
@@ -99,6 +100,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/import_project_data.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/import_results_batches.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/index.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/ingest-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_actives_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_annual_overview.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_aus_price_years.html</loc></url>
@@ -221,6 +223,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_utility_predictions_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_weeks_suffix.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_worker_types.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/mimic-package.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/nseequals.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/pipe.html</loc></url>

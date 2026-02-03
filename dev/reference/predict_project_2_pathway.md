@@ -17,6 +17,7 @@ predict_project_2_pathway(
   arms_for_non_helpseeking_chr = character(0),
   arms_for_iar_adjustment_chr = character(0),
   draws_tb = NULL,
+  extra_draws_fn = NULL,
   horizon_dtm = lubridate::years(1),
   iterations_int = 1:100L,
   modifiable_chr = make_project_2_vars("modify"),
@@ -64,6 +65,10 @@ predict_project_2_pathway(
 - draws_tb:
 
   Draws (a tibble), Default: NULL
+
+- extra_draws_fn:
+
+  Extra draws (a function), Default: NULL
 
 - horizon_dtm:
 
