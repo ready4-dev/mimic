@@ -1,3 +1,13 @@
+manufacture_MimicInputs <- function(x,
+                                    what_1L_chr = c("inputs_ls")){
+  if(what_1L_chr == "inputs_ls"){
+    object_xx <- list(models_ls = x@models_ls,
+                      params_tb = x@x_Ready4useDyad@ds_tb,
+                      Synthetic_r4 = x@y_Ready4useDyad)
+  }
+  return(object_xx)
+}
+
 manufacture_MimicRepos <- function(x,
                               suffix_1L_chr = "",
                               type_1L_chr = c("all", "batch_to"),

@@ -17,16 +17,7 @@ prognosticate_MimicConfiguration <- function(x,
                     options_chr = options_chr,
                     suffix_1L_chr = suffix_1L_chr, 
                     what_1L_chr = "sim_ws_dirs_chr")
-  write_to_1L_chr <- manufacture(Y, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") ## UPDATE METHOD NAME _MimicRepos
-  # write_to_1L_chr <- paste0(Y_MimicRepos@path_to_output_1L_chr,
-  #                           Y_MimicRepos@divider_1L_chr,
-  #                           Y_MimicRepos@processed_dir_1L_chr,
-  #                           Y_MimicRepos@divider_1L_chr,
-  #                           Y_MimicRepos@r_dir_1L_chr,
-  #                           Y_MimicRepos@divider_1L_chr,
-  #                           Y_MimicRepos@batch_to_1L_chr)
-  # ready4::write_new_dirs(write_to_1L_chr,
-  #                        consent_1L_chr = consent_1L_chr)
+  write_to_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") 
   extras_ls <- list(...)
   
   args_ls <- list(arms_chr = x@arms_chr,
@@ -39,9 +30,7 @@ prognosticate_MimicConfiguration <- function(x,
                   },
                   extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
                   horizon_dtm = x@horizon_dtm,
-                  inputs_ls = list(models_ls = x@x_MimicInputs@models_ls,
-                                   params_tb = x@x_MimicInputs@x_Ready4useDyad@ds_tb,
-                                   Synthetic_r4 = x@x_MimicInputs@y_Ready4useDyad),
+                  inputs_ls = manufacture_MimicInputs(x@x_MimicInputs), ## UPDATE METHOD NAME
                   intervention_fn = x@x_MimicAlgorithms@main_ls$intervention_fn,
                   iterations_ls = x@iterations_ls,
                   modifiable_chr = if(is.na(x@modifiable_chr[1])){
