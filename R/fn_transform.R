@@ -91,6 +91,34 @@ transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm
         }) %>% dplyr::select(-IntersectingYears))
     return(Y_Ready4useDyad)
 }
+#' Transform integer dates
+#' @description transform_integer_dates() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform integer dates. The function returns Dates (a date vector).
+#' @param dates_int Dates (an integer vector)
+#' @return Dates (a date vector)
+#' @rdname transform_integer_dates
+#' @export 
+#' @importFrom ready4use transform_dates
+#' @importFrom purrr map_chr
+#' @importFrom stringr str_sub
+#' @importFrom lubridate as_date
+#' @keywords internal
+transform_integer_dates <- function (dates_int) 
+{
+    if (!is.integer(dates_int)) {
+        dates_dtm <- dates_int %>% ready4use::transform_dates()
+    }
+    else {
+        dates_dtm <- dates_int %>% purrr::map_chr(~{
+            date_1L_chr <- ifelse(.x < 10000000, paste0("0", 
+                as.integer(.x)), as.integer(.x))
+            paste0(stringr::str_sub(date_1L_chr, start = 5, end = 8), 
+                "-", stringr::str_sub(date_1L_chr, start = 3, 
+                  end = 4), "-", stringr::str_sub(date_1L_chr, 
+                  start = 1, end = 2))
+        }) %>% lubridate::as_date()
+    }
+    return(dates_dtm)
+}
 #' Transform project 2 model dataset
 #' @description transform_project_2_model_ds() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform project 2 model dataset. The function returns Data (a tibble).
 #' @param data_tb Data (a tibble)

@@ -317,7 +317,7 @@ make_draws_tb <- function (inputs_ls,
                     iterations_1L_int = iterations_1L_int,
                     iterations_int = iterations_int,
                     seed_1L_int = seed_1L_int) %>%
-      purrr::keep_at(intersect(c("iterations_1L_int", "seed_1L_int", "inputs_ls", "iterations_int"),names(formals(extra_draws_fn))))
+      purrr::keep_at(intersect(c("iterations_1L_int", "seed_1L_int", "inputs_ls", "iterations_int"), names(formals(extra_draws_fn))))
     
     draws_tb <- rlang::exec(extra_draws_fn, draws_tb, !!!args_ls)
   }

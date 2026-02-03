@@ -32,17 +32,19 @@ write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_
     write_to_1L_chr, ...) 
 {
     iterations_int <- iterations_ls[[batch_1L_int]]
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-        drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
-        seed_1L_int = seed_1L_int + batch_1L_int)
+    draws_tb <- make_draws_tb(inputs_ls, extra_draws_fn = extra_draws_fn, 
+        iterations_int = iterations_int, drop_missing_1L_lgl = drop_missing_1L_lgl, 
+        drop_suffix_1L_chr = drop_suffix_1L_chr, seed_1L_int = seed_1L_int + 
+            batch_1L_int)
     extras_ls <- list(...)
     if (!is.null(intervention_fn)) {
         args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[1], 
-            draws_tb = draws_tb, iterations_int = iterations_int, 
-            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-            seed_1L_int = seed_1L_int + batch_1L_int, start_dtm = start_dtm, 
-            utilities_chr = utilities_chr) %>% append(extras_ls)
+            draws_tb = draws_tb, extra_draws_fn = extra_draws_fn, 
+            iterations_int = iterations_int, horizon_dtm = horizon_dtm, 
+            modifiable_chr = modifiable_chr, sensitivities_ls = sensitivities_ls, 
+            tfmn_ls = tfmn_ls, seed_1L_int = seed_1L_int + batch_1L_int, 
+            start_dtm = start_dtm, utilities_chr = utilities_chr) %>% 
+            append(extras_ls)
         Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
     }
     else {
@@ -50,11 +52,12 @@ write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_
     }
     if (!is.null(comparator_fn)) {
         args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[2], 
-            draws_tb = draws_tb, iterations_int = iterations_int, 
-            horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
-            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-            seed_1L_int = seed_1L_int + batch_1L_int, start_dtm = start_dtm, 
-            utilities_chr = utilities_chr) %>% append(extras_ls)
+            draws_tb = draws_tb, extra_draws_fn = extra_draws_fn, 
+            iterations_int = iterations_int, horizon_dtm = horizon_dtm, 
+            modifiable_chr = modifiable_chr, sensitivities_ls = sensitivities_ls, 
+            tfmn_ls = tfmn_ls, seed_1L_int = seed_1L_int + batch_1L_int, 
+            start_dtm = start_dtm, utilities_chr = utilities_chr) %>% 
+            append(extras_ls)
         Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
     }
     else {

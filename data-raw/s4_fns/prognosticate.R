@@ -11,13 +11,13 @@ prognosticate_MimicConfiguration <- function(x,
                                              ...){
   type_1L_chr <- match.arg(type_1L_chr)
   
-  author_MimicRepos(Y_MimicRepos, ## UPDATE METHOD NAME
+  author(Y_MimicRepos, ## UPDATE METHOD NAME _MimicRepos
                     consent_1L_chr = consent_1L_chr,
                     consent_indcs_int = consent_indcs_int,
                     options_chr = options_chr,
                     suffix_1L_chr = suffix_1L_chr, 
                     what_1L_chr = "sim_ws_dirs_chr")
-  write_to_1L_chr <- manufacture_MimicRepos(Y, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") ## UPDATE METHOD NAME
+  write_to_1L_chr <- manufacture(Y, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") ## UPDATE METHOD NAME _MimicRepos
   # write_to_1L_chr <- paste0(Y_MimicRepos@path_to_output_1L_chr,
   #                           Y_MimicRepos@divider_1L_chr,
   #                           Y_MimicRepos@processed_dir_1L_chr,
@@ -37,6 +37,7 @@ prognosticate_MimicConfiguration <- function(x,
                   }else{
                     x@drop_suffix_1L_chr 
                   },
+                  extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
                   horizon_dtm = x@horizon_dtm,
                   inputs_ls = list(models_ls = x@x_MimicInputs@models_ls,
                                    params_tb = x@x_MimicInputs@x_Ready4useDyad@ds_tb,
@@ -51,6 +52,8 @@ prognosticate_MimicConfiguration <- function(x,
                   purge_1L_lgl = purge_1L_lgl, 
                   seed_1L_int = x@seed_1L_int,
                   sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls,
+                  start_dtm = x@start_dtm,
+                  synthesis_fn = x@x_MimicAlgorithms@processing_ls$synthesis_fn,
                   tfmn_ls = x@x_MimicAlgorithms@transformations_ls,
                   utilities_chr = x@utilities_chr,
                   unlink_1L_lgl = unlink_1L_lgl,

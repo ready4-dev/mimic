@@ -7,8 +7,12 @@
 \usage{
 \S4method{prognosticate}{MimicConfiguration}(
   x,
+  Y_MimicRepos = MimicRepos(),
   consent_1L_chr = "",
+  consent_indcs_int = 1L,
+  options_chr = c("Y", "N"),
   purge_1L_lgl = FALSE,
+  suffix_1L_chr = "",
   type_1L_chr = c("NULL", "D", "AB", "C"),
   unlink_1L_lgl = TRUE,
   ...
@@ -17,9 +21,17 @@
 \arguments{
 \item{x}{An object of class MimicConfiguration}
 
+\item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
+
 \item{consent_1L_chr}{Consent (a character vector of length one), Default: ''}
 
+\item{consent_indcs_int}{Consent indices (an integer vector), Default: 1}
+
+\item{options_chr}{Options (a character vector), Default: c("Y", "N")}
+
 \item{purge_1L_lgl}{Purge (a logical vector of length one), Default: FALSE}
+
+\item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ''}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("NULL", "D", "AB", "C")}
 

@@ -2,7 +2,7 @@
 #' 
 #' Configuration details for a simulation run.
 #' 
-#' @include C4_MimicInputs.R C4_MimicRepos.R fn_make.R
+#' @include C4_MimicInputs.R fn_make.R
 #' @slot arms_chr Arms (a character vector)
 #' @slot drop_missing_1L_lgl Drop missing (a logical vector of length one)
 #' @slot drop_suffix_1L_chr Drop suffix (a character vector of length one)

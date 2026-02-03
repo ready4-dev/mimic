@@ -5,6 +5,7 @@
 #' @param arm_1L_chr Arm (a character vector of length one), Default: 'Comparator'
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1, 1)
 #' @param draws_tb Draws (a tibble), Default: NULL
+#' @param extra_draws_fn Extra draws (a function), Default: add_draws_from_pool
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
@@ -21,15 +22,16 @@
 #' @importFrom lubridate years weeks days
 predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
     arm_1L_chr = "Comparator", base_for_rates_int = c(1000L, 
-        1, 1), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+        1, 1), draws_tb = NULL, extra_draws_fn = add_draws_from_pool, 
+    iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
     utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
     if (is.null(draws_tb)) {
-        draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-            seed_1L_int = seed_1L_int)
+        draws_tb <- make_draws_tb(inputs_ls, extra_draws_fn = extra_draws_fn, 
+            iterations_int = iterations_int, seed_1L_int = seed_1L_int)
     }
     X_Ready4useDyad <- add_enter_model_event(inputs_ls$Synthetic_r4, 
         arm_1L_chr = arm_1L_chr, draws_tb = draws_tb, horizon_dtm = horizon_dtm, 
@@ -100,6 +102,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
 #' @param arm_1L_chr Arm (a character vector of length one), Default: 'Intervention'
 #' @param base_for_rates_int Base for rates (an integer vector), Default: c(1000L, 1L, 1L)
 #' @param draws_tb Draws (a tibble), Default: NULL
+#' @param extra_draws_fn Extra draws (a function), Default: add_draws_from_pool
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param modifiable_chr Modifiable (a character vector), Default: c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D")
@@ -116,15 +119,16 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
 #' @importFrom lubridate years weeks days
 predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, 
     arm_1L_chr = "Intervention", base_for_rates_int = c(1000L, 
-        1L, 1L), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+        1L, 1L), draws_tb = NULL, extra_draws_fn = add_draws_from_pool, 
+    iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
     modifiable_chr = c("treatment_status", "Minutes", "k10", 
         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
     utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
     if (is.null(draws_tb)) {
-        draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-            seed_1L_int = seed_1L_int)
+        draws_tb <- make_draws_tb(inputs_ls, extra_draws_fn = extra_draws_fn, 
+            iterations_int = iterations_int, seed_1L_int = seed_1L_int)
     }
     X_Ready4useDyad <- add_enter_model_event(inputs_ls$Synthetic_r4, 
         arm_1L_chr = arm_1L_chr, draws_tb = draws_tb, horizon_dtm = horizon_dtm, 
@@ -293,6 +297,7 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
 #' @param arms_for_iar_adjustment_chr Arms for Initial Assessment andeferral adjustment (a character vector), Default: character(0)
 #' @param draws_tb Draws (a tibble), Default: NULL
+#' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param modifiable_chr Modifiable (a character vector), Default: make_project_2_vars("modify")
@@ -313,17 +318,17 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = identity, arms_for_intervention_costs_chr, 
     arms_for_offsets_chr = character(0), arms_for_non_helpseeking_chr = character(0), 
     arms_for_iar_adjustment_chr = character(0), draws_tb = NULL, 
-    horizon_dtm = lubridate::years(1), iterations_int = 1:100L, 
-    modifiable_chr = make_project_2_vars("modify"), seed_1L_int = 2001L, 
-    sensitivities_ls = make_project_2_sensitivities_ls(), start_dtm = Sys.Date(), 
-    tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
+    extra_draws_fn = NULL, horizon_dtm = lubridate::years(1), 
+    iterations_int = 1:100L, modifiable_chr = make_project_2_vars("modify"), 
+    seed_1L_int = 2001L, sensitivities_ls = make_project_2_sensitivities_ls(), 
+    start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
     treatment_ls = NULL, utilities_chr = c("AQoL8D", "EQ5D", 
         "EQ5DM2", "SF6D", "SF6DM2")) 
 {
     if (is.null(draws_tb)) {
-        draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
-            drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean", 
-            seed_1L_int = seed_1L_int)
+        draws_tb <- make_draws_tb(inputs_ls, drop_missing_1L_lgl = T, 
+            drop_suffix_1L_chr = "_mean", extra_draws_fn = extra_draws_fn, 
+            iterations_int = iterations_int, seed_1L_int = seed_1L_int)
     }
     if (is.null(treatment_ls)) {
         treatment_1L_chr <- character(0)
@@ -501,32 +506,4 @@ predict_with_sim <- function (inputs_ls, arms_chr = c("Intervention", "Comparato
             modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
     }
     return(output_xx)
-}
-#' Transform integer dates
-#' @description transform_integer_dates() is a Transform function that edits an object in such a way that core object attributes - e.g. shape, dimensions, elements, type - are altered. Specifically, this function implements an algorithm to transform integer dates. The function returns Dates (a date vector).
-#' @param dates_int Dates (an integer vector)
-#' @return Dates (a date vector)
-#' @rdname transform_integer_dates
-#' @export 
-#' @importFrom ready4use transform_dates
-#' @importFrom purrr map_chr
-#' @importFrom stringr str_sub
-#' @importFrom lubridate as_date
-#' @keywords internal
-transform_integer_dates <- function (dates_int) 
-{
-    if (!is.integer(dates_int)) {
-        dates_dtm <- dates_int %>% ready4use::transform_dates()
-    }
-    else {
-        dates_dtm <- dates_int %>% purrr::map_chr(~{
-            date_1L_chr <- ifelse(.x < 10000000, paste0("0", 
-                as.integer(.x)), as.integer(.x))
-            paste0(stringr::str_sub(date_1L_chr, start = 5, end = 8), 
-                "-", stringr::str_sub(date_1L_chr, start = 3, 
-                  end = 4), "-", stringr::str_sub(date_1L_chr, 
-                  start = 1, end = 2))
-        }) %>% lubridate::as_date()
-    }
-    return(dates_dtm)
 }

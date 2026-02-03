@@ -9,7 +9,7 @@ author_MimicRepos <- function(x,
   #                         what_1L_chr = "paths_ls")
   sim_ws_dirs_chr <- character(0)
   if(what_1L_chr=="sim_ws_dirs_chr"){ # This could be manufacture method
-    sim_ws_dirs_chr <- manufacture_MimicRepos(x, suffix_1L_chr = suffix_1L_chr) ## UPDATE METHOD NAME
+    sim_ws_dirs_chr <- manufacture(x, suffix_1L_chr = suffix_1L_chr) ## UPDATE METHOD NAME _MimicRepos
   }
  if(!identical(sim_ws_dirs_chr, character(0))){
    write_new_dirs(sim_ws_dirs_chr,

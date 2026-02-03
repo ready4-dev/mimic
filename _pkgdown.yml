@@ -30,4 +30,7 @@ reference:
   - predict_with_sim
 - title: "Methods"
 - contents:
+  - author-MimicRepos
+  - ingest-MimicRepos
+  - manufacture-MimicRepos
   - prognosticate-MimicConfiguration

@@ -49,6 +49,22 @@ transform_ds_to_wide <- function (X_Ready4useDyad, processed_ls, join_before_dtm
                                  dplyr::select(-IntersectingYears))
   return(Y_Ready4useDyad)
 }
+transform_integer_dates <- function(dates_int){
+  if(!is.integer(dates_int)){
+    dates_dtm <- dates_int %>% ready4use::transform_dates()
+  }else{
+    dates_dtm <- dates_int %>% 
+      purrr::map_chr(~{
+        date_1L_chr <- ifelse(.x<10000000,paste0("0",as.integer(.x)),as.integer(.x))
+        paste0(stringr::str_sub(date_1L_chr,start=5, end=8),
+               "-",
+               stringr::str_sub(date_1L_chr,start=3, end=4),
+               "-",
+               stringr::str_sub(date_1L_chr,start=1, end=2))
+      }) %>% lubridate::as_date()
+  }
+  return(dates_dtm)
+}
 transform_project_2_model_ds <- function(data_tb,
                                          cut_off_date_1L_chr,
                                          intervention_1L_chr = "Intervention",

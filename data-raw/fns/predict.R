@@ -1,12 +1,16 @@
 predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, arm_1L_chr = "Comparator", base_for_rates_int = c(1000L, 
-                                                                                                                                              1, 1), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+                                                                                                                                              1, 1), draws_tb = NULL, 
+                                        extra_draws_fn = add_draws_from_pool,
+                                        iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
                                         modifiable_chr = c("treatment_status", "Minutes", "k10", 
                                                            "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
                                         start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
                                         utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
   if (is.null(draws_tb)) {
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
+    draws_tb <- make_draws_tb(inputs_ls, 
+                              extra_draws_fn = extra_draws_fn,
+                              iterations_int = iterations_int, 
                               seed_1L_int = seed_1L_int)
   }
   X_Ready4useDyad <- add_enter_model_event(inputs_ls$Synthetic_r4, 
@@ -71,15 +75,20 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
   X_Ready4useDyad <- add_leave_model_event(X_Ready4useDyad)
   return(X_Ready4useDyad)
 }
-predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, arm_1L_chr = "Intervention", base_for_rates_int = c(1000L, 
-                                                                                                                                             1L, 1L), draws_tb = NULL, iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
+predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offset_logic, arm_1L_chr = "Intervention", 
+                                     base_for_rates_int = c(1000L, 1L, 1L), 
+                                     draws_tb = NULL, 
+                                     extra_draws_fn = add_draws_from_pool,
+                                     iterations_int = 1:100L, horizon_dtm = lubridate::years(1), 
                                      modifiable_chr = c("treatment_status", "Minutes", "k10", 
                                                         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
                                      start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
                                      utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
 {
   if (is.null(draws_tb)) {
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
+    draws_tb <- make_draws_tb(inputs_ls, 
+                              extra_draws_fn = extra_draws_fn,
+                              iterations_int = iterations_int, 
                               seed_1L_int = seed_1L_int)
   }
   X_Ready4useDyad <- add_enter_model_event(inputs_ls$Synthetic_r4, 
@@ -220,6 +229,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
                                        arms_for_non_helpseeking_chr = character(0), 
                                        arms_for_iar_adjustment_chr = character(0), 
                                        draws_tb = NULL, 
+                                       extra_draws_fn = NULL,
                                        horizon_dtm = lubridate::years(1), 
                                        iterations_int = 1:100L, 
                                        modifiable_chr = make_project_2_vars("modify"),
@@ -232,8 +242,10 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 {
   ## Preliminary
   if (is.null(draws_tb)) {
-    draws_tb <- make_draws_tb(inputs_ls, iterations_int = iterations_int, 
+    draws_tb <- make_draws_tb(inputs_ls, 
                               drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean",
+                              extra_draws_fn = extra_draws_fn,
+                              iterations_int = iterations_int, 
                               seed_1L_int = seed_1L_int)
   }
   if(is.null(treatment_ls)){
@@ -371,22 +383,6 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
                                                                utilities_chr = utilities_chr)  ##
   
   return(population_ls$X_Ready4useDyad)
-}
-transform_integer_dates <- function(dates_int){
-  if(!is.integer(dates_int)){
-    dates_dtm <- dates_int %>% ready4use::transform_dates()
-  }else{
-    dates_dtm <- dates_int %>% 
-      purrr::map_chr(~{
-        date_1L_chr <- ifelse(.x<10000000,paste0("0",as.integer(.x)),as.integer(.x))
-        paste0(stringr::str_sub(date_1L_chr,start=5, end=8),
-               "-",
-               stringr::str_sub(date_1L_chr,start=3, end=4),
-               "-",
-               stringr::str_sub(date_1L_chr,start=1, end=2))
-      }) %>% lubridate::as_date()
-  }
-  return(dates_dtm)
 }
 predict_with_sim <- function (inputs_ls, 
                               arms_chr = c("Intervention", "Comparator"), 
