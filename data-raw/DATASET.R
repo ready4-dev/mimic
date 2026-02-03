@@ -162,7 +162,9 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                )),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicInputs","MimicRepos") %>% list())
+                                                                inc_clss_ls = list("MimicInputs"
+                                                                                   # ,"MimicRepos"
+                                                                                   ) %>% list())
                    # 
                                       
   )
