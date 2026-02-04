@@ -11,13 +11,14 @@ prognosticate_MimicConfiguration <- function(x,
                                              ...){
   type_1L_chr <- match.arg(type_1L_chr)
   
-  author(Y_MimicRepos, ## UPDATE METHOD NAME _MimicRepos
+  author(Y_MimicRepos, ## UPDATE METHOD NAME 
                     consent_1L_chr = consent_1L_chr,
                     consent_indcs_int = consent_indcs_int,
                     options_chr = options_chr,
                     suffix_1L_chr = suffix_1L_chr, 
                     what_1L_chr = "sim_ws_dirs_chr")
-  write_to_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") 
+  batch_to_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") 
+  draw_to_1L_chr <- manufacture(Y_MimicRepos, type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr") 
   extras_ls <- list(...)
   
   args_ls <- list(arms_chr = x@arms_chr,
@@ -30,7 +31,7 @@ prognosticate_MimicConfiguration <- function(x,
                   },
                   extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
                   horizon_dtm = x@horizon_dtm,
-                  inputs_ls = manufacture_MimicInputs(x@x_MimicInputs), ## UPDATE METHOD NAME
+                  inputs_ls = manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls"), 
                   intervention_fn = x@x_MimicAlgorithms@main_ls$intervention_fn,
                   iterations_ls = x@iterations_ls,
                   modifiable_chr = if(is.na(x@modifiable_chr[1])){
@@ -46,7 +47,7 @@ prognosticate_MimicConfiguration <- function(x,
                   tfmn_ls = x@x_MimicAlgorithms@transformations_ls,
                   utilities_chr = x@utilities_chr,
                   unlink_1L_lgl = unlink_1L_lgl,
-                  write_to_1L_chr = write_to_1L_chr, 
+                  write_to_1L_chr = batch_to_1L_chr, 
                   type_1L_chr = type_1L_chr) %>%
       append(extras_ls)
   errors_ls <- rlang::exec(predict_with_sim, !!!args_ls)

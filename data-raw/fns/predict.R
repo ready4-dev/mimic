@@ -387,6 +387,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 predict_with_sim <- function (inputs_ls, 
                               arms_chr = c("Intervention", "Comparator"), 
                               comparator_fn = predict_comparator_pathway, 
+                              draws_dir_1L_chr = character(0), 
                               drop_missing_1L_lgl = FALSE, 
                               drop_suffix_1L_chr = character(0), 
                               extra_draws_fn = NULL,
