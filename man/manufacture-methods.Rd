@@ -3,30 +3,38 @@
 \name{manufacture-MimicRepos}
 \alias{manufacture-MimicRepos}
 \alias{manufacture,MimicRepos-method}
+\alias{manufacture-MimicInputs}
+\alias{manufacture,MimicInputs-method}
 \title{Manufacture a new object}
 \usage{
 \S4method{manufacture}{MimicRepos}(
   x,
   suffix_1L_chr = "",
-  type_1L_chr = c("all", "batch_to"),
+  type_1L_chr = c("all", "batch_to", "draw_to"),
   what_1L_chr = c("sim_ws_dirs_chr"),
   ...
 )
+
+\S4method{manufacture}{MimicInputs}(x, what_1L_chr = c("inputs_ls"))
 }
 \arguments{
-\item{x}{An object of class MimicRepos}
+\item{x}{An object of class MimicInputs}
 
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ''}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("sim_ws_dirs_chr")}
+\item{what_1L_chr}{What (a character vector of length one), Default: c("inputs_ls")}
 
 \item{...}{Additional arguments}
 }
 \value{
 Object (an output object of multiple potential types)
+
+Object (an output object of multiple potential types)
 }
 \description{
 manufacture method applied to MimicRepos
+
+manufacture method applied to MimicInputs
 }

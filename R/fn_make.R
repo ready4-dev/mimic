@@ -86,6 +86,32 @@ make_annual_overview <- function (processed_ls)
         dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm = T)))
     return(annual_tb)
 }
+#' Make arms tibble
+#' @description make_arms_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make arms tibble. The function returns Arms (a tibble).
+#' @param arms_chr Arms (a character vector), Default: character(0)
+#' @param settings_ls Settings (a list), Default: NULL
+#' @return Arms (a tibble)
+#' @rdname make_arms_tb
+#' @export 
+#' @importFrom tibble tibble
+#' @importFrom purrr reduce pluck
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @keywords internal
+make_arms_tb <- function (arms_chr = character(0), settings_ls = NULL) 
+{
+    arms_tb <- tibble::tibble(arms_chr = arms_chr)
+    if (nrow(arms_tb) > 0 & length(settings_ls) > 0) {
+        arms_tb <- purrr::reduce(1:length(settings_ls), .init = arms_tb, 
+            ~{
+                variable_1L_chr <- names(settings_ls)[.y]
+                values_xx <- settings_ls %>% purrr::pluck(.y)
+                .x %>% dplyr::mutate(`:=`(!!rlang::sym(variable_1L_chr), 
+                  values_xx))
+            })
+    }
+    return(arms_tb)
+}
 #' Make Australia price years
 #' @description make_aus_price_years() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make australia price years. The function returns Price indices (a double vector).
 #' @param start_1L_chr Start (a character vector of length one), Default: '2021-22'

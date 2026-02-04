@@ -13,6 +13,8 @@ Configuration details for a simulation run.
 \describe{
 \item{\code{arms_chr}}{Arms (a character vector)}
 
+\item{\code{arms_tb}}{Arms (a tibble)}
+
 \item{\code{drop_missing_1L_lgl}}{Drop missing (a logical vector of length one)}
 
 \item{\code{drop_suffix_1L_chr}}{Drop suffix (a character vector of length one)}

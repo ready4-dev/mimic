@@ -50,6 +50,21 @@ make_annual_overview <- function(processed_ls){
     dplyr::summarise(Clients = length(unique(UID)), dplyr::across(dplyr::where(is.numeric), ~ sum(.x,na.rm = T)))
   return(annual_tb)
 }
+make_arms_tb <- function(arms_chr = character(0),
+                         settings_ls = NULL){
+  arms_tb <- tibble::tibble(arms_chr = arms_chr)
+  if(nrow(arms_tb)>0 & length(settings_ls)>0){
+    arms_tb <- purrr::reduce(1:length(settings_ls),
+                             .init = arms_tb,
+                             ~{
+                               variable_1L_chr <- names(settings_ls)[.y]
+                               values_xx <- settings_ls %>% purrr::pluck(.y)
+                               .x %>% dplyr::mutate(!!rlang::sym(variable_1L_chr) := values_xx)
+                               
+                             })
+  }
+  return(arms_tb)
+}
 make_aus_price_years <- function(start_1L_chr = "2021-22",
                                  end_1L_chr = "2024-25"){
   price_indices_dbl <- c(

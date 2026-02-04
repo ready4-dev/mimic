@@ -13,6 +13,8 @@ Local and remote repositories for model input and output data.
 \describe{
 \item{\code{batch_to_1L_chr}}{Batch to (a character vector of length one)}
 
+\item{\code{draw_to_1L_chr}}{Draw to (a character vector of length one)}
+
 \item{\code{divider_1L_chr}}{Divider (a character vector of length one)}
 
 \item{\code{outp_data_dir_1L_chr}}{Output data directory (a character vector of length one)}

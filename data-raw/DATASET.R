@@ -58,6 +58,7 @@ y <- ready4class::ready4class_constructor() %>%
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Repos",
                                                                 slots_ls = list("batch_to_1L_chr",
+                                                                                "draw_to_1L_chr", 
                                                                                 "divider_1L_chr",
                                                                                 "outp_data_dir_1L_chr",
                                                                                 "path_to_keys_1L_chr",
@@ -80,8 +81,10 @@ y <- ready4class::ready4class_constructor() %>%
                                                                              "character",
                                                                              "character",
                                                                              "character",
+                                                                             "character",
                                                                              "Ready4useRepos") %>% list(),
                                                                 vals_ls = list(list(batch_to_1L_chr = "'BatchedSimResults'",
+                                                                                    draw_to_1L_chr = "'BatchedParamDraws'",
                                                                                     divider_1L_chr = "'\'",
                                                                                     outp_data_dir_1L_chr = "'Output'",
                                                                                     processed_dir_1L_chr = "'Processed'",
@@ -93,6 +96,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 name_stub_chr = "Configuration",
                                                                 slots_ls = list(
                                                                   "arms_chr",                                                                   # = c("Intervention", "Comparator"),
+                                                                  "arms_tb",
                                                                   "drop_missing_1L_lgl",                                                                  # = FALSE,
                                                                   "drop_suffix_1L_chr",                            # = character(0),
                                                                   # "functions_ls",
@@ -121,6 +125,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                 ) %>% list(), # Change
                                                                 pt_ls = list(
                                                                   "character",
+                                                                  "tbl_df",
                                                                   "logical",                                                                  # = FALSE,
                                                                   "character",
                                                                   # "list",
@@ -142,9 +147,9 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   # "MimicRepos"
                                                                   ) %>% list(),
                                                                 vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
+                                                                                    arms_tb = "make_arms_tb()",
                                                                                drop_missing_1L_lgl = "FALSE",
                                                                                drop_suffix_1L_chr = "NA_character_", # "character(0)"
-                                                                               
                                                                                horizon_dtm = "lubridate::years(1)",
                                                                                iterations_ls = "make_batches(5, of_1L_int = 20)",
                                                                                modifiable_chr = "NA_character_", # "character(0)" Remove default

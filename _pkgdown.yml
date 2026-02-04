@@ -32,5 +32,6 @@ reference:
 - contents:
   - author-MimicRepos
   - ingest-MimicRepos
+  - manufacture-MimicInputs
   - manufacture-MimicRepos
   - prognosticate-MimicConfiguration

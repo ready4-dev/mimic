@@ -27,7 +27,7 @@ methods::setMethod("prognosticate", "MimicConfiguration", function (x, Y_MimicRe
     author(Y_MimicRepos, consent_1L_chr = consent_1L_chr, consent_indcs_int = consent_indcs_int, 
         options_chr = options_chr, suffix_1L_chr = suffix_1L_chr, 
         what_1L_chr = "sim_ws_dirs_chr")
-    write_to_1L_chr <- manufacture(Y, suffix_1L_chr = suffix_1L_chr, 
+    write_to_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, 
         type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr")
     extras_ls <- list(...)
     args_ls <- list(arms_chr = x@arms_chr, comparator_fn = x@x_MimicAlgorithms@main_ls$comparator_fn, 
@@ -36,9 +36,7 @@ methods::setMethod("prognosticate", "MimicConfiguration", function (x, Y_MimicRe
         } else {
             x@drop_suffix_1L_chr
         }, extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn, 
-        horizon_dtm = x@horizon_dtm, inputs_ls = list(models_ls = x@x_MimicInputs@models_ls, 
-            params_tb = x@x_MimicInputs@x_Ready4useDyad@ds_tb, 
-            Synthetic_r4 = x@x_MimicInputs@y_Ready4useDyad), 
+        horizon_dtm = x@horizon_dtm, inputs_ls = manufacture_MimicInputs(x@x_MimicInputs), 
         intervention_fn = x@x_MimicAlgorithms@main_ls$intervention_fn, 
         iterations_ls = x@iterations_ls, modifiable_chr = if (is.na(x@modifiable_chr[1])) {
             character(0)
