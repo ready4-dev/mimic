@@ -8,6 +8,10 @@ Configuration details for a simulation run.
 
   Arms (a character vector)
 
+- `arms_tb`:
+
+  Arms (a tibble)
+
 - `drop_missing_1L_lgl`:
 
   Drop missing (a logical vector of length one)

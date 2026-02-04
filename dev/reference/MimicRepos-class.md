@@ -8,6 +8,10 @@ Local and remote repositories for model input and output data.
 
   Batch to (a character vector of length one)
 
+- `draw_to_1L_chr`:
+
+  Draw to (a character vector of length one)
+
 - `divider_1L_chr`:
 
   Divider (a character vector of length one)
