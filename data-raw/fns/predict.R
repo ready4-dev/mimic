@@ -386,12 +386,13 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 }
 predict_with_sim <- function (inputs_ls, 
                               arms_chr = c("Intervention", "Comparator"), 
-                              comparator_fn = predict_comparator_pathway, 
+                              arms_tb = make_arms_tb(),
+                              comparator_fn = predict_comparator_pathway, # make NULL
                               draws_tb = NULL,
                               drop_missing_1L_lgl = FALSE, 
                               drop_suffix_1L_chr = character(0), 
                               extra_draws_fn = NULL,
-                              intervention_fn = predict_digital_pathway, 
+                              intervention_fn = predict_digital_pathway, # make NULL
                               iterations_ls = make_batches(5, of_1L_int = 20), 
                               horizon_dtm = lubridate::years(1), 
                               modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), # Remove default
@@ -406,6 +407,7 @@ predict_with_sim <- function (inputs_ls,
                               unlink_1L_lgl = FALSE, 
                               utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
                               write_to_1L_chr = character(0),
+                              X_MimicAlgorithms = MimicAlgorithms(),
                               Y_MimicRepos = MimicRepos(),
                               # NEED TO MAKE EXPLICT CALLS TO THE BELOW FOR PROJECT ONE
                               # add_logic_fn = add_project_offset_logic, # Make part of ...
@@ -437,7 +439,8 @@ predict_with_sim <- function (inputs_ls,
     }
     args_ls <- list(batch_1L_int = .x, 
                     # add_logic_fn = add_logic_fn, 
-                    arms_chr = arms_chr, 
+                    arms_chr = arms_chr, # set to character(0) if arms_tb is not empty
+                    arms_tb = arms_tb,
                     # base_for_rates_int = base_for_rates_int, 
                     comparator_fn = comparator_fn, 
                     draws_tb = filtered_draws_tb,
@@ -459,6 +462,7 @@ predict_with_sim <- function (inputs_ls,
                     utilities_chr = utilities_chr, 
                     # variable_unit_1L_chr = variable_unit_1L_chr, 
                     write_to_1L_chr = write_to_1L_chr,
+                    X_MimicAlgorithms = X_MimicAlgorithms,
                     Y_MimicRepos = Y_MimicRepos) %>%
       append(extras_ls)
     rlang::exec(predict_safely_fn, !!!args_ls)

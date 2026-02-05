@@ -76,7 +76,7 @@ methods::setMethod("ingest", "MimicRepos", function (x, batches_int = integer(0)
     }
     if (type_1L_chr %in% "ParamDraws") {
         if (identical(batches_int, integer(0))) {
-            batches_int <- manufacture_MimicRepos(x, return_1L_chr = "batches", 
+            batches_int <- manufacture(x, return_1L_chr = "batches", 
                 type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr")
         }
         ingest_xx <- batches_int %>% purrr::reduce(.init = NULL, 

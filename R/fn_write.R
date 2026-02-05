@@ -1,15 +1,16 @@
 #' Write batch
 #' @description write_batch() is a Write function that writes a file to a specified local directory. Specifically, this function implements an algorithm to write batch. The function is called for its side effects and does not return a value.
 #' @param batch_1L_int Batch (an integer vector of length one)
-#' @param arms_chr Arms (a character vector)
-#' @param comparator_fn Comparator (a function)
+#' @param arms_chr Arms (a character vector), Default: character(0)
+#' @param arms_tb Arms (a tibble), Default: make_arms_tb()
+#' @param comparator_fn Comparator (a function), Default: NULL
 #' @param draws_tb Draws (a tibble), Default: NULL
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
 #' @param extra_draws_fn Extra draws (a function)
 #' @param horizon_dtm Horizon (a date vector)
 #' @param inputs_ls Inputs (a list)
-#' @param intervention_fn Intervention (a function)
+#' @param intervention_fn Intervention (a function), Default: NULL
 #' @param iterations_ls Iterations (a list)
 #' @param modifiable_chr Modifiable (a character vector)
 #' @param prior_batches_1L_int Prior batches (an integer vector of length one)
@@ -19,20 +20,24 @@
 #' @param tfmn_ls Transformation (a list)
 #' @param utilities_chr Utilities (a character vector)
 #' @param write_to_1L_chr Write to (a character vector of length one)
+#' @param X_MimicAlgorithms PARAM_DESCRIPTION, Default: MimicAlgorithms()
 #' @param Y_MimicRepos PARAM_DESCRIPTION, Default: MimicRepos()
 #' @param ... Additional arguments
 #' @return No return value, called for side effects.
 #' @rdname write_batch
 #' @export 
 #' @importFrom assertthat assert_that
+#' @importFrom purrr map pluck
 #' @importFrom rlang exec
+#' @importFrom stats setNames
 #' @importFrom ready4use Ready4useDyad
 #' @keywords internal
-write_batch <- function (batch_1L_int, arms_chr, comparator_fn, draws_tb = NULL, 
-    drop_missing_1L_lgl, drop_suffix_1L_chr, extra_draws_fn, 
-    horizon_dtm, inputs_ls, intervention_fn, iterations_ls, modifiable_chr, 
-    prior_batches_1L_int, seed_1L_int, sensitivities_ls, start_dtm, 
-    tfmn_ls, utilities_chr, write_to_1L_chr, Y_MimicRepos = MimicRepos(), 
+write_batch <- function (batch_1L_int, arms_chr = character(0), arms_tb = make_arms_tb(), 
+    comparator_fn = NULL, draws_tb = NULL, drop_missing_1L_lgl, 
+    drop_suffix_1L_chr, extra_draws_fn, horizon_dtm, inputs_ls, 
+    intervention_fn = NULL, iterations_ls, modifiable_chr, prior_batches_1L_int, 
+    seed_1L_int, sensitivities_ls, start_dtm, tfmn_ls, utilities_chr, 
+    write_to_1L_chr, X_MimicAlgorithms = MimicAlgorithms(), Y_MimicRepos = MimicRepos(), 
     ...) 
 {
     iterations_int <- iterations_ls[[batch_1L_int]]
@@ -50,34 +55,44 @@ write_batch <- function (batch_1L_int, arms_chr, comparator_fn, draws_tb = NULL,
     }
     test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), 
         sort(iterations_int)), msg = "Iterations in iteration vector and parameter draws table do not match.")
+    if (nrow(arms_tb > 0)) {
+        arms_chr <- arms_tb$Arm
+    }
     extras_ls <- list(...)
-    if (!is.null(intervention_fn)) {
-        args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[1], 
-            draws_tb = draws_tb, extra_draws_fn = extra_draws_fn, 
-            iterations_int = iterations_int, horizon_dtm = horizon_dtm, 
-            modifiable_chr = modifiable_chr, sensitivities_ls = sensitivities_ls, 
-            tfmn_ls = tfmn_ls, seed_1L_int = seed_1L_int + batch_1L_int, 
-            start_dtm = start_dtm, utilities_chr = utilities_chr) %>% 
-            append(extras_ls)
-        Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
+    args_ls <- list(inputs_ls, arm_1L_chr = NA_character_, draws_tb = draws_tb, 
+        extra_draws_fn = extra_draws_fn, iterations_int = iterations_int, 
+        horizon_dtm = horizon_dtm, modifiable_chr = modifiable_chr, 
+        sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
+        seed_1L_int = seed_1L_int + batch_1L_int, start_dtm = start_dtm, 
+        utilities_chr = utilities_chr) %>% append(extras_ls)
+    if (!identical(X_MimicAlgorithms = MimicAlgorithms())) {
+        output_ls <- purrr::map(arms_chr, ~{
+            new_args_ls <- args_ls
+            args_ls$arm_1L_chr <- .x
+            algorithm_1L_chr <- get_from_lup_obj(arms_tb, target_var_nm_1L_chr = "Algorithm", 
+                match_var_nm_1L_chr = "Arm", match_value_xx = .x)
+            fn <- X_MimicAlgorithms@main_ls %>% purrr::pluck(algorithm_1L_chr)
+            rlang::exec(fn, !!!args_ls)
+        }) %>% stats::setNames(arms_chr)
     }
     else {
-        Y_Ready4useDyad <- ready4use::Ready4useDyad()
+        if (!is.null(intervention_fn)) {
+            args_ls$arm_1L_chr <- arms_chr[1]
+            Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
+        }
+        else {
+            Y_Ready4useDyad <- ready4use::Ready4useDyad()
+        }
+        if (!is.null(comparator_fn)) {
+            args_ls$arm_1L_chr <- arms_chr[2]
+            Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
+        }
+        else {
+            Z_Ready4useDyad <- ready4use::Ready4useDyad()
+        }
+        output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, 
+            Z_Ready4useDyad = Z_Ready4useDyad)
     }
-    if (!is.null(comparator_fn)) {
-        args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[2], 
-            draws_tb = draws_tb, extra_draws_fn = extra_draws_fn, 
-            iterations_int = iterations_int, horizon_dtm = horizon_dtm, 
-            modifiable_chr = modifiable_chr, sensitivities_ls = sensitivities_ls, 
-            tfmn_ls = tfmn_ls, seed_1L_int = seed_1L_int + batch_1L_int, 
-            start_dtm = start_dtm, utilities_chr = utilities_chr) %>% 
-            append(extras_ls)
-        Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
-    }
-    else {
-        Z_Ready4useDyad <- ready4use::Ready4useDyad()
-    }
-    output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad)
     message(paste0("Batch ", batch_1L_int, " completed."))
     if (!dir.exists(write_to_1L_chr)) {
         dir.create(write_to_1L_chr)

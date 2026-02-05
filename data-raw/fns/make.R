@@ -52,7 +52,7 @@ make_annual_overview <- function(processed_ls){
 }
 make_arms_tb <- function(arms_chr = character(0),
                          settings_ls = NULL){
-  arms_tb <- tibble::tibble(arms_chr = arms_chr)
+  arms_tb <- tibble::tibble(Arm = arms_chr)
   if(nrow(arms_tb)>0 & length(settings_ls)>0){
     arms_tb <- purrr::reduce(1:length(settings_ls),
                              .init = arms_tb,

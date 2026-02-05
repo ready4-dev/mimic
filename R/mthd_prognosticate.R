@@ -53,7 +53,8 @@ methods::setMethod("prognosticate", "MimicConfiguration", function (x, Y_MimicRe
             1:length(X@iterations_ls)), msg = "Batches of parameter draws tables do not match batches of iterations in iterations list.")
     }
     extras_ls <- list(...)
-    args_ls <- list(arms_chr = x@arms_chr, comparator_fn = x@x_MimicAlgorithms@main_ls$comparator_fn, 
+    args_ls <- list(arms_chr = x@arms_chr, arms_tb = x@arms_tb, 
+        comparator_fn = x@x_MimicAlgorithms@main_ls$comparator_fn, 
         draws_tb = draws_tb, drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
         drop_suffix_1L_chr = if (is.na(x@drop_suffix_1L_chr)) {
             character(0)
@@ -71,8 +72,8 @@ methods::setMethod("prognosticate", "MimicConfiguration", function (x, Y_MimicRe
         start_dtm = x@start_dtm, synthesis_fn = x@x_MimicAlgorithms@processing_ls$synthesis_fn, 
         tfmn_ls = x@x_MimicAlgorithms@transformations_ls, utilities_chr = x@utilities_chr, 
         unlink_1L_lgl = unlink_1L_lgl, write_to_1L_chr = write_to_1L_chr, 
-        type_1L_chr = type_1L_chr, Y_MimicRepos = Y_MimicRepos) %>% 
-        append(extras_ls)
+        type_1L_chr = type_1L_chr, X_MimicAlgorithms = x@x_MimicAlgorithms, 
+        Y_MimicRepos = Y_MimicRepos) %>% append(extras_ls)
     errors_ls <- rlang::exec(predict_with_sim, !!!args_ls)
     return(errors_ls)
 })

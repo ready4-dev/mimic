@@ -1,15 +1,18 @@
 write_batch <- function (batch_1L_int, 
                          # add_logic_fn, 
-                         arms_chr, 
+                         arms_chr = character(0), 
+                         arms_tb = make_arms_tb(),
                          # base_for_rates_int, 
-                         comparator_fn, 
+                         comparator_fn = NULL, 
                          # draws_dir_1L_chr = character(0), 
                          draws_tb = NULL,
                          drop_missing_1L_lgl, 
                          drop_suffix_1L_chr, 
                          extra_draws_fn,
                          horizon_dtm, 
-                         inputs_ls, intervention_fn, iterations_ls, modifiable_chr, 
+                         inputs_ls, 
+                         intervention_fn = NULL, 
+                         iterations_ls, modifiable_chr, 
                          prior_batches_1L_int, 
                          # scale_1L_int, 
                          seed_1L_int, sensitivities_ls, 
@@ -18,6 +21,7 @@ write_batch <- function (batch_1L_int,
                          utilities_chr, 
                          # variable_unit_1L_chr, 
                          write_to_1L_chr,
+                         X_MimicAlgorithms = MimicAlgorithms(),
                          Y_MimicRepos = MimicRepos(),
                          ...) 
 {
@@ -36,55 +40,90 @@ write_batch <- function (batch_1L_int,
   }
   test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), sort(iterations_int)),
                                          msg = "Iterations in iteration vector and parameter draws table do not match.")
+  if(nrow(arms_tb>0)){
+    arms_chr <- arms_tb$Arm
+  }
   extras_ls <- list(...)
-  if (!is.null(intervention_fn)) {
-    args_ls <- list(inputs_ls, 
-                    # add_logic_fn = add_logic_fn, 
-                    arm_1L_chr = arms_chr[1], 
-                    # base_for_rates_int = base_for_rates_int, 
-                    draws_tb = draws_tb, 
-                    extra_draws_fn = extra_draws_fn,
-                    iterations_int = iterations_int, 
-                    horizon_dtm = horizon_dtm, 
-                    modifiable_chr = modifiable_chr, 
-                    sensitivities_ls = sensitivities_ls, 
-                    tfmn_ls = tfmn_ls, 
-                    # tx_duration_dtm = tx_duration_dtm, 
-                    seed_1L_int = seed_1L_int + batch_1L_int, 
-                    start_dtm = start_dtm, 
-                    utilities_chr = utilities_chr
-                    # , variable_unit_1L_chr = variable_unit_1L_chr
-    ) %>%
-      append(extras_ls) # could filter extras to concord with argument of intervention_fn
-    Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
-  }  else {
-    Y_Ready4useDyad <- ready4use::Ready4useDyad()
+  args_ls <- list(inputs_ls, 
+                  # add_logic_fn = add_logic_fn, 
+                  arm_1L_chr = NA_character_, 
+                  # base_for_rates_int = base_for_rates_int, 
+                  draws_tb = draws_tb, 
+                  extra_draws_fn = extra_draws_fn,
+                  iterations_int = iterations_int, 
+                  horizon_dtm = horizon_dtm, 
+                  modifiable_chr = modifiable_chr, 
+                  sensitivities_ls = sensitivities_ls, 
+                  tfmn_ls = tfmn_ls, 
+                  # tx_duration_dtm = tx_duration_dtm, 
+                  seed_1L_int = seed_1L_int + batch_1L_int, 
+                  start_dtm = start_dtm, 
+                  utilities_chr = utilities_chr
+                  # , variable_unit_1L_chr = variable_unit_1L_chr
+  ) %>%
+    append(extras_ls)
+  if(!identical(X_MimicAlgorithms = MimicAlgorithms())){
+    output_ls <- purrr::map(arms_chr,
+                            ~{
+                              new_args_ls <- args_ls
+                              args_ls$arm_1L_chr <- .x
+                              algorithm_1L_chr <- get_from_lup_obj(arms_tb, target_var_nm_1L_chr = "Algorithm", match_var_nm_1L_chr = "Arm", match_value_xx = .x)
+                              fn <- X_MimicAlgorithms@main_ls %>% purrr::pluck(algorithm_1L_chr)
+                              rlang::exec(fn, !!!args_ls)
+                            }) %>% stats::setNames(arms_chr)
+  }else{
+    if (!is.null(intervention_fn)) {
+      args_ls$arm_1L_chr <- arms_chr[1]
+      # args_ls <- list(inputs_ls, 
+      #                 # add_logic_fn = add_logic_fn, 
+      #                 arm_1L_chr = arms_chr[1], 
+      #                 # base_for_rates_int = base_for_rates_int, 
+      #                 draws_tb = draws_tb, 
+      #                 extra_draws_fn = extra_draws_fn,
+      #                 iterations_int = iterations_int, 
+      #                 horizon_dtm = horizon_dtm, 
+      #                 modifiable_chr = modifiable_chr, 
+      #                 sensitivities_ls = sensitivities_ls, 
+      #                 tfmn_ls = tfmn_ls, 
+      #                 # tx_duration_dtm = tx_duration_dtm, 
+      #                 seed_1L_int = seed_1L_int + batch_1L_int, 
+      #                 start_dtm = start_dtm, 
+      #                 utilities_chr = utilities_chr
+      #                 # , variable_unit_1L_chr = variable_unit_1L_chr
+      # ) %>%
+      #   append(extras_ls) 
+      # could filter args_ls to concord with argument of intervention_fn
+      Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
+    }  else {
+      Y_Ready4useDyad <- ready4use::Ready4useDyad()
+    }
+    if (!is.null(comparator_fn)) {
+      args_ls$arm_1L_chr <- arms_chr[2]
+      # args_ls <- list(inputs_ls, 
+      #                 arm_1L_chr = arms_chr[2], ## ONLY DIFFERENCE
+      #                 # add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
+      #                 draws_tb = draws_tb, 
+      #                 extra_draws_fn = extra_draws_fn,
+      #                 iterations_int = iterations_int, 
+      #                 horizon_dtm = horizon_dtm, 
+      #                 modifiable_chr = modifiable_chr, 
+      #                 sensitivities_ls = sensitivities_ls, 
+      #                 tfmn_ls = tfmn_ls, 
+      #                 # tx_duration_dtm = tx_duration_dtm, 
+      #                 seed_1L_int = seed_1L_int + batch_1L_int, 
+      #                 start_dtm = start_dtm, 
+      #                 utilities_chr = utilities_chr
+      #                 # , 
+      #                 # variable_unit_1L_chr = variable_unit_1L_chr
+      # ) %>%
+      #   append(extras_ls)
+      Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
+    }  else {
+      Z_Ready4useDyad <- ready4use::Ready4useDyad()
+    }
+    output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, # when generalising to more than two interventions, each element should be named by arm
+                      Z_Ready4useDyad = Z_Ready4useDyad)
   }
-  if (!is.null(comparator_fn)) {
-    args_ls <- list(inputs_ls, 
-                    arm_1L_chr = arms_chr[2], ## ONLY DIFFERENCE
-                    # add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
-                    draws_tb = draws_tb, 
-                    extra_draws_fn = extra_draws_fn,
-                    iterations_int = iterations_int, 
-                    horizon_dtm = horizon_dtm, 
-                    modifiable_chr = modifiable_chr, 
-                    sensitivities_ls = sensitivities_ls, 
-                    tfmn_ls = tfmn_ls, 
-                    # tx_duration_dtm = tx_duration_dtm, 
-                    seed_1L_int = seed_1L_int + batch_1L_int, 
-                    start_dtm = start_dtm, 
-                    utilities_chr = utilities_chr
-                    # , 
-                    # variable_unit_1L_chr = variable_unit_1L_chr
-    ) %>%
-      append(extras_ls)
-    Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
-  }  else {
-    Z_Ready4useDyad <- ready4use::Ready4useDyad()
-  }
-  output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, # when generalising to more than two interventions, each element should be named by arm
-                    Z_Ready4useDyad = Z_Ready4useDyad)
   message(paste0("Batch ", batch_1L_int, " completed."))
   if (!dir.exists(write_to_1L_chr)) {
     dir.create(write_to_1L_chr)

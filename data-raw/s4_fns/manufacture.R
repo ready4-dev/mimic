@@ -62,7 +62,8 @@ manufacture_MimicRepos <- function(x,
              x@divider_1L_chr,
              x@r_dir_1L_chr,
              x@divider_1L_chr,
-             x@draw_to_1L_chr) 
+             x@draw_to_1L_chr,
+             suffix_1L_chr) 
     )
     if(type_1L_chr == "batch_to"){
       object_xx <- object_xx[3]

@@ -6,15 +6,16 @@
 \usage{
 write_batch(
   batch_1L_int,
-  arms_chr,
-  comparator_fn,
+  arms_chr = character(0),
+  arms_tb = make_arms_tb(),
+  comparator_fn = NULL,
   draws_tb = NULL,
   drop_missing_1L_lgl,
   drop_suffix_1L_chr,
   extra_draws_fn,
   horizon_dtm,
   inputs_ls,
-  intervention_fn,
+  intervention_fn = NULL,
   iterations_ls,
   modifiable_chr,
   prior_batches_1L_int,
@@ -24,6 +25,7 @@ write_batch(
   tfmn_ls,
   utilities_chr,
   write_to_1L_chr,
+  X_MimicAlgorithms = MimicAlgorithms(),
   Y_MimicRepos = MimicRepos(),
   ...
 )
@@ -31,9 +33,11 @@ write_batch(
 \arguments{
 \item{batch_1L_int}{Batch (an integer vector of length one)}
 
-\item{arms_chr}{Arms (a character vector)}
+\item{arms_chr}{Arms (a character vector), Default: character(0)}
 
-\item{comparator_fn}{Comparator (a function)}
+\item{arms_tb}{Arms (a tibble), Default: make_arms_tb()}
+
+\item{comparator_fn}{Comparator (a function), Default: NULL}
 
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
@@ -47,7 +51,7 @@ write_batch(
 
 \item{inputs_ls}{Inputs (a list)}
 
-\item{intervention_fn}{Intervention (a function)}
+\item{intervention_fn}{Intervention (a function), Default: NULL}
 
 \item{iterations_ls}{Iterations (a list)}
 
@@ -66,6 +70,8 @@ write_batch(
 \item{utilities_chr}{Utilities (a character vector)}
 
 \item{write_to_1L_chr}{Write to (a character vector of length one)}
+
+\item{X_MimicAlgorithms}{PARAM_DESCRIPTION, Default: MimicAlgorithms()}
 
 \item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
 

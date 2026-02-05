@@ -11,13 +11,12 @@ prognosticate_MimicConfiguration <- function(x,
                                              ...){
   draws_1L_chr <- match.arg(draws_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
-  
   author(Y_MimicRepos, 
-                    consent_1L_chr = consent_1L_chr,
-                    consent_indcs_int = consent_indcs_int,
-                    options_chr = options_chr,
-                    suffix_1L_chr = suffix_1L_chr, 
-                    what_1L_chr = "sim_ws_dirs_chr")
+         consent_1L_chr = consent_1L_chr,
+         consent_indcs_int = consent_indcs_int,
+         options_chr = options_chr,
+         suffix_1L_chr = suffix_1L_chr, 
+         what_1L_chr = "sim_ws_dirs_chr")
   write_to_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") 
   # Make parameter value draws and save results in batches
   if(draws_1L_chr %in% c("make", "make_batch")){
@@ -31,7 +30,7 @@ prognosticate_MimicConfiguration <- function(x,
   }
   # Ingest parameter value draws and check for concordence in iteration numbers
   if(draws_1L_chr %in% c("make", "read")){
-    draws_tb <- ingest(Y_MimicRepos,type_1L_chr = "ParamDraws")
+    draws_tb <- ingest(Y_MimicRepos, type_1L_chr = "ParamDraws")
     test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), sort(x@iterations_ls %>% purrr::flatten_int())),
                                            msg = "Iterations in iteration list and composite parameter draws table do not match.")
   }else{
@@ -42,6 +41,7 @@ prognosticate_MimicConfiguration <- function(x,
   }
   extras_ls <- list(...)
   args_ls <- list(arms_chr = x@arms_chr,
+                  arms_tb = x@arms_tb,
                   comparator_fn = x@x_MimicAlgorithms@main_ls$comparator_fn,
                   draws_tb = draws_tb,
                   drop_missing_1L_lgl = x@drop_missing_1L_lgl,
@@ -70,6 +70,7 @@ prognosticate_MimicConfiguration <- function(x,
                   unlink_1L_lgl = unlink_1L_lgl,
                   write_to_1L_chr = write_to_1L_chr, 
                   type_1L_chr = type_1L_chr,
+                  X_MimicAlgorithms = x@x_MimicAlgorithms,
                   Y_MimicRepos = Y_MimicRepos) %>%
       append(extras_ls)
   errors_ls <- rlang::exec(predict_with_sim, !!!args_ls)

@@ -76,7 +76,7 @@ ingest_MimicRepos <- function(x,
   }
   if(type_1L_chr %in% "ParamDraws"){
     if(identical(batches_int, integer(0))){
-      batches_int <- manufacture_MimicRepos(x, return_1L_chr = "batches", type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr")
+      batches_int <- manufacture(x, return_1L_chr = "batches", type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr")
         # stringr::str_remove(files_chr, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
     }
     ingest_xx <- batches_int %>%

@@ -63,7 +63,7 @@ methods::setMethod("manufacture", "MimicRepos", function (x, prefix_1L_chr = cha
             x@r_dir_1L_chr, x@divider_1L_chr, x@batch_to_1L_chr, 
             suffix_1L_chr), paste0(x@path_to_output_1L_chr, x@divider_1L_chr, 
             x@processed_dir_1L_chr, x@divider_1L_chr, x@r_dir_1L_chr, 
-            x@divider_1L_chr, x@draw_to_1L_chr))
+            x@divider_1L_chr, x@draw_to_1L_chr, suffix_1L_chr))
         if (type_1L_chr == "batch_to") {
             object_xx <- object_xx[3]
             if (identical(prefix_1L_chr, character(0))) {
