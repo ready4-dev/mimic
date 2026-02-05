@@ -10,6 +10,7 @@
   Y_MimicRepos = MimicRepos(),
   consent_1L_chr = "",
   consent_indcs_int = 1L,
+  draws_1L_chr = c("make", "make_batch", "read", "read_batch"),
   options_chr = c("Y", "N"),
   purge_1L_lgl = FALSE,
   suffix_1L_chr = "",
@@ -26,6 +27,8 @@
 \item{consent_1L_chr}{Consent (a character vector of length one), Default: ''}
 
 \item{consent_indcs_int}{Consent indices (an integer vector), Default: 1}
+
+\item{draws_1L_chr}{Draws (a character vector of length one), Default: c("make", "make_batch", "read", "read_batch")}
 
 \item{options_chr}{Options (a character vector), Default: c("Y", "N")}
 

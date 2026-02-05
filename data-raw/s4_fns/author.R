@@ -18,7 +18,7 @@ author_MimicConfiguration <- function(x,
     }
     1:length(x@iterations_ls) %>%
       purrr::walk(~{
-        draws_tb <- manufacture_MimicConfiguration(x, batch_1L_int = .x, what_1L_chr = "draws_tb")  ## UPDATE METHOD NAME 
+        draws_tb <- manufacture(x, batch_1L_int = .x, what_1L_chr = "draws_tb")  #
         # Could also add option to write to dataverse
         write_obj_with_prompt(draws_tb,
                               obj_nm_1L_chr = paste0("ParamDrawsBatch",.x), 

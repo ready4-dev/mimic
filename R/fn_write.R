@@ -3,6 +3,7 @@
 #' @param batch_1L_int Batch (an integer vector of length one)
 #' @param arms_chr Arms (a character vector)
 #' @param comparator_fn Comparator (a function)
+#' @param draws_tb Draws (a tibble), Default: NULL
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
 #' @param extra_draws_fn Extra draws (a function)
@@ -18,24 +19,37 @@
 #' @param tfmn_ls Transformation (a list)
 #' @param utilities_chr Utilities (a character vector)
 #' @param write_to_1L_chr Write to (a character vector of length one)
+#' @param Y_MimicRepos PARAM_DESCRIPTION, Default: MimicRepos()
 #' @param ... Additional arguments
 #' @return No return value, called for side effects.
 #' @rdname write_batch
 #' @export 
+#' @importFrom assertthat assert_that
 #' @importFrom rlang exec
 #' @importFrom ready4use Ready4useDyad
 #' @keywords internal
-write_batch <- function (batch_1L_int, arms_chr, comparator_fn, drop_missing_1L_lgl, 
-    drop_suffix_1L_chr, extra_draws_fn, horizon_dtm, inputs_ls, 
-    intervention_fn, iterations_ls, modifiable_chr, prior_batches_1L_int, 
-    seed_1L_int, sensitivities_ls, start_dtm, tfmn_ls, utilities_chr, 
-    write_to_1L_chr, ...) 
+write_batch <- function (batch_1L_int, arms_chr, comparator_fn, draws_tb = NULL, 
+    drop_missing_1L_lgl, drop_suffix_1L_chr, extra_draws_fn, 
+    horizon_dtm, inputs_ls, intervention_fn, iterations_ls, modifiable_chr, 
+    prior_batches_1L_int, seed_1L_int, sensitivities_ls, start_dtm, 
+    tfmn_ls, utilities_chr, write_to_1L_chr, Y_MimicRepos = MimicRepos(), 
+    ...) 
 {
     iterations_int <- iterations_ls[[batch_1L_int]]
-    draws_tb <- make_draws_tb(inputs_ls, extra_draws_fn = extra_draws_fn, 
-        iterations_int = iterations_int, drop_missing_1L_lgl = drop_missing_1L_lgl, 
-        drop_suffix_1L_chr = drop_suffix_1L_chr, seed_1L_int = seed_1L_int + 
-            batch_1L_int)
+    if (is.null(draws_tb)) {
+        if (!identical(Y_MimicRepos, MimicRepos())) {
+            draws_tb <- ingest(Y_MimicRepos, batches_int = batch_1L_int, 
+                type_1L_chr = "ParamDraws")
+        }
+        else {
+            draws_tb <- make_draws_tb(inputs_ls, extra_draws_fn = extra_draws_fn, 
+                iterations_int = iterations_int, drop_missing_1L_lgl = drop_missing_1L_lgl, 
+                drop_suffix_1L_chr = drop_suffix_1L_chr, seed_1L_int = seed_1L_int + 
+                  batch_1L_int)
+        }
+    }
+    test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), 
+        sort(iterations_int)), msg = "Iterations in iteration vector and parameter draws table do not match.")
     extras_ls <- list(...)
     if (!is.null(intervention_fn)) {
         args_ls <- list(inputs_ls, arm_1L_chr = arms_chr[1], 

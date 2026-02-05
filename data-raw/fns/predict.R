@@ -387,7 +387,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 predict_with_sim <- function (inputs_ls, 
                               arms_chr = c("Intervention", "Comparator"), 
                               comparator_fn = predict_comparator_pathway, 
-                              draws_dir_1L_chr = character(0), 
+                              draws_tb = NULL,
                               drop_missing_1L_lgl = FALSE, 
                               drop_suffix_1L_chr = character(0), 
                               extra_draws_fn = NULL,
@@ -406,6 +406,7 @@ predict_with_sim <- function (inputs_ls,
                               unlink_1L_lgl = FALSE, 
                               utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
                               write_to_1L_chr = character(0),
+                              Y_MimicRepos = MimicRepos(),
                               # NEED TO MAKE EXPLICT CALLS TO THE BELOW FOR PROJECT ONE
                               # add_logic_fn = add_project_offset_logic, # Make part of ...
                               # base_for_rates_int = c(1000L, 1L, 1L), 
@@ -429,11 +430,17 @@ predict_with_sim <- function (inputs_ls,
   }
   extras_ls <- list(...)
   output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
+    if(!is.null(draws_tb)){
+      filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% iterations_ls[[.x]]) 
+    }else{
+      filtered_draws_tb <- NULL
+    }
     args_ls <- list(batch_1L_int = .x, 
                     # add_logic_fn = add_logic_fn, 
                     arms_chr = arms_chr, 
                     # base_for_rates_int = base_for_rates_int, 
                     comparator_fn = comparator_fn, 
+                    draws_tb = filtered_draws_tb,
                     drop_missing_1L_lgl = drop_missing_1L_lgl, 
                     drop_suffix_1L_chr = drop_suffix_1L_chr, 
                     extra_draws_fn = extra_draws_fn,
@@ -451,7 +458,8 @@ predict_with_sim <- function (inputs_ls,
                     # tx_duration_dtm  = tx_duration_dtm, 
                     utilities_chr = utilities_chr, 
                     # variable_unit_1L_chr = variable_unit_1L_chr, 
-                    write_to_1L_chr = write_to_1L_chr) %>%
+                    write_to_1L_chr = write_to_1L_chr,
+                    Y_MimicRepos = Y_MimicRepos) %>%
       append(extras_ls)
     rlang::exec(predict_safely_fn, !!!args_ls)
   })

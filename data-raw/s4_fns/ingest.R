@@ -1,36 +1,3 @@
-# ingest_MimicConfiguration <- function(x,
-#                                       batches_int = integer(0),
-#                                       prefix_1L_chr = character(0),
-#                                       what_1L_chr = c("ParamDraws"),
-#                                       Y_MimicRepos = MimicRepos()){
-#   what_1L_chr <- match.arg(what_1L_chr)
-#   # if(what_1L_chr == "ParamDraws"){
-#   #   dir_1L_chr <- manufacture(Y_MimicRepos, type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr") 
-#   # }
-#   # files_chr <- list.files(dir_1L_chr, full.names = F)
-#   # files_chr <- files_chr[endsWith(files_chr, ".RDS")] %>% sort()
-#   if(what_1L_chr == "ParamDraws"){
-#     dir_1L_chr <- manufacture(Y_MimicRepos, type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr") 
-#     if(identical(prefix_1L_chr, character(0))){
-#       prefix_1L_chr <- "ParamDrawsBatch"
-#     }
-#   }
-#   if(what_1L_chr %in% "ParamDraws"){
-#     if(identical(batches_int, integer(0))){
-#       batches_int <- stringr::str_remove(files_chr, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
-#     }
-#     object_xx <- batches_int %>%
-#       purrr:reduce(.init = NULL,
-#                    ~ {
-#                      new_tb <- readRDS(paste0(dir_1L_chr, "/", files_chr[.y]))
-#                      if(!is.null(.x)){
-#                        new_tb <- dplyr::bind_rows(.x, new_tb)
-#                      }
-#                      new_tb
-#                    })
-#   }
-#   return(object_xx)
-# }
 ingest_MimicRepos <- function(x,
                               batches_int = integer(0),
                               gh_token_1L_chr = "",
@@ -55,10 +22,11 @@ ingest_MimicRepos <- function(x,
       prefix_1L_chr <- "ParamDrawsBatch"
     }
     dir_1L_chr <- manufacture(x, type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr") 
-    ## Next two lines only valid for locally stored batches - alternative logic needed for bathches in remote repository
+    ## Next two lines only valid for locally stored batches - alternative logic needed for batches in remote repository
     ##
-    files_chr <- list.files(dir_1L_chr, full.names = F)
-    files_chr <- files_chr[endsWith(files_chr, ".RDS")] %>% sort()
+    files_chr <- manufacture(x, return_1L_chr = "files", type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr") 
+    # files_chr <- list.files(dir_1L_chr, full.names = F)
+    # files_chr <- files_chr[endsWith(files_chr, ".RDS")] %>% sort()
     ##
     what_chr <- unique(c(what_chr, files_chr))
   }
@@ -108,7 +76,8 @@ ingest_MimicRepos <- function(x,
   }
   if(type_1L_chr %in% "ParamDraws"){
     if(identical(batches_int, integer(0))){
-      batches_int <- stringr::str_remove(files_chr, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
+      batches_int <- manufacture_MimicRepos(x, return_1L_chr = "batches", type_1L_chr = "draw_to", what_1L_chr = "sim_ws_dirs_chr")
+        # stringr::str_remove(files_chr, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
     }
     ingest_xx <- batches_int %>%
       purrr::reduce(.init = NULL,

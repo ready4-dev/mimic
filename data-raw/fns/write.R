@@ -3,7 +3,8 @@ write_batch <- function (batch_1L_int,
                          arms_chr, 
                          # base_for_rates_int, 
                          comparator_fn, 
-                         draws_dir_1L_chr = character(0), 
+                         # draws_dir_1L_chr = character(0), 
+                         draws_tb = NULL,
                          drop_missing_1L_lgl, 
                          drop_suffix_1L_chr, 
                          extra_draws_fn,
@@ -17,15 +18,24 @@ write_batch <- function (batch_1L_int,
                          utilities_chr, 
                          # variable_unit_1L_chr, 
                          write_to_1L_chr,
+                         Y_MimicRepos = MimicRepos(),
                          ...) 
 {
   iterations_int <- iterations_ls[[batch_1L_int]]
-  draws_tb <- make_draws_tb(inputs_ls, 
-                            extra_draws_fn = extra_draws_fn,
-                            iterations_int = iterations_int, 
-                            drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
-                            # scale_1L_int = scale_1L_int,
-                            seed_1L_int = seed_1L_int + batch_1L_int)
+  if(is.null(draws_tb)){
+    if(!identical(Y_MimicRepos, MimicRepos())){
+      draws_tb <- ingest(Y_MimicRepos, batches_int = batch_1L_int, type_1L_chr = "ParamDraws")
+    }else{
+      draws_tb <- make_draws_tb(inputs_ls, 
+                                extra_draws_fn = extra_draws_fn,
+                                iterations_int = iterations_int, 
+                                drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
+                                # scale_1L_int = scale_1L_int,
+                                seed_1L_int = seed_1L_int + batch_1L_int)
+    }
+  }
+  test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), sort(iterations_int)),
+                                         msg = "Iterations in iteration vector and parameter draws table do not match.")
   extras_ls <- list(...)
   if (!is.null(intervention_fn)) {
     args_ls <- list(inputs_ls, 
@@ -45,14 +55,14 @@ write_batch <- function (batch_1L_int,
                     utilities_chr = utilities_chr
                     # , variable_unit_1L_chr = variable_unit_1L_chr
     ) %>%
-      append(extras_ls)
+      append(extras_ls) # could filter extras to concord with argument of intervention_fn
     Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
   }  else {
     Y_Ready4useDyad <- ready4use::Ready4useDyad()
   }
   if (!is.null(comparator_fn)) {
     args_ls <- list(inputs_ls, 
-                    arm_1L_chr = arms_chr[2], 
+                    arm_1L_chr = arms_chr[2], ## ONLY DIFFERENCE
                     # add_logic_fn = add_logic_fn, base_for_rates_int = base_for_rates_int, 
                     draws_tb = draws_tb, 
                     extra_draws_fn = extra_draws_fn,
@@ -73,7 +83,8 @@ write_batch <- function (batch_1L_int,
   }  else {
     Z_Ready4useDyad <- ready4use::Ready4useDyad()
   }
-  output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, Z_Ready4useDyad = Z_Ready4useDyad)
+  output_ls <- list(Y_Ready4useDyad = Y_Ready4useDyad, # when generalising to more than two interventions, each element should be named by arm
+                    Z_Ready4useDyad = Z_Ready4useDyad)
   message(paste0("Batch ", batch_1L_int, " completed."))
   if (!dir.exists(write_to_1L_chr)) {
     dir.create(write_to_1L_chr)

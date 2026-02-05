@@ -8,6 +8,7 @@ write_batch(
   batch_1L_int,
   arms_chr,
   comparator_fn,
+  draws_tb = NULL,
   drop_missing_1L_lgl,
   drop_suffix_1L_chr,
   extra_draws_fn,
@@ -23,6 +24,7 @@ write_batch(
   tfmn_ls,
   utilities_chr,
   write_to_1L_chr,
+  Y_MimicRepos = MimicRepos(),
   ...
 )
 }
@@ -32,6 +34,8 @@ write_batch(
 \item{arms_chr}{Arms (a character vector)}
 
 \item{comparator_fn}{Comparator (a function)}
+
+\item{draws_tb}{Draws (a tibble), Default: NULL}
 
 \item{drop_missing_1L_lgl}{Drop missing (a logical vector of length one)}
 
@@ -62,6 +66,8 @@ write_batch(
 \item{utilities_chr}{Utilities (a character vector)}
 
 \item{write_to_1L_chr}{Write to (a character vector of length one)}
+
+\item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
 
 \item{...}{Additional arguments}
 }

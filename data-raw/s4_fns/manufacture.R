@@ -3,7 +3,7 @@ manufacture_MimicConfiguration <- function(x,
                                            what_1L_chr = c("draws_tb")){
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "draws_tb"){
-    if(!identical(batch_1L_int, integer(0))){
+    if(identical(batch_1L_int, integer(0))){
       iterations_int <- x@iterations_ls %>% purrr::flatten_int()
       batch_1L_int <- 0
     }else{
@@ -30,10 +30,13 @@ manufacture_MimicInputs <- function(x,
 }
 manufacture_MimicRepos <- function(x,
                                    # draw_to_1L_chr = "BatchedParamDraws", # UPDATE / REMOVE
+                                   prefix_1L_chr = character(0),
+                                   return_1L_chr = c("default", "batches", "files"),
                                    suffix_1L_chr = "",
                                    type_1L_chr = c("all", "batch_to", "draw_to"),
                                    what_1L_chr = c("sim_ws_dirs_chr"),
                               ...){
+  return_1L_chr <- match.arg(return_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
   if(what_1L_chr=="sim_ws_dirs_chr"){ 
     object_xx <- c(
@@ -59,13 +62,26 @@ manufacture_MimicRepos <- function(x,
              x@divider_1L_chr,
              x@r_dir_1L_chr,
              x@divider_1L_chr,
-             x@draw_to_1L_chr) # UPDATE
+             x@draw_to_1L_chr) 
     )
     if(type_1L_chr == "batch_to"){
       object_xx <- object_xx[3]
+      if(identical(prefix_1L_chr, character(0))){
+        prefix_1L_chr <- "SimBatch"
+      }
     }
     if(type_1L_chr == "draw_to"){
       object_xx <- object_xx[4]
+      if(identical(prefix_1L_chr, character(0))){
+        prefix_1L_chr <- "ParamDrawsBatch"
+      }
+    }
+  }
+  if(return_1L_chr %in% c("batches", "files")){
+    object_xx <- list.files(object_xx, full.names = F)
+    object_xx <- object_xx[endsWith(object_xx, ".RDS")] %>% sort()
+    if(return_1L_chr == c("batches")){
+      object_xx <- stringr::str_remove(object_xx, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
     }
   }
   return(object_xx)

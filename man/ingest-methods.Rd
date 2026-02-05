@@ -7,10 +7,12 @@
 \usage{
 \S4method{ingest}{MimicRepos}(
   x,
+  batches_int = integer(0),
   gh_token_1L_chr = "",
   key_1L_chr = NULL,
+  prefix_1L_chr = character(0),
   remote_fls_chr = NA_character_,
-  type_1L_chr = c("MimicInputs", "list", "element"),
+  type_1L_chr = c("MimicInputs", "ParamDraws", "list", "element"),
   what_chr = character(0),
   ...
 )
@@ -18,13 +20,17 @@
 \arguments{
 \item{x}{An object of class MimicRepos}
 
+\item{batches_int}{Batches (an integer vector), Default: integer(0)}
+
 \item{gh_token_1L_chr}{Github token (a character vector of length one), Default: ''}
 
 \item{key_1L_chr}{Key (a character vector of length one), Default: NULL}
 
+\item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
+
 \item{remote_fls_chr}{Remote files (a character vector), Default: 'NA'}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("MimicInputs", "list", "element")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("MimicInputs", "ParamDraws", "list", "element")}
 
 \item{what_chr}{What (a character vector), Default: character(0)}
 

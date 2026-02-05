@@ -3,6 +3,8 @@
 \name{author-MimicRepos}
 \alias{author-MimicRepos}
 \alias{author,MimicRepos-method}
+\alias{author-MimicConfiguration}
+\alias{author,MimicConfiguration-method}
 \title{Author and save files}
 \usage{
 \S4method{author}{MimicRepos}(
@@ -14,9 +16,19 @@
   what_1L_chr = c("sim_ws_dirs_chr"),
   ...
 )
+
+\S4method{author}{MimicConfiguration}(
+  x,
+  consent_1L_chr = "",
+  consent_indcs_int = 1L,
+  options_chr = c("Y", "N"),
+  unlink_1L_lgl = FALSE,
+  what_1L_chr = c("draws"),
+  Y_MimicRepos = MimicRepos()
+)
 }
 \arguments{
-\item{x}{An object of class MimicRepos}
+\item{x}{An object of class MimicConfiguration}
 
 \item{consent_1L_chr}{Consent (a character vector of length one), Default: ''}
 
@@ -26,13 +38,21 @@
 
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ''}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("sim_ws_dirs_chr")}
+\item{what_1L_chr}{What (a character vector of length one), Default: c("draws")}
 
 \item{...}{Additional arguments}
+
+\item{unlink_1L_lgl}{Unlink (a logical vector of length one), Default: FALSE}
+
+\item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
 }
 \value{
+No return value, called for side effects.
+
 No return value, called for side effects.
 }
 \description{
 author method applied to MimicRepos
+
+author method applied to MimicConfiguration
 }

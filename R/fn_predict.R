@@ -431,6 +431,7 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 #' @param inputs_ls Inputs (a list)
 #' @param arms_chr Arms (a character vector), Default: c("Intervention", "Comparator")
 #' @param comparator_fn Comparator (a function), Default: predict_comparator_pathway
+#' @param draws_tb Draws (a tibble), Default: NULL
 #' @param drop_missing_1L_lgl Drop missing (a logical vector of length one), Default: FALSE
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one), Default: character(0)
 #' @param extra_draws_fn Extra draws (a function), Default: NULL
@@ -449,24 +450,28 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
 #' @param unlink_1L_lgl Unlink (a logical vector of length one), Default: FALSE
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL6D", "CHU9D")
 #' @param write_to_1L_chr Write to (a character vector of length one), Default: character(0)
+#' @param Y_MimicRepos PARAM_DESCRIPTION, Default: MimicRepos()
 #' @param ... Additional arguments
 #' @return Output (an output object of multiple potential types)
 #' @rdname predict_with_sim
 #' @export 
 #' @importFrom lubridate years
 #' @importFrom purrr safely walk map
+#' @importFrom dplyr filter
 #' @importFrom rlang exec
 predict_with_sim <- function (inputs_ls, arms_chr = c("Intervention", "Comparator"), 
-    comparator_fn = predict_comparator_pathway, drop_missing_1L_lgl = FALSE, 
-    drop_suffix_1L_chr = character(0), extra_draws_fn = NULL, 
-    intervention_fn = predict_digital_pathway, iterations_ls = make_batches(5, 
-        of_1L_int = 20), horizon_dtm = lubridate::years(1), modifiable_chr = c("treatment_status", 
-        "Minutes", "k10", "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, 
-    purge_1L_lgl = TRUE, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
+    comparator_fn = predict_comparator_pathway, draws_tb = NULL, 
+    drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
+    extra_draws_fn = NULL, intervention_fn = predict_digital_pathway, 
+    iterations_ls = make_batches(5, of_1L_int = 20), horizon_dtm = lubridate::years(1), 
+    modifiable_chr = c("treatment_status", "Minutes", "k10", 
+        "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, purge_1L_lgl = TRUE, 
+    seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
     synthesis_fn = make_project_results_synthesis, start_dtm = Sys.Date(), 
     tfmn_ls = make_class_tfmns(), type_1L_chr = c("D", "AB", 
         "C", "NULL"), unlink_1L_lgl = FALSE, utilities_chr = c("AQoL6D", 
-        "CHU9D"), write_to_1L_chr = character(0), ...) 
+        "CHU9D"), write_to_1L_chr = character(0), Y_MimicRepos = MimicRepos(), 
+    ...) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     if (!identical(seed_1L_int, integer(0))) {
@@ -483,15 +488,24 @@ predict_with_sim <- function (inputs_ls, arms_chr = c("Intervention", "Comparato
     }
     extras_ls <- list(...)
     output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
+        if (!is.null(draws_tb)) {
+            filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% 
+                iterations_ls[[.x]])
+        }
+        else {
+            filtered_draws_tb <- NULL
+        }
         args_ls <- list(batch_1L_int = .x, arms_chr = arms_chr, 
-            comparator_fn = comparator_fn, drop_missing_1L_lgl = drop_missing_1L_lgl, 
-            drop_suffix_1L_chr = drop_suffix_1L_chr, extra_draws_fn = extra_draws_fn, 
-            horizon_dtm = horizon_dtm, inputs_ls = inputs_ls, 
-            intervention_fn = intervention_fn, iterations_ls = iterations_ls, 
-            modifiable_chr = modifiable_chr, prior_batches_1L_int = prior_batches_1L_int, 
-            seed_1L_int = seed_1L_int, sensitivities_ls = sensitivities_ls, 
-            start_dtm = start_dtm, tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
-            write_to_1L_chr = write_to_1L_chr) %>% append(extras_ls)
+            comparator_fn = comparator_fn, draws_tb = filtered_draws_tb, 
+            drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
+            extra_draws_fn = extra_draws_fn, horizon_dtm = horizon_dtm, 
+            inputs_ls = inputs_ls, intervention_fn = intervention_fn, 
+            iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
+            prior_batches_1L_int = prior_batches_1L_int, seed_1L_int = seed_1L_int, 
+            sensitivities_ls = sensitivities_ls, start_dtm = start_dtm, 
+            tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
+            write_to_1L_chr = write_to_1L_chr, Y_MimicRepos = Y_MimicRepos) %>% 
+            append(extras_ls)
         rlang::exec(predict_safely_fn, !!!args_ls)
     })
     if (type_1L_chr != "NULL") {
