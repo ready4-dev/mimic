@@ -10,15 +10,16 @@ return a value.
 ``` r
 write_batch(
   batch_1L_int,
-  arms_chr,
-  comparator_fn,
+  arms_chr = character(0),
+  arms_tb = make_arms_tb(),
+  comparator_fn = NULL,
   draws_tb = NULL,
   drop_missing_1L_lgl,
   drop_suffix_1L_chr,
   extra_draws_fn,
   horizon_dtm,
   inputs_ls,
-  intervention_fn,
+  intervention_fn = NULL,
   iterations_ls,
   modifiable_chr,
   prior_batches_1L_int,
@@ -28,6 +29,7 @@ write_batch(
   tfmn_ls,
   utilities_chr,
   write_to_1L_chr,
+  X_MimicAlgorithms = MimicAlgorithms(),
   Y_MimicRepos = MimicRepos(),
   ...
 )
@@ -41,11 +43,15 @@ write_batch(
 
 - arms_chr:
 
-  Arms (a character vector)
+  Arms (a character vector), Default: character(0)
+
+- arms_tb:
+
+  Arms (a tibble), Default: make_arms_tb()
 
 - comparator_fn:
 
-  Comparator (a function)
+  Comparator (a function), Default: NULL
 
 - draws_tb:
 
@@ -73,7 +79,7 @@ write_batch(
 
 - intervention_fn:
 
-  Intervention (a function)
+  Intervention (a function), Default: NULL
 
 - iterations_ls:
 
@@ -110,6 +116,10 @@ write_batch(
 - write_to_1L_chr:
 
   Write to (a character vector of length one)
+
+- X_MimicAlgorithms:
+
+  PARAM_DESCRIPTION, Default: MimicAlgorithms()
 
 - Y_MimicRepos:
 

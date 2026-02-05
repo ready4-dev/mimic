@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,15 +40,16 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">write_batch</span><span class="op">(</span></span>
 <span>  <span class="va">batch_1L_int</span>,</span>
-<span>  <span class="va">arms_chr</span>,</span>
-<span>  <span class="va">comparator_fn</span>,</span>
+<span>  arms_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  arms_tb <span class="op">=</span> <span class="fu"><a href="make_arms_tb.html">make_arms_tb</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  comparator_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  draws_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">drop_missing_1L_lgl</span>,</span>
 <span>  <span class="va">drop_suffix_1L_chr</span>,</span>
 <span>  <span class="va">extra_draws_fn</span>,</span>
 <span>  <span class="va">horizon_dtm</span>,</span>
 <span>  <span class="va">inputs_ls</span>,</span>
-<span>  <span class="va">intervention_fn</span>,</span>
+<span>  intervention_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">iterations_ls</span>,</span>
 <span>  <span class="va">modifiable_chr</span>,</span>
 <span>  <span class="va">prior_batches_1L_int</span>,</span>
@@ -58,6 +59,7 @@
 <span>  <span class="va">tfmn_ls</span>,</span>
 <span>  <span class="va">utilities_chr</span>,</span>
 <span>  <span class="va">write_to_1L_chr</span>,</span>
+<span>  X_MimicAlgorithms <span class="op">=</span> <span class="fu"><a href="MimicAlgorithms-class.html">MimicAlgorithms</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  Y_MimicRepos <span class="op">=</span> <span class="fu"><a href="MimicRepos-class.html">MimicRepos</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -72,11 +74,15 @@
 
 
 <dt id="arg-arms-chr">arms_chr<a class="anchor" aria-label="anchor" href="#arg-arms-chr"></a></dt>
-<dd><p>Arms (a character vector)</p></dd>
+<dd><p>Arms (a character vector), Default: character(0)</p></dd>
+
+
+<dt id="arg-arms-tb">arms_tb<a class="anchor" aria-label="anchor" href="#arg-arms-tb"></a></dt>
+<dd><p>Arms (a tibble), Default: make_arms_tb()</p></dd>
 
 
 <dt id="arg-comparator-fn">comparator_fn<a class="anchor" aria-label="anchor" href="#arg-comparator-fn"></a></dt>
-<dd><p>Comparator (a function)</p></dd>
+<dd><p>Comparator (a function), Default: NULL</p></dd>
 
 
 <dt id="arg-draws-tb">draws_tb<a class="anchor" aria-label="anchor" href="#arg-draws-tb"></a></dt>
@@ -104,7 +110,7 @@
 
 
 <dt id="arg-intervention-fn">intervention_fn<a class="anchor" aria-label="anchor" href="#arg-intervention-fn"></a></dt>
-<dd><p>Intervention (a function)</p></dd>
+<dd><p>Intervention (a function), Default: NULL</p></dd>
 
 
 <dt id="arg-iterations-ls">iterations_ls<a class="anchor" aria-label="anchor" href="#arg-iterations-ls"></a></dt>
@@ -141,6 +147,10 @@
 
 <dt id="arg-write-to-l-chr">write_to_1L_chr<a class="anchor" aria-label="anchor" href="#arg-write-to-l-chr"></a></dt>
 <dd><p>Write to (a character vector of length one)</p></dd>
+
+
+<dt id="arg-x-mimicalgorithms">X_MimicAlgorithms<a class="anchor" aria-label="anchor" href="#arg-x-mimicalgorithms"></a></dt>
+<dd><p>PARAM_DESCRIPTION, Default: MimicAlgorithms()</p></dd>
 
 
 <dt id="arg-y-mimicrepos">Y_MimicRepos<a class="anchor" aria-label="anchor" href="#arg-y-mimicrepos"></a></dt>
