@@ -12,6 +12,7 @@ predict_with_sim(
   inputs_ls,
   arms_chr = c("Intervention", "Comparator"),
   comparator_fn = predict_comparator_pathway,
+  draws_tb = NULL,
   drop_missing_1L_lgl = FALSE,
   drop_suffix_1L_chr = character(0),
   extra_draws_fn = NULL,
@@ -30,6 +31,7 @@ predict_with_sim(
   unlink_1L_lgl = FALSE,
   utilities_chr = c("AQoL6D", "CHU9D"),
   write_to_1L_chr = character(0),
+  Y_MimicRepos = MimicRepos(),
   ...
 )
 ```
@@ -47,6 +49,10 @@ predict_with_sim(
 - comparator_fn:
 
   Comparator (a function), Default: predict_comparator_pathway
+
+- draws_tb:
+
+  Draws (a tibble), Default: NULL
 
 - drop_missing_1L_lgl:
 
@@ -121,6 +127,10 @@ predict_with_sim(
 - write_to_1L_chr:
 
   Write to (a character vector of length one), Default: character(0)
+
+- Y_MimicRepos:
+
+  PARAM_DESCRIPTION, Default: MimicRepos()
 
 - ...:
 

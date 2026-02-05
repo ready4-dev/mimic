@@ -2,6 +2,8 @@
 
 author method applied to MimicRepos
 
+author method applied to MimicConfiguration
+
 ## Usage
 
 ``` r
@@ -15,13 +17,24 @@ author(
   what_1L_chr = c("sim_ws_dirs_chr"),
   ...
 )
+
+# S4 method for class 'MimicConfiguration'
+author(
+  x,
+  consent_1L_chr = "",
+  consent_indcs_int = 1L,
+  options_chr = c("Y", "N"),
+  unlink_1L_lgl = FALSE,
+  what_1L_chr = c("draws"),
+  Y_MimicRepos = MimicRepos()
+)
 ```
 
 ## Arguments
 
 - x:
 
-  An object of class MimicRepos
+  An object of class MimicConfiguration
 
 - consent_1L_chr:
 
@@ -41,12 +54,22 @@ author(
 
 - what_1L_chr:
 
-  What (a character vector of length one), Default: c("sim_ws_dirs_chr")
+  What (a character vector of length one), Default: c("draws")
 
 - ...:
 
   Additional arguments
 
+- unlink_1L_lgl:
+
+  Unlink (a logical vector of length one), Default: FALSE
+
+- Y_MimicRepos:
+
+  PARAM_DESCRIPTION, Default: MimicRepos()
+
 ## Value
+
+No return value, called for side effects.
 
 No return value, called for side effects.

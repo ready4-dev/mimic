@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9002</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
 <span>  <span class="va">batch_1L_int</span>,</span>
 <span>  <span class="va">arms_chr</span>,</span>
 <span>  <span class="va">comparator_fn</span>,</span>
+<span>  draws_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">drop_missing_1L_lgl</span>,</span>
 <span>  <span class="va">drop_suffix_1L_chr</span>,</span>
 <span>  <span class="va">extra_draws_fn</span>,</span>
@@ -57,6 +58,7 @@
 <span>  <span class="va">tfmn_ls</span>,</span>
 <span>  <span class="va">utilities_chr</span>,</span>
 <span>  <span class="va">write_to_1L_chr</span>,</span>
+<span>  Y_MimicRepos <span class="op">=</span> <span class="fu"><a href="MimicRepos-class.html">MimicRepos</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -75,6 +77,10 @@
 
 <dt id="arg-comparator-fn">comparator_fn<a class="anchor" aria-label="anchor" href="#arg-comparator-fn"></a></dt>
 <dd><p>Comparator (a function)</p></dd>
+
+
+<dt id="arg-draws-tb">draws_tb<a class="anchor" aria-label="anchor" href="#arg-draws-tb"></a></dt>
+<dd><p>Draws (a tibble), Default: NULL</p></dd>
 
 
 <dt id="arg-drop-missing-l-lgl">drop_missing_1L_lgl<a class="anchor" aria-label="anchor" href="#arg-drop-missing-l-lgl"></a></dt>
@@ -135,6 +141,10 @@
 
 <dt id="arg-write-to-l-chr">write_to_1L_chr<a class="anchor" aria-label="anchor" href="#arg-write-to-l-chr"></a></dt>
 <dd><p>Write to (a character vector of length one)</p></dd>
+
+
+<dt id="arg-y-mimicrepos">Y_MimicRepos<a class="anchor" aria-label="anchor" href="#arg-y-mimicrepos"></a></dt>
+<dd><p>PARAM_DESCRIPTION, Default: MimicRepos()</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

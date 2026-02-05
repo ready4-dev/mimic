@@ -1,5 +1,7 @@
 # Manufacture a new object
 
+manufacture method applied to MimicConfiguration
+
 manufacture method applied to MimicRepos
 
 manufacture method applied to MimicInputs
@@ -7,9 +9,14 @@ manufacture method applied to MimicInputs
 ## Usage
 
 ``` r
+# S4 method for class 'MimicConfiguration'
+manufacture(x, batch_1L_int = integer(0), what_1L_chr = c("draws_tb"))
+
 # S4 method for class 'MimicRepos'
 manufacture(
   x,
+  prefix_1L_chr = character(0),
+  return_1L_chr = c("default", "batches", "files"),
   suffix_1L_chr = "",
   type_1L_chr = c("all", "batch_to", "draw_to"),
   what_1L_chr = c("sim_ws_dirs_chr"),
@@ -26,6 +33,23 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
 
   An object of class MimicInputs
 
+- batch_1L_int:
+
+  Batch (an integer vector of length one), Default: integer(0)
+
+- what_1L_chr:
+
+  What (a character vector of length one), Default: c("inputs_ls")
+
+- prefix_1L_chr:
+
+  Prefix (a character vector of length one), Default: character(0)
+
+- return_1L_chr:
+
+  Return (a character vector of length one), Default: c("default",
+  "batches", "files")
+
 - suffix_1L_chr:
 
   Suffix (a character vector of length one), Default: ”
@@ -35,15 +59,13 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
   Type (a character vector of length one), Default: c("all", "batch_to",
   "draw_to")
 
-- what_1L_chr:
-
-  What (a character vector of length one), Default: c("inputs_ls")
-
 - ...:
 
   Additional arguments
 
 ## Value
+
+Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
 
