@@ -172,6 +172,44 @@ make_conditional_vars <- function(outcome_1L_chr,
                        years = yrs_1L_dbl)
   return(var_1L_chr)
 }
+make_configuration <- function(arms_chr,
+                               drop_missing_1L_lgl,
+                               drop_suffix_1L_chr,
+                               extra_draws_fn,
+                               horizon_dtm,
+                               iterations_ls,
+                               modifiable_chr,
+                               seed_1L_int,
+                               sensitivities_ls,
+                               start_dtm,
+                               synthesis_fn,
+                               utilities_chr){
+  X_MimicConfiguration <- MimicConfiguration() %>%
+    renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl,
+              drop_suffix_1L_chr = drop_suffix_1L_chr,
+              horizon_dtm = horizon_dtm,
+              iterations_ls = iterations_ls,
+              modifiable_chr = modifiable_chr,
+              seed_1L_int = seed_1L_int,
+              start_dtm = start_dtm,
+              utilities_chr = utilities_chr)
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,
+                                    "x_MimicAlgorithms@processing_ls",
+                                    list(extra_draws_fn = extra_draws_fn,
+                                         synthesis_fn = synthesis_fn)) %>%
+    renewSlot("x_MimicAlgorithms@sensitivities_ls",
+              sensitivities_ls) %>%
+    renewSlot("x_MimicAlgorithms@transformations_ls",
+              tfmn_ls) %>%
+    renewSlot("arms_tb",
+              make_arms_tb(arms_chr,
+                           settings_ls = list(
+                             # Treatment = rep("MMHC",2),
+                             Algorithm = c("intervention_fn", "comparator_fn")))
+              # "arms_chr", c("MMHC","FlexPsych")
+    )
+  return(X_MimicConfiguration)
+}
 make_confusion_ls <- function(regressions_ls,
                               X_Ready4useDyad,
                               var_1L_chr,

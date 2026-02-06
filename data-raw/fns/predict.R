@@ -223,35 +223,82 @@ predict_from_pool <- function(pooled_xx,
   }
   return(predictions_xx)
 }
-predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = identity, 
+predict_project_2_pathway <- function (inputs_ls = NULL, 
+                                       add_logic_fn = identity, 
+                                       arm_1L_chr, 
                                        arms_for_intervention_costs_chr,
                                        arms_for_offsets_chr = character(0), 
                                        arms_for_non_helpseeking_chr = character(0), 
                                        arms_for_iar_adjustment_chr = character(0), 
+                                       arms_tb = make_arms_tb(), # NEW
+                                       batch_1L_int = integer(0),
                                        draws_tb = NULL, 
                                        extra_draws_fn = NULL,
                                        horizon_dtm = lubridate::years(1), 
                                        iterations_int = 1:100L, 
                                        modifiable_chr = make_project_2_vars("modify"),
-                                       seed_1L_int = 2001L, sensitivities_ls = make_project_2_sensitivities_ls(), 
-                                       start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), 
+                                       seed_1L_int = 2001L, 
+                                       sensitivities_ls = make_project_2_sensitivities_ls(), 
+                                       start_dtm = Sys.Date(), 
+                                       tfmn_ls = make_class_tfmns(), 
                                        tx_duration_dtm = lubridate::weeks(12), 
                                        treatment_ls = NULL,
-                                       utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
+                                       utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
+                                       X_MimicConfiguration = MimicConfiguration()
 ) 
 {
+  if(!identical(X_MimicConfiguration, MimicConfiguration())){
+    drop_missing_1L_lgl = X_MimicConfiguration@drop_missing_1L_lgl
+    drop_suffix_1L_chr = if(is.na(X_MimicConfiguration@drop_suffix_1L_chr)){
+      character(0)
+    }else{
+      X_MimicConfiguration@drop_suffix_1L_chr 
+    }
+    extra_draws_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
+    horizon_dtm = X_MimicConfiguration@horizon_dtm
+    inputs_ls = manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls")
+    iterations_ls = X_MimicConfiguration@iterations_ls
+    modifiable_chr = if(is.na(X_MimicConfiguration@modifiable_chr[1])){
+      character(0)
+    }else{
+      X_MimicConfiguration@modifiable_chr 
+    }
+    # seed_1L_int = X_MimicConfiguration@seed_1L_int # WRONG - seed + batch number
+    sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
+    start_dtm = X_MimicConfiguration@start_dtm
+    synthesis_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
+    tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
+    utilities_chr = X_MimicConfiguration@utilities_chr
+  }else{
+    X_MimicConfiguration <- make_configuration(arms_chr = arm_1L_chr,
+                                               drop_missing_1L_lgl = T,
+                                               drop_suffix_1L_chr = "_mean",
+                                               extra_draws_fn = extra_draws_fn,
+                                               horizon_dtm = horizon_dtm,
+                                               iterations_ls = iterations_ls,#######################
+                                               modifiable_chr = modifiable_chr,
+                                               seed_1L_int = seed_1L_int,
+                                               sensitivities_ls = sensitivities_ls,
+                                               start_dtm = start_dtm,
+                                               synthesis_fn = synthesis_fn,
+                                               utilities_chr = utilities_chr)
+  }
   ## Preliminary
   if (is.null(draws_tb)) {
-    draws_tb <- make_draws_tb(inputs_ls, 
-                              drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean",
-                              extra_draws_fn = extra_draws_fn,
-                              iterations_int = iterations_int, 
-                              seed_1L_int = seed_1L_int)
+    draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "draws_tb") 
+    # draws_tb <- make_draws_tb(inputs_ls, 
+    #                           drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean",
+    #                           extra_draws_fn = extra_draws_fn,
+    #                           iterations_int = iterations_int, 
+    #                           seed_1L_int = seed_1L_int)
   }
-  if(is.null(treatment_ls)){
-    treatment_1L_chr <- character(0)
+  treatment_1L_chr <- character(0)
+  if(!identical(arms_tb,make_arms_tb()) & !identical(X_MimicAlgorithms, MimicAlgorithms())){
+    treatment_1L_chr <-  get_from_lup_obj(arms_tb, target_var_nm_1L_chr = "Treatment", match_var_nm_1L_chr = "Arm", match_value_xx = .x)
   }else{
-    treatment_1L_chr <-  treatment_ls %>% purrr::pluck(arm_1L_chr)
+    if(!is.null(treatment_ls)){
+      treatment_1L_chr <-  treatment_ls %>% purrr::pluck(arm_1L_chr)
+    }
   }
   tx_prefix_1L_chr <- "Treatment"
   utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
@@ -384,9 +431,9 @@ predict_project_2_pathway <- function (inputs_ls, arm_1L_chr, add_logic_fn = ide
   
   return(population_ls$X_Ready4useDyad)
 }
-predict_with_sim <- function (inputs_ls, 
+predict_with_sim <- function (inputs_ls = NULL, 
                               arms_chr = c("Intervention", "Comparator"), 
-                              arms_tb = make_arms_tb(),
+                              # arms_tb = make_arms_tb(),
                               comparator_fn = predict_comparator_pathway, # make NULL
                               draws_tb = NULL,
                               drop_missing_1L_lgl = FALSE, 
@@ -407,8 +454,10 @@ predict_with_sim <- function (inputs_ls,
                               unlink_1L_lgl = FALSE, 
                               utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
                               write_to_1L_chr = character(0),
-                              X_MimicAlgorithms = MimicAlgorithms(),
-                              Y_MimicRepos = MimicRepos(),
+                              X_MimicConfiguration = MimicConfiguration(),
+                              # X_MimicAlgorithms = MimicAlgorithms(),
+                              # X_MimicInputs = MimicInputs(),
+                              # Y_MimicRepos = MimicRepos(),
                               # NEED TO MAKE EXPLICT CALLS TO THE BELOW FOR PROJECT ONE
                               # add_logic_fn = add_project_offset_logic, # Make part of ...
                               # base_for_rates_int = c(1000L, 1L, 1L), 
@@ -440,7 +489,7 @@ predict_with_sim <- function (inputs_ls,
     args_ls <- list(batch_1L_int = .x, 
                     # add_logic_fn = add_logic_fn, 
                     arms_chr = arms_chr, # set to character(0) if arms_tb is not empty
-                    arms_tb = arms_tb,
+                    # arms_tb = arms_tb,
                     # base_for_rates_int = base_for_rates_int, 
                     comparator_fn = comparator_fn, 
                     draws_tb = filtered_draws_tb,
@@ -462,8 +511,12 @@ predict_with_sim <- function (inputs_ls,
                     utilities_chr = utilities_chr, 
                     # variable_unit_1L_chr = variable_unit_1L_chr, 
                     write_to_1L_chr = write_to_1L_chr,
-                    X_MimicAlgorithms = X_MimicAlgorithms,
-                    Y_MimicRepos = Y_MimicRepos) %>%
+                    X_MimicConfiguration = X_MimicConfiguration
+                    # ,
+                    # X_MimicAlgorithms = X_MimicAlgorithms,
+                    # X_MimicInputs = X_MimicInputs,
+                    # Y_MimicRepos = Y_MimicRepos
+                    ) %>%
       append(extras_ls)
     rlang::exec(predict_safely_fn, !!!args_ls)
   })
@@ -475,6 +528,10 @@ predict_with_sim <- function (inputs_ls,
                                                            "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
   }
   if (type_1L_chr != "NULL") {
+    if(!identical(X_MimicConfiguration,MimicConfiguration())){
+      synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
+      modifiable_chr <- X_MimicConfiguration@modifiable_chr
+    }
     output_xx <- synthesis_fn(inputs_ls, results_ls = output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   }
   return(output_xx)

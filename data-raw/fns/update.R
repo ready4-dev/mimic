@@ -1,3 +1,11 @@
+update_arguments_ls <- function(args_ls,
+                                function_fn){
+  allowed_chr <- names(formals(function_fn))
+  if(!"..." %in% allowed_chr){
+    args_ls <- args_ls[allowed_chr]
+  }
+  return(args_ls)
+}
 update_current_date <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                  dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,

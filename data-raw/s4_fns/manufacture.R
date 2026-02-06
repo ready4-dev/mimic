@@ -1,13 +1,20 @@
 manufacture_MimicConfiguration <- function(x,
+                                           arm_1L_chr = NA_character_,
                                            batch_1L_int = integer(0),
-                                           what_1L_chr = c("draws_tb")){
+                                           extras_ls = list(),
+                                           what_1L_chr = c("draws_tb", "args_all", "iterations")){
   what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "args_all"){
+    object_xx <- list(
+      arm_1L_chr = arm_1L_chr, 
+      batch_1L_int = batch_1L_int,
+      X_MimicConfiguration = x) %>%
+      append(extras_ls) 
+  }
   if(what_1L_chr == "draws_tb"){
+    iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
     if(identical(batch_1L_int, integer(0))){
-      iterations_int <- x@iterations_ls %>% purrr::flatten_int()
       batch_1L_int <- 0
-    }else{
-      iterations_int <- x@iterations_ls[[batch_1L_int]]
     }
     inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
     object_xx <- make_draws_tb(inputs_ls, 
@@ -16,6 +23,14 @@ manufacture_MimicConfiguration <- function(x,
                               drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
                               drop_suffix_1L_chr = x@drop_suffix_1L_chr, 
                               seed_1L_int = x@seed_1L_int + batch_1L_int)
+  }
+
+  if(what_1L_chr == "iterations"){
+    if(identical(batch_1L_int, integer(0))){
+      object_xx <- x@iterations_ls %>% purrr::flatten_int()
+    }else{
+      object_xx <- x@iterations_ls[[batch_1L_int]]
+    } 
   }
   return(object_xx)
 }
