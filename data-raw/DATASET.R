@@ -95,7 +95,7 @@ y <- ready4class::ready4class_constructor() %>%
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Configuration",
                                                                 slots_ls = list(
-                                                                  "arms_chr",                                                                   # = c("Intervention", "Comparator"),
+                                                                  # "arms_chr",                                                                   # = c("Intervention", "Comparator"),
                                                                   "arms_tb",
                                                                   "drop_missing_1L_lgl",                                                                  # = FALSE,
                                                                   "drop_suffix_1L_chr",                            # = character(0),
@@ -124,7 +124,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   # "x_MimicRepos"
                                                                                 ) %>% list(), # Change
                                                                 pt_ls = list(
-                                                                  "character",
+                                                                  # "character",
                                                                   "tbl_df",
                                                                   "logical",                                                                  # = FALSE,
                                                                   "character",
@@ -146,7 +146,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   # ,
                                                                   # "MimicRepos"
                                                                   ) %>% list(),
-                                                                vals_ls = list(list(arms_chr = "c('Intervention', 'Comparator')",
+                                                                vals_ls = list(list(
+                                                                  # arms_chr = "c('Intervention', 'Comparator')",
                                                                                     arms_tb = "make_arms_tb()",
                                                                                drop_missing_1L_lgl = "FALSE",
                                                                                drop_suffix_1L_chr = "NA_character_", # "character(0)"

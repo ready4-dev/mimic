@@ -58,8 +58,9 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
   X_Ready4useDyad <- add_outcomes_event_sequence(X_Ready4useDyad, 
                                                  add_sensitivity_1L_lgl = T, adjustment_1L_dbl = -2, iterations_int = iterations_int, 
                                                  inputs_ls = inputs_ls, sensitivities_ls = sensitivities_ls, 
-                                                 tfmn_ls = make_class_tfmns(T), utilities_chr = c("AQoL6D", 
-                                                                                                  "CHU9D"), type_1L_chr = "Project")
+                                                 tfmn_ls = make_class_tfmns(T), 
+                                                 utilities_chr = c("AQoL6D", "CHU9D"), ### WHY Not utilities_chr? - Is this an ordering issue
+                                                 type_1L_chr = "Project")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateCosts", 
                                        step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -230,7 +231,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                        arms_for_offsets_chr = character(0), 
                                        arms_for_non_helpseeking_chr = character(0), 
                                        arms_for_iar_adjustment_chr = character(0), 
-                                       arms_tb = make_arms_tb(), # NEW
+                                       # arms_tb = make_arms_tb(), # DROP
                                        batch_1L_int = integer(0),
                                        draws_tb = NULL, 
                                        extra_draws_fn = NULL,
@@ -263,13 +264,27 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     }else{
       X_MimicConfiguration@modifiable_chr 
     }
-    # seed_1L_int = X_MimicConfiguration@seed_1L_int # WRONG - seed + batch number
+    seed_1L_int = X_MimicConfiguration@seed_1L_int + batch_1L_int # Note modification
     sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
     start_dtm = X_MimicConfiguration@start_dtm
     synthesis_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
     tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
+    tx_duration_dtm = procure(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, target_1L_chr = "Treatment duration")
     utilities_chr = X_MimicConfiguration@utilities_chr
   }else{
+    iterations_ls <- purrr::map(1:batch_1L_int,
+                                ~ {
+                                  if(.x == batch_1L_int){
+                                    iterations_int
+                                  }else{
+                                    integer(0)
+                                  }
+                                })
+    if(is.null(treatment_ls)){
+      treatment_ls <- list(Treatment = "predict_project_2_pathway") 
+    }else{
+      treatment_ls <- treatment_ls %>% purrr::pluck(arm_1L_chr) %>% purrr::set_names("Treatment")
+    }
     X_MimicConfiguration <- make_configuration(arms_chr = arm_1L_chr,
                                                drop_missing_1L_lgl = T,
                                                drop_suffix_1L_chr = "_mean",
@@ -280,8 +295,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                seed_1L_int = seed_1L_int,
                                                sensitivities_ls = sensitivities_ls,
                                                start_dtm = start_dtm,
+                                               transformations_ls = tfmn_ls, ###################
                                                synthesis_fn = synthesis_fn,
-                                               utilities_chr = utilities_chr)
+                                               utilities_chr = utilities_chr,
+                                               arms_extras_ls = list(`Treatment duration` = tx_duration_dtm) %>%
+                                                 append(treatment_ls))
   }
   ## Preliminary
   if (is.null(draws_tb)) {
@@ -292,15 +310,19 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     #                           iterations_int = iterations_int, 
     #                           seed_1L_int = seed_1L_int)
   }
-  treatment_1L_chr <- character(0)
-  if(!identical(arms_tb,make_arms_tb()) & !identical(X_MimicAlgorithms, MimicAlgorithms())){
-    treatment_1L_chr <-  get_from_lup_obj(arms_tb, target_var_nm_1L_chr = "Treatment", match_var_nm_1L_chr = "Arm", match_value_xx = .x)
-  }else{
-    if(!is.null(treatment_ls)){
-      treatment_1L_chr <-  treatment_ls %>% purrr::pluck(arm_1L_chr)
-    }
+  treatment_1L_chr <- procure(X_MimicConfiguration, arm_1L_chr = "MMHC", target_1L_chr = "Treatment")
+  if(is.null(treatment_1L_chr)){
+    treatment_1L_chr <- character(0)
   }
+  # if(!identical(arms_tb,make_arms_tb()) & !identical(X_MimicAlgorithms, MimicAlgorithms())){
+  #   treatment_1L_chr <-  get_from_lup_obj(arms_tb, target_var_nm_1L_chr = "Treatment", match_var_nm_1L_chr = "Arm", match_value_xx = .x)
+  # }else{
+  #   if(!is.null(treatment_ls)){
+  #     treatment_1L_chr <-  treatment_ls %>% purrr::pluck(arm_1L_chr)
+  #   }
+  # }
   tx_prefix_1L_chr <- "Treatment"
+  # Add below to MimicConfiguration@x_MimicAlgorithms
   utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
   ## Enter model
   population_ls <- add_enter_model_event(X_Ready4useDyad = inputs_ls$Synthetic_r4,

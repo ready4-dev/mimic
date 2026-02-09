@@ -2147,7 +2147,6 @@ add_outcomes_update <- function(X_Ready4useDyad,
                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x< -1 | x>1))
   return(X_Ready4useDyad)
 }
-
 add_project_assessments <- function (regressions_ls, what_1L_chr, 
                                      colours_chr = character(0),
                                      confusion_1L_lgl = F, 

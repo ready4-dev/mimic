@@ -183,7 +183,9 @@ make_configuration <- function(arms_chr,
                                sensitivities_ls,
                                start_dtm,
                                synthesis_fn,
-                               utilities_chr){
+                               transformations_ls,
+                               utilities_chr,
+                               arms_extras_ls = list()){
   X_MimicConfiguration <- MimicConfiguration() %>%
     renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl,
               drop_suffix_1L_chr = drop_suffix_1L_chr,
@@ -200,12 +202,14 @@ make_configuration <- function(arms_chr,
     renewSlot("x_MimicAlgorithms@sensitivities_ls",
               sensitivities_ls) %>%
     renewSlot("x_MimicAlgorithms@transformations_ls",
-              tfmn_ls) %>%
+              transformations_ls) %>%
     renewSlot("arms_tb",
               make_arms_tb(arms_chr,
                            settings_ls = list(
                              # Treatment = rep("MMHC",2),
-                             Algorithm = c("intervention_fn", "comparator_fn")))
+                             Algorithm = c("intervention_fn", "comparator_fn")) %>%
+                             append(arms_extras_ls)
+                           )
               # "arms_chr", c("MMHC","FlexPsych")
     )
   return(X_MimicConfiguration)
