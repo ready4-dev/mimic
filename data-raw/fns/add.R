@@ -1817,12 +1817,12 @@ add_project_2_model_wrap_up <- function(X_Ready4useDyad,
                                         arms_for_offsets_chr = character(0),
                                         disciplines_chr, 
                                         inputs_ls,
-                                        
                                         iterations_int,
                                         sensitivities_ls,
                                         tfmn_ls,
                                         tx_prefix_1L_chr,
-                                        utilities_chr){
+                                        utilities_chr,
+                                        utility_fns_ls){
   if(!"Intervention" %in% names(X_Ready4useDyad@ds_tb)){
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
@@ -2008,17 +2008,20 @@ add_project_2_parameters <- function(params_tb = NULL,
   }
   return(params_tb)
 }
-add_outcomes_event_sequence <-function (X_Ready4useDyad, inputs_ls, add_sensitivity_1L_lgl = FALSE, 
-                                        adjustment_1L_dbl = -2, iterations_int = 1:100L, 
-                                        k10_draws_fn = add_project_1_k10_draws, 
-                                        k10_method_1L_chr = c("Model", "Table"), 
-                                        k10_var_1L_chr = "k10",
-                                        sensitivities_ls = make_sensitivities_ls(), 
-                                        suffix_1L_chr = character(0), 
-                                        tfmn_ls = make_class_tfmns(T),  
-                                        tx_prefix_1L_chr = "treatment",
-                                        utilities_chr = c("CHU9D", "AQoL6D"), type_1L_chr = c("Model", 
-                                                                                              "Project"), update_1L_int = integer(0)) 
+add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensitivity_1L_lgl = FALSE, 
+                                         adjustment_1L_dbl = -2, iterations_int = 1:100L, 
+                                         k10_draws_fn = add_project_1_k10_draws, 
+                                         k10_method_1L_chr = c("Model", "Table"), 
+                                         k10_var_1L_chr = "k10",
+                                         sensitivities_ls = make_sensitivities_ls(), 
+                                         suffix_1L_chr = character(0), 
+                                         tfmn_ls = make_class_tfmns(T),  
+                                         tx_prefix_1L_chr = "treatment",
+                                         type_1L_chr = c("Model", "Project"), 
+                                         update_1L_int = integer(0),
+                                         utilities_chr = c("CHU9D", "AQoL6D"), 
+                                         utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr) # Currently returns list()
+) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
   k10_method_1L_chr <- match.arg(k10_method_1L_chr)
@@ -2043,7 +2046,9 @@ add_outcomes_event_sequence <-function (X_Ready4useDyad, inputs_ls, add_sensitiv
                                        models_ls = inputs_ls$models_ls, iterations_int = iterations_int, 
                                        rewind_chr = k10_var_1L_chr, 
                                        sensitivities_ls = sensitivities_ls, 
-                                       tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, type_1L_chr = type_1L_chr, 
+                                       tfmn_ls = tfmn_ls, type_1L_chr = type_1L_chr, 
+                                       utilities_chr = utilities_chr, 
+                                       utility_fns_ls = utility_fns_ls,
                                        what_1L_chr = "new")
   if (k10_method_1L_chr == "Table" & type_1L_chr == "Model") {
     Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -2076,6 +2081,7 @@ add_outcomes_event_sequence <-function (X_Ready4useDyad, inputs_ls, add_sensitiv
                                            adjustment_1L_dbl = adjustment_1L_dbl, models_ls = inputs_ls$models_ls, 
                                            iterations_int = iterations_int, rewind_chr = k10_var_1L_chr,
                                            tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
+                                           utility_fns_ls = utility_fns_ls,
                                            what_1L_chr = "new")
       new_chr <- setdiff(names(Z_Ready4useDyad@ds_tb), 
                          names(Y_Ready4useDyad@ds_tb))
@@ -2630,12 +2636,14 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int,
                                     k10_draws_fn,
                                     add_sensitivity_1L_lgl = FALSE, 
                                     sensitivities_ls = make_sensitivities_ls(), tfmn_ls = make_class_tfmns(), 
-                                    tx_prefix_1L_chr = "Treatment", utilities_chr = c("AQoL8D", 
-                                                                                      "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), utility_fns_ls = NULL) 
+                                    tx_prefix_1L_chr = "Treatment",
+                                    utilities_chr = c("AQoL8D", 
+                                                      "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), 
+                                    utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
-  if (is.null(utility_fns_ls)) {
-    utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
-  }
+  # if (is.null(utility_fns_ls)) {
+  #   utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
+  # }
   X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, 
                                    k10_draws_fn = k10_draws_fn,
                                    # k10_draws_fn = function(X, 
@@ -3101,12 +3109,12 @@ add_unset_vars <- function(data_tb,
 }
 add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_sensitivity_1L_lgl = FALSE, 
                                adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), 
-                               utility_fns_ls = NULL,
                                iterations_int = 1:100L, 
                                maintain_for_1L_int = 0L, models_ls = NULL, rewind_chr = character(0), 
                                sensitivities_ls = make_sensitivities_ls(), simulate_1L_lgl = TRUE, 
                                tfmn_ls = NULL, tidy_1L_lgl = TRUE, tidy_cols_1L_lgl = FALSE, update_1L_int = integer(0),
                                utilities_chr = c("CHU9D", "AQoL6D"), 
+                               utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
                                type_1L_chr = c("Model", "Function", "Project"), what_1L_chr = c("old", "new")) 
 {
   type_1L_chr <- match.arg(type_1L_chr)

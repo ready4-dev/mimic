@@ -5,7 +5,9 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
                                         modifiable_chr = c("treatment_status", "Minutes", "k10", 
                                                            "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
                                         start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-                                        utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
+                                        utilities_chr = c("CHU9D", "AQoL6D"), 
+                                        utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
+                                        variable_unit_1L_chr = "Minutes") 
 {
   if (is.null(draws_tb)) {
     draws_tb <- make_draws_tb(inputs_ls, 
@@ -33,6 +35,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
                                                  adjustment_1L_dbl = -2, iterations_int = iterations_int, 
                                                  inputs_ls = inputs_ls, k10_method_1L_chr = "Table", suffix_1L_chr = "_12_Weeks", 
                                                  tfmn_ls = make_class_tfmns(T), utilities_chr = utilities_chr, 
+                                                 utility_fns_ls = utility_fns_ls,
                                                  type_1L_chr = "Model")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateTxStatus", 
                                        step_dtm = lubridate::weeks(12))
@@ -50,6 +53,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
                                                  adjustment_1L_dbl = -2, iterations_int = iterations_int, 
                                                  inputs_ls = inputs_ls, k10_method_1L_chr = "Table", suffix_1L_chr = "_24_Weeks", 
                                                  tfmn_ls = make_class_tfmns(T), utilities_chr = utilities_chr, 
+                                                 utility_fns_ls = utility_fns_ls,
                                                  type_1L_chr = "Model")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateOutcomes", 
                                        schedule_fn = update_scheduled_date)
@@ -60,6 +64,7 @@ predict_comparator_pathway <- function (inputs_ls, add_logic_fn = add_project_of
                                                  inputs_ls = inputs_ls, sensitivities_ls = sensitivities_ls, 
                                                  tfmn_ls = make_class_tfmns(T), 
                                                  utilities_chr = c("AQoL6D", "CHU9D"), ### WHY Not utilities_chr? - Is this an ordering issue
+                                                 utility_fns_ls = utility_fns_ls,
                                                  type_1L_chr = "Project")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateCosts", 
                                        step_dtm = lubridate::days(0))
@@ -84,7 +89,9 @@ predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offse
                                      modifiable_chr = c("treatment_status", "Minutes", "k10", 
                                                         "AQoL6D", "CHU9D"), seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
                                      start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
-                                     utilities_chr = c("CHU9D", "AQoL6D"), variable_unit_1L_chr = "Minutes") 
+                                     utilities_chr = c("CHU9D", "AQoL6D"), 
+                                     utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
+                                     variable_unit_1L_chr = "Minutes") 
 {
   if (is.null(draws_tb)) {
     draws_tb <- make_draws_tb(inputs_ls, 
@@ -117,7 +124,7 @@ predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offse
   X_Ready4useDyad <- add_outcomes_event_sequence(X_Ready4useDyad, 
                                                  adjustment_1L_dbl = -2, iterations_int = iterations_int, 
                                                  inputs_ls = inputs_ls, k10_method_1L_chr = "Model", tfmn_ls = make_class_tfmns(T), 
-                                                 utilities_chr = utilities_chr, type_1L_chr = "Model")
+                                                 utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls, type_1L_chr = "Model")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateTxStatus", 
                                        step_dtm = lubridate::weeks(12))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -145,7 +152,7 @@ predict_digital_pathway <- function (inputs_ls, add_logic_fn = add_project_offse
   X_Ready4useDyad <- add_outcomes_event_sequence(X_Ready4useDyad, 
                                                  add_sensitivity_1L_lgl = T, adjustment_1L_dbl = -2, iterations_int = iterations_int, 
                                                  inputs_ls = inputs_ls, k10_method_1L_chr = "Model", sensitivities_ls = sensitivities_ls, 
-                                                 tfmn_ls = make_class_tfmns(T), utilities_chr = utilities_chr, 
+                                                 tfmn_ls = make_class_tfmns(T), utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls,
                                                  type_1L_chr = "Project")
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateCosts", 
                                        step_dtm = lubridate::days(0))
@@ -233,6 +240,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                        arms_for_iar_adjustment_chr = character(0), 
                                        # arms_tb = make_arms_tb(), # DROP
                                        batch_1L_int = integer(0),
+                                       derive_extras_ls = list(),
                                        draws_tb = NULL, 
                                        extra_draws_fn = NULL,
                                        horizon_dtm = lubridate::years(1), 
@@ -245,10 +253,13 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                        tx_duration_dtm = lubridate::weeks(12), 
                                        treatment_ls = NULL,
                                        utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
+                                       utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
                                        X_MimicConfiguration = MimicConfiguration()
 ) 
 {
   if(!identical(X_MimicConfiguration, MimicConfiguration())){
+    derive_fns_ls = make_utility_fns_ls(derive_extras_ls, #UPDATE WITH CLASS REFERENCE WHEN IMPLEMENTED 
+                                        utilities_chr = X_MimicConfiguration@utilities_chr)
     drop_missing_1L_lgl = X_MimicConfiguration@drop_missing_1L_lgl
     drop_suffix_1L_chr = if(is.na(X_MimicConfiguration@drop_suffix_1L_chr)){
       character(0)
@@ -270,7 +281,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     synthesis_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
     tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
     tx_duration_dtm = procure(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, target_1L_chr = "Treatment duration")
-    utilities_chr = X_MimicConfiguration@utilities_chr
+    utilities_chr = X_MimicConfiguration@utilities_chr #UPDATE WITH CLASS REFERENCE WHEN IMPLEMENTED 
+    utility_fns_ls = make_utility_fns_ls(utilities_chr = X_MimicConfiguration@utilities_chr) # Remove when added to class
   }else{
     iterations_ls <- purrr::map(1:batch_1L_int,
                                 ~ {
@@ -323,7 +335,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # }
   tx_prefix_1L_chr <- "Treatment"
   # Add below to MimicConfiguration@x_MimicAlgorithms
-  utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
+  # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
   ## Enter model
   population_ls <- add_enter_model_event(X_Ready4useDyad = inputs_ls$Synthetic_r4,
                                          arm_1L_chr = arm_1L_chr, 
@@ -449,7 +461,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                                sensitivities_ls = sensitivities_ls,
                                                                tfmn_ls = tfmn_ls,
                                                                tx_prefix_1L_chr = tx_prefix_1L_chr,
-                                                               utilities_chr = utilities_chr)  ##
+                                                               utilities_chr = utilities_chr,
+                                                               utility_fns_ls = utility_fns_ls)  ##
   
   return(population_ls$X_Ready4useDyad)
 }

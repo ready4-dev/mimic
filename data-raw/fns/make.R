@@ -4998,7 +4998,7 @@ make_unit_cost_params_tb <- function(cost_per_mins_tb,
   unit_cost_params_tb <- unit_cost_params_tb %>% dplyr::mutate(Parameter = paste0(Parameter, "CostPerMin"))
   return(unit_cost_params_tb)
 }
-make_utility_fns_ls <- function(add_to_ls = NULL,
+make_utility_fns_ls <- function(add_to_ls = list(),
                                 aqol8d_fn = add_aqol8d_from_k10,
                                 eq5d_fn = add_eq5d_from_draws,
                                 sf6d_fn = add_sf6d_from_draws,
@@ -5010,9 +5010,9 @@ make_utility_fns_ls <- function(add_to_ls = NULL,
                          SF6D = sf6d_fn,
                          SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>%
     purrr::keep_at(utilities_chr)
-  if(!is.null(add_to_ls)){
+  # if(!is.null(add_to_ls)){
     utility_fns_ls <- append(utility_fns_ls, add_to_ls)
-  }
+  # }
   return(utility_fns_ls)
 }
 make_utility_predictions_ds <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
