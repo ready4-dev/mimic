@@ -5,9 +5,8 @@
 \title{Predict with sim}
 \usage{
 predict_with_sim(
-  inputs_ls,
+  inputs_ls = NULL,
   arms_chr = c("Intervention", "Comparator"),
-  arms_tb = make_arms_tb(),
   comparator_fn = predict_comparator_pathway,
   draws_tb = NULL,
   drop_missing_1L_lgl = FALSE,
@@ -28,17 +27,14 @@ predict_with_sim(
   unlink_1L_lgl = FALSE,
   utilities_chr = c("AQoL6D", "CHU9D"),
   write_to_1L_chr = character(0),
-  X_MimicAlgorithms = MimicAlgorithms(),
-  Y_MimicRepos = MimicRepos(),
+  X_MimicConfiguration = MimicConfiguration(),
   ...
 )
 }
 \arguments{
-\item{inputs_ls}{Inputs (a list)}
+\item{inputs_ls}{Inputs (a list), Default: NULL}
 
 \item{arms_chr}{Arms (a character vector), Default: c("Intervention", "Comparator")}
-
-\item{arms_tb}{Arms (a tibble), Default: make_arms_tb()}
 
 \item{comparator_fn}{Comparator (a function), Default: predict_comparator_pathway}
 
@@ -80,9 +76,7 @@ predict_with_sim(
 
 \item{write_to_1L_chr}{Write to (a character vector of length one), Default: character(0)}
 
-\item{X_MimicAlgorithms}{PARAM_DESCRIPTION, Default: MimicAlgorithms()}
-
-\item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
+\item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
 \item{...}{Additional arguments}
 }

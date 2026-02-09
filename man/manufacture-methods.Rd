@@ -9,7 +9,13 @@
 \alias{manufacture,MimicInputs-method}
 \title{Manufacture a new object}
 \usage{
-\S4method{manufacture}{MimicConfiguration}(x, batch_1L_int = integer(0), what_1L_chr = c("draws_tb"))
+\S4method{manufacture}{MimicConfiguration}(
+  x,
+  arm_1L_chr = NA_character_,
+  batch_1L_int = integer(0),
+  extras_ls = list(),
+  what_1L_chr = c("draws_tb", "args_all", "iterations")
+)
 
 \S4method{manufacture}{MimicRepos}(
   x,
@@ -26,7 +32,11 @@
 \arguments{
 \item{x}{An object of class MimicInputs}
 
+\item{arm_1L_chr}{Arm (a character vector of length one), Default: 'NA'}
+
 \item{batch_1L_int}{Batch (an integer vector of length one), Default: integer(0)}
+
+\item{extras_ls}{Extras (a list), Default: list()}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("inputs_ls")}
 

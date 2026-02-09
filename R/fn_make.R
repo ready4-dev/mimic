@@ -296,6 +296,43 @@ make_conditional_vars <- function (outcome_1L_chr, follow_up_1L_int = integer(0)
         start = start_var_1L_chr, years = yrs_1L_dbl)
     return(var_1L_chr)
 }
+#' Make configuration
+#' @description make_configuration() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make configuration. The function is called for its side effects and does not return a value.
+#' @param arms_chr Arms (a character vector)
+#' @param drop_missing_1L_lgl Drop missing (a logical vector of length one)
+#' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
+#' @param extra_draws_fn Extra draws (a function)
+#' @param horizon_dtm Horizon (a date vector)
+#' @param iterations_ls Iterations (a list)
+#' @param modifiable_chr Modifiable (a character vector)
+#' @param seed_1L_int Seed (an integer vector of length one)
+#' @param sensitivities_ls Sensitivities (a list)
+#' @param start_dtm Start (a date vector)
+#' @param synthesis_fn Synthesis (a function)
+#' @param transformations_ls Transformations (a list)
+#' @param utilities_chr Utilities (a character vector)
+#' @param arms_extras_ls Arms extras (a list), Default: list()
+#' @return X (Configuration details for a simulation run.)
+#' @rdname make_configuration
+#' @export 
+#' @keywords internal
+make_configuration <- function (arms_chr, drop_missing_1L_lgl, drop_suffix_1L_chr, 
+    extra_draws_fn, horizon_dtm, iterations_ls, modifiable_chr, 
+    seed_1L_int, sensitivities_ls, start_dtm, synthesis_fn, transformations_ls, 
+    utilities_chr, arms_extras_ls = list()) 
+{
+    X_MimicConfiguration <- MimicConfiguration() %>% renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl, 
+        drop_suffix_1L_chr = drop_suffix_1L_chr, horizon_dtm = horizon_dtm, 
+        iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
+        seed_1L_int = seed_1L_int, start_dtm = start_dtm, utilities_chr = utilities_chr)
+    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms@processing_ls", 
+        list(extra_draws_fn = extra_draws_fn, synthesis_fn = synthesis_fn)) %>% 
+        renewSlot("x_MimicAlgorithms@sensitivities_ls", sensitivities_ls) %>% 
+        renewSlot("x_MimicAlgorithms@transformations_ls", transformations_ls) %>% 
+        renewSlot("arms_tb", make_arms_tb(arms_chr, settings_ls = list(Algorithm = c("intervention_fn", 
+            "comparator_fn")) %>% append(arms_extras_ls)))
+    return(X_MimicConfiguration)
+}
 #' Make confusion list
 #' @description make_confusion_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make confusion list. The function returns Confusion (a list).
 #' @param regressions_ls Regressions (a list)
@@ -6237,7 +6274,7 @@ make_unit_cost_params_tb <- function (cost_per_mins_tb, new_ls = NULL)
 }
 #' Make utility functions list
 #' @description make_utility_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make utility functions list. The function returns Utility functions (a list).
-#' @param add_to_ls Add to (a list), Default: NULL
+#' @param add_to_ls Add to (a list), Default: list()
 #' @param aqol8d_fn Assessment of Quality of Life Eight Dimension (a function), Default: add_aqol8d_from_k10
 #' @param eq5d_fn EQ5D (a function), Default: add_eq5d_from_draws
 #' @param sf6d_fn Short Form - Six Dimension (a function), Default: add_sf6d_from_draws
@@ -6247,7 +6284,7 @@ make_unit_cost_params_tb <- function (cost_per_mins_tb, new_ls = NULL)
 #' @export 
 #' @importFrom purrr keep_at
 #' @keywords internal
-make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k10, 
+make_utility_fns_ls <- function (add_to_ls = list(), aqol8d_fn = add_aqol8d_from_k10, 
     eq5d_fn = add_eq5d_from_draws, sf6d_fn = add_sf6d_from_draws, 
     utilities_chr = c("AQoL8D", "EQ5D", "SF6D")) 
 {
@@ -6259,9 +6296,7 @@ make_utility_fns_ls <- function (add_to_ls = NULL, aqol8d_fn = add_aqol8d_from_k
             source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, 
             type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>% 
         purrr::keep_at(utilities_chr)
-    if (!is.null(add_to_ls)) {
-        utility_fns_ls <- append(utility_fns_ls, add_to_ls)
-    }
+    utility_fns_ls <- append(utility_fns_ls, add_to_ls)
     return(utility_fns_ls)
 }
 #' Make utility predictions dataset

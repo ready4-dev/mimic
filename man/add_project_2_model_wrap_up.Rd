@@ -14,7 +14,8 @@ add_project_2_model_wrap_up(
   sensitivities_ls,
   tfmn_ls,
   tx_prefix_1L_chr,
-  utilities_chr
+  utilities_chr,
+  utility_fns_ls
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ add_project_2_model_wrap_up(
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one)}
 
 \item{utilities_chr}{Utilities (a character vector)}
+
+\item{utility_fns_ls}{Utility functions (a list)}
 }
 \value{
 X (A dataset and data dictionary pair.)

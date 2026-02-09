@@ -20,6 +20,7 @@ predict_digital_pathway(
   tfmn_ls = make_class_tfmns(),
   tx_duration_dtm = lubridate::weeks(12),
   utilities_chr = c("CHU9D", "AQoL6D"),
+  utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
   variable_unit_1L_chr = "Minutes"
 )
 }
@@ -53,6 +54,8 @@ predict_digital_pathway(
 \item{tx_duration_dtm}{Treatment duration (a date vector), Default: lubridate::weeks(12)}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("CHU9D", "AQoL6D")}
+
+\item{utility_fns_ls}{Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)}
 
 \item{variable_unit_1L_chr}{Variable unit (a character vector of length one), Default: 'Minutes'}
 }

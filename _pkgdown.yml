@@ -19,6 +19,7 @@ reference:
 - contents:
   - MimicAlgorithms
   - MimicInputs
+  - MimicUtility
   - MimicRepos
   - MimicConfiguration
 - title: "Functions"
@@ -36,4 +37,5 @@ reference:
   - manufacture-MimicConfiguration
   - manufacture-MimicInputs
   - manufacture-MimicRepos
+  - procure-MimicConfiguration
   - prognosticate-MimicConfiguration

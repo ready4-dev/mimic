@@ -7,26 +7,24 @@
 write_batch(
   batch_1L_int,
   arms_chr = character(0),
-  arms_tb = make_arms_tb(),
   comparator_fn = NULL,
   draws_tb = NULL,
-  drop_missing_1L_lgl,
-  drop_suffix_1L_chr,
-  extra_draws_fn,
-  horizon_dtm,
-  inputs_ls,
+  drop_missing_1L_lgl = FALSE,
+  drop_suffix_1L_chr = FALSE,
+  extra_draws_fn = NULL,
+  horizon_dtm = lubridate::years(1),
+  inputs_ls = NULL,
   intervention_fn = NULL,
-  iterations_ls,
-  modifiable_chr,
-  prior_batches_1L_int,
-  seed_1L_int,
-  sensitivities_ls,
-  start_dtm,
-  tfmn_ls,
-  utilities_chr,
+  iterations_ls = NULL,
+  modifiable_chr = character(0),
+  prior_batches_1L_int = integer(0),
+  seed_1L_int = 2001L,
+  sensitivities_ls = NULL,
+  start_dtm = Sys.Date(),
+  tfmn_ls = NULL,
+  utilities_chr = character(0),
   write_to_1L_chr,
-  X_MimicAlgorithms = MimicAlgorithms(),
-  Y_MimicRepos = MimicRepos(),
+  X_MimicConfiguration = MimicConfiguration(),
   ...
 )
 }
@@ -35,45 +33,41 @@ write_batch(
 
 \item{arms_chr}{Arms (a character vector), Default: character(0)}
 
-\item{arms_tb}{Arms (a tibble), Default: make_arms_tb()}
-
 \item{comparator_fn}{Comparator (a function), Default: NULL}
 
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
-\item{drop_missing_1L_lgl}{Drop missing (a logical vector of length one)}
+\item{drop_missing_1L_lgl}{Drop missing (a logical vector of length one), Default: FALSE}
 
-\item{drop_suffix_1L_chr}{Drop suffix (a character vector of length one)}
+\item{drop_suffix_1L_chr}{Drop suffix (a character vector of length one), Default: FALSE}
 
-\item{extra_draws_fn}{Extra draws (a function)}
+\item{extra_draws_fn}{Extra draws (a function), Default: NULL}
 
-\item{horizon_dtm}{Horizon (a date vector)}
+\item{horizon_dtm}{Horizon (a date vector), Default: lubridate::years(1)}
 
-\item{inputs_ls}{Inputs (a list)}
+\item{inputs_ls}{Inputs (a list), Default: NULL}
 
 \item{intervention_fn}{Intervention (a function), Default: NULL}
 
-\item{iterations_ls}{Iterations (a list)}
+\item{iterations_ls}{Iterations (a list), Default: NULL}
 
-\item{modifiable_chr}{Modifiable (a character vector)}
+\item{modifiable_chr}{Modifiable (a character vector), Default: character(0)}
 
-\item{prior_batches_1L_int}{Prior batches (an integer vector of length one)}
+\item{prior_batches_1L_int}{Prior batches (an integer vector of length one), Default: integer(0)}
 
-\item{seed_1L_int}{Seed (an integer vector of length one)}
+\item{seed_1L_int}{Seed (an integer vector of length one), Default: 2001}
 
-\item{sensitivities_ls}{Sensitivities (a list)}
+\item{sensitivities_ls}{Sensitivities (a list), Default: NULL}
 
-\item{start_dtm}{Start (a date vector)}
+\item{start_dtm}{Start (a date vector), Default: Sys.Date()}
 
-\item{tfmn_ls}{Transformation (a list)}
+\item{tfmn_ls}{Transformation (a list), Default: NULL}
 
-\item{utilities_chr}{Utilities (a character vector)}
+\item{utilities_chr}{Utilities (a character vector), Default: character(0)}
 
 \item{write_to_1L_chr}{Write to (a character vector of length one)}
 
-\item{X_MimicAlgorithms}{PARAM_DESCRIPTION, Default: MimicAlgorithms()}
-
-\item{Y_MimicRepos}{PARAM_DESCRIPTION, Default: MimicRepos()}
+\item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
 \item{...}{Additional arguments}
 }

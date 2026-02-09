@@ -1,3 +1,19 @@
+#' Update arguments list
+#' @description update_arguments_ls() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update arguments list. The function returns Arguments (a list).
+#' @param args_ls Arguments (a list)
+#' @param function_fn Function (a function)
+#' @return Arguments (a list)
+#' @rdname update_arguments_ls
+#' @export 
+#' @keywords internal
+update_arguments_ls <- function (args_ls, function_fn) 
+{
+    allowed_chr <- names(formals(function_fn))
+    if (!"..." %in% allowed_chr) {
+        args_ls <- args_ls[allowed_chr]
+    }
+    return(args_ls)
+}
 #' Update current date
 #' @description update_current_date() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update current date. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION

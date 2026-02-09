@@ -2199,9 +2199,10 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @param suffix_1L_chr Suffix (a character vector of length one), Default: character(0)
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns(T)
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'treatment'
-#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Project")
 #' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
+#' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
+#' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_outcomes_event_sequence
 #' @export 
@@ -2215,8 +2216,8 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
     k10_method_1L_chr = c("Model", "Table"), k10_var_1L_chr = "k10", 
     sensitivities_ls = make_sensitivities_ls(), suffix_1L_chr = character(0), 
     tfmn_ls = make_class_tfmns(T), tx_prefix_1L_chr = "treatment", 
-    utilities_chr = c("CHU9D", "AQoL6D"), type_1L_chr = c("Model", 
-        "Project"), update_1L_int = integer(0)) 
+    type_1L_chr = c("Model", "Project"), update_1L_int = integer(0), 
+    utilities_chr = c("CHU9D", "AQoL6D"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     k10_method_1L_chr <- match.arg(k10_method_1L_chr)
@@ -2241,8 +2242,8 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
         add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, adjustment_1L_dbl = adjustment_1L_dbl, 
         models_ls = inputs_ls$models_ls, iterations_int = iterations_int, 
         rewind_chr = k10_var_1L_chr, sensitivities_ls = sensitivities_ls, 
-        tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, type_1L_chr = type_1L_chr, 
-        what_1L_chr = "new")
+        tfmn_ls = tfmn_ls, type_1L_chr = type_1L_chr, utilities_chr = utilities_chr, 
+        utility_fns_ls = utility_fns_ls, what_1L_chr = "new")
     if (k10_method_1L_chr == "Table" & type_1L_chr == "Model") {
         Y_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::filter(floor(!!rlang::sym(paste0(k10_var_1L_chr, 
@@ -2275,7 +2276,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
                 adjustment_1L_dbl = adjustment_1L_dbl, models_ls = inputs_ls$models_ls, 
                 iterations_int = iterations_int, rewind_chr = k10_var_1L_chr, 
                 tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
-                what_1L_chr = "new")
+                utility_fns_ls = utility_fns_ls, what_1L_chr = "new")
             new_chr <- setdiff(names(Z_Ready4useDyad@ds_tb), 
                 names(Y_Ready4useDyad@ds_tb))
             if (!identical(new_chr, character(0))) {
@@ -2710,6 +2711,7 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_c
 #' @param tfmn_ls Transformation (a list)
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one)
 #' @param utilities_chr Utilities (a character vector)
+#' @param utility_fns_ls Utility functions (a list)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_project_2_model_wrap_up
 #' @export 
@@ -2720,7 +2722,7 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_c
 #' @keywords internal
 add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
     disciplines_chr, inputs_ls, iterations_int, sensitivities_ls, 
-    tfmn_ls, tx_prefix_1L_chr, utilities_chr) 
+    tfmn_ls, tx_prefix_1L_chr, utilities_chr, utility_fns_ls) 
 {
     if (!"Intervention" %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -3469,7 +3471,7 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'Treatment'
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
-#' @param utility_fns_ls Utility functions (a list), Default: NULL
+#' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_regression_to_mean
 #' @export 
@@ -3478,11 +3480,8 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
     add_sensitivity_1L_lgl = FALSE, sensitivities_ls = make_sensitivities_ls(), 
     tfmn_ls = make_class_tfmns(), tx_prefix_1L_chr = "Treatment", 
     utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), 
-    utility_fns_ls = NULL) 
+    utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
-    if (is.null(utility_fns_ls)) {
-        utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
-    }
     X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_draws_fn = k10_draws_fn, 
         k10_mdl = NULL, k10_var_1L_chr = "K10", iterations_int = iterations_int, 
         params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
@@ -4113,7 +4112,6 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: 0
 #' @param follow_up_1L_int Follow up (an integer vector of length one), Default: integer(0)
-#' @param utility_fns_ls Utility functions (a list), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param maintain_for_1L_int Maintain for (an integer vector of length one), Default: 0
 #' @param models_ls Models (a list), Default: NULL
@@ -4125,6 +4123,7 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @param tidy_cols_1L_lgl Tidy columns (a logical vector of length one), Default: FALSE
 #' @param update_1L_int Update (an integer vector of length one), Default: integer(0)
 #' @param utilities_chr Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
+#' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("Model", "Function", "Project")
 #' @param what_1L_chr What (a character vector of length one), Default: c("old", "new")
 #' @return X (A dataset and data dictionary pair.)
@@ -4136,13 +4135,14 @@ add_unset_vars <- function (data_tb, var_names_chr, value_xx = 0)
 #' @importFrom tidyselect any_of
 #' @keywords internal
 add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_sensitivity_1L_lgl = FALSE, 
-    adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), utility_fns_ls = NULL, 
-    iterations_int = 1:100L, maintain_for_1L_int = 0L, models_ls = NULL, 
-    rewind_chr = character(0), sensitivities_ls = make_sensitivities_ls(), 
-    simulate_1L_lgl = TRUE, tfmn_ls = NULL, tidy_1L_lgl = TRUE, 
-    tidy_cols_1L_lgl = FALSE, update_1L_int = integer(0), utilities_chr = c("CHU9D", 
-        "AQoL6D"), type_1L_chr = c("Model", "Function", "Project"), 
-    what_1L_chr = c("old", "new")) 
+    adjustment_1L_dbl = 0, follow_up_1L_int = integer(0), iterations_int = 1:100L, 
+    maintain_for_1L_int = 0L, models_ls = NULL, rewind_chr = character(0), 
+    sensitivities_ls = make_sensitivities_ls(), simulate_1L_lgl = TRUE, 
+    tfmn_ls = NULL, tidy_1L_lgl = TRUE, tidy_cols_1L_lgl = FALSE, 
+    update_1L_int = integer(0), utilities_chr = c("CHU9D", "AQoL6D"), 
+    utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
+    type_1L_chr = c("Model", "Function", "Project"), what_1L_chr = c("old", 
+        "new")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     what_1L_chr <- match.arg(what_1L_chr)

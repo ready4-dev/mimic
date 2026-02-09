@@ -14,7 +14,7 @@ add_regression_to_mean(
   tfmn_ls = make_class_tfmns(),
   tx_prefix_1L_chr = "Treatment",
   utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
-  utility_fns_ls = NULL
+  utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ add_regression_to_mean(
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")}
 
-\item{utility_fns_ls}{Utility functions (a list), Default: NULL}
+\item{utility_fns_ls}{Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)}
 }
 \value{
 X (A dataset and data dictionary pair.)

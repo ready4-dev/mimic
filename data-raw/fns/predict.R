@@ -336,6 +336,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   tx_prefix_1L_chr <- "Treatment"
   # Add below to MimicConfiguration@x_MimicAlgorithms
   # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
+  ###
+  # Update classes then start with methodising the following.
+  ###
   ## Enter model
   population_ls <- add_enter_model_event(X_Ready4useDyad = inputs_ls$Synthetic_r4,
                                          arm_1L_chr = arm_1L_chr, 

@@ -5,7 +5,7 @@
 \title{Make utility functions list}
 \usage{
 make_utility_fns_ls(
-  add_to_ls = NULL,
+  add_to_ls = list(),
   aqol8d_fn = add_aqol8d_from_k10,
   eq5d_fn = add_eq5d_from_draws,
   sf6d_fn = add_sf6d_from_draws,
@@ -13,7 +13,7 @@ make_utility_fns_ls(
 )
 }
 \arguments{
-\item{add_to_ls}{Add to (a list), Default: NULL}
+\item{add_to_ls}{Add to (a list), Default: list()}
 
 \item{aqol8d_fn}{Assessment of Quality of Life Eight Dimension (a function), Default: add_aqol8d_from_k10}
 

@@ -11,8 +11,6 @@ Configuration details for a simulation run.
 \section{Slots}{
 
 \describe{
-\item{\code{arms_chr}}{Arms (a character vector)}
-
 \item{\code{arms_tb}}{Arms (a tibble)}
 
 \item{\code{drop_missing_1L_lgl}}{Drop missing (a logical vector of length one)}

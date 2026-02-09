@@ -15,6 +15,7 @@
   purge_1L_lgl = FALSE,
   suffix_1L_chr = "",
   type_1L_chr = c("NULL", "D", "AB", "C"),
+  what_1L_chr = c("all", "batch"),
   unlink_1L_lgl = TRUE,
   ...
 )
@@ -37,6 +38,8 @@
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ''}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("NULL", "D", "AB", "C")}
+
+\item{what_1L_chr}{What (a character vector of length one), Default: c("all", "batch")}
 
 \item{unlink_1L_lgl}{Unlink (a logical vector of length one), Default: TRUE}
 
