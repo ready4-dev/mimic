@@ -18,7 +18,8 @@ add_project_2_model_wrap_up(
   sensitivities_ls,
   tfmn_ls,
   tx_prefix_1L_chr,
-  utilities_chr
+  utilities_chr,
+  utility_fns_ls
 )
 ```
 
@@ -63,6 +64,10 @@ add_project_2_model_wrap_up(
 - utilities_chr:
 
   Utilities (a character vector)
+
+- utility_fns_ls:
+
+  Utility functions (a list)
 
 ## Value
 

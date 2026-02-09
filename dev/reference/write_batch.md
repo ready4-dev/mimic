@@ -11,26 +11,24 @@ return a value.
 write_batch(
   batch_1L_int,
   arms_chr = character(0),
-  arms_tb = make_arms_tb(),
   comparator_fn = NULL,
   draws_tb = NULL,
-  drop_missing_1L_lgl,
-  drop_suffix_1L_chr,
-  extra_draws_fn,
-  horizon_dtm,
-  inputs_ls,
+  drop_missing_1L_lgl = FALSE,
+  drop_suffix_1L_chr = FALSE,
+  extra_draws_fn = NULL,
+  horizon_dtm = lubridate::years(1),
+  inputs_ls = NULL,
   intervention_fn = NULL,
-  iterations_ls,
-  modifiable_chr,
-  prior_batches_1L_int,
-  seed_1L_int,
-  sensitivities_ls,
-  start_dtm,
-  tfmn_ls,
-  utilities_chr,
+  iterations_ls = NULL,
+  modifiable_chr = character(0),
+  prior_batches_1L_int = integer(0),
+  seed_1L_int = 2001L,
+  sensitivities_ls = NULL,
+  start_dtm = Sys.Date(),
+  tfmn_ls = NULL,
+  utilities_chr = character(0),
   write_to_1L_chr,
-  X_MimicAlgorithms = MimicAlgorithms(),
-  Y_MimicRepos = MimicRepos(),
+  X_MimicConfiguration = MimicConfiguration(),
   ...
 )
 ```
@@ -45,10 +43,6 @@ write_batch(
 
   Arms (a character vector), Default: character(0)
 
-- arms_tb:
-
-  Arms (a tibble), Default: make_arms_tb()
-
 - comparator_fn:
 
   Comparator (a function), Default: NULL
@@ -59,23 +53,23 @@ write_batch(
 
 - drop_missing_1L_lgl:
 
-  Drop missing (a logical vector of length one)
+  Drop missing (a logical vector of length one), Default: FALSE
 
 - drop_suffix_1L_chr:
 
-  Drop suffix (a character vector of length one)
+  Drop suffix (a character vector of length one), Default: FALSE
 
 - extra_draws_fn:
 
-  Extra draws (a function)
+  Extra draws (a function), Default: NULL
 
 - horizon_dtm:
 
-  Horizon (a date vector)
+  Horizon (a date vector), Default: lubridate::years(1)
 
 - inputs_ls:
 
-  Inputs (a list)
+  Inputs (a list), Default: NULL
 
 - intervention_fn:
 
@@ -83,47 +77,43 @@ write_batch(
 
 - iterations_ls:
 
-  Iterations (a list)
+  Iterations (a list), Default: NULL
 
 - modifiable_chr:
 
-  Modifiable (a character vector)
+  Modifiable (a character vector), Default: character(0)
 
 - prior_batches_1L_int:
 
-  Prior batches (an integer vector of length one)
+  Prior batches (an integer vector of length one), Default: integer(0)
 
 - seed_1L_int:
 
-  Seed (an integer vector of length one)
+  Seed (an integer vector of length one), Default: 2001
 
 - sensitivities_ls:
 
-  Sensitivities (a list)
+  Sensitivities (a list), Default: NULL
 
 - start_dtm:
 
-  Start (a date vector)
+  Start (a date vector), Default: Sys.Date()
 
 - tfmn_ls:
 
-  Transformation (a list)
+  Transformation (a list), Default: NULL
 
 - utilities_chr:
 
-  Utilities (a character vector)
+  Utilities (a character vector), Default: character(0)
 
 - write_to_1L_chr:
 
   Write to (a character vector of length one)
 
-- X_MimicAlgorithms:
+- X_MimicConfiguration:
 
-  PARAM_DESCRIPTION, Default: MimicAlgorithms()
-
-- Y_MimicRepos:
-
-  PARAM_DESCRIPTION, Default: MimicRepos()
+  PARAM_DESCRIPTION, Default: MimicConfiguration()
 
 - ...:
 

@@ -8,6 +8,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_activity.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_age_to_project_dss.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_aqol8d_from_k10.html</loc></url>
@@ -110,6 +111,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_clinic_summary.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_composite_results.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_conditional_vars.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_configuration.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_confusion_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_contacters_series.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_contacters_summary.html</loc></url>
@@ -240,6 +242,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/predict_with_sim.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/print_cmprsns.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/print_errors.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/procure-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_dates.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_ds_to_wide.html</loc></url>
@@ -251,6 +254,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_to_remove_duplicates.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_tx_factor.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/transform_tx_mdlng_ds.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_arguments_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_current_date.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_current_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_episodes_lup.html</loc></url>

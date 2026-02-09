@@ -8,6 +8,9 @@
 - [`MimicInputs-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   [`MimicInputs`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   : MimicInputs
+- [`MimicUtility-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
+  [`MimicUtility`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
+  : MimicUtility
 - [`MimicRepos-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   [`MimicRepos`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   : MimicRepos
@@ -39,5 +42,7 @@
   [`manufacture(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicInputs>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   : Manufacture a new object
+- [`procure(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/procure-methods.md)
+  : Procure data from a model module
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
   : Prognosticate (make predictions) by solving a forward problem

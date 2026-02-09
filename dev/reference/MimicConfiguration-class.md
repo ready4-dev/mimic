@@ -4,10 +4,6 @@ Configuration details for a simulation run.
 
 ## Slots
 
-- `arms_chr`:
-
-  Arms (a character vector)
-
 - `arms_tb`:
 
   Arms (a tibble)

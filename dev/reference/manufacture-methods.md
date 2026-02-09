@@ -10,7 +10,13 @@ manufacture method applied to MimicInputs
 
 ``` r
 # S4 method for class 'MimicConfiguration'
-manufacture(x, batch_1L_int = integer(0), what_1L_chr = c("draws_tb"))
+manufacture(
+  x,
+  arm_1L_chr = NA_character_,
+  batch_1L_int = integer(0),
+  extras_ls = list(),
+  what_1L_chr = c("draws_tb", "args_all", "iterations")
+)
 
 # S4 method for class 'MimicRepos'
 manufacture(
@@ -33,9 +39,17 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
 
   An object of class MimicInputs
 
+- arm_1L_chr:
+
+  Arm (a character vector of length one), Default: 'NA'
+
 - batch_1L_int:
 
   Batch (an integer vector of length one), Default: integer(0)
+
+- extras_ls:
+
+  Extras (a list), Default: list()
 
 - what_1L_chr:
 

@@ -21,9 +21,10 @@ add_outcomes_event_sequence(
   suffix_1L_chr = character(0),
   tfmn_ls = make_class_tfmns(T),
   tx_prefix_1L_chr = "treatment",
-  utilities_chr = c("CHU9D", "AQoL6D"),
   type_1L_chr = c("Model", "Project"),
-  update_1L_int = integer(0)
+  update_1L_int = integer(0),
+  utilities_chr = c("CHU9D", "AQoL6D"),
+  utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)
 )
 ```
 
@@ -79,10 +80,6 @@ add_outcomes_event_sequence(
   Treatment prefix (a character vector of length one), Default:
   'treatment'
 
-- utilities_chr:
-
-  Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
-
 - type_1L_chr:
 
   Type (a character vector of length one), Default: c("Model",
@@ -91,6 +88,15 @@ add_outcomes_event_sequence(
 - update_1L_int:
 
   Update (an integer vector of length one), Default: integer(0)
+
+- utilities_chr:
+
+  Utilities (a character vector), Default: c("CHU9D", "AQoL6D")
+
+- utility_fns_ls:
+
+  Utility functions (a list), Default: make_utility_fns_ls(utilities_chr
+  = utilities_chr)
 
 ## Value
 

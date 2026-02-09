@@ -8,7 +8,7 @@ functions list. The function returns Utility functions (a list).
 
 ``` r
 make_utility_fns_ls(
-  add_to_ls = NULL,
+  add_to_ls = list(),
   aqol8d_fn = add_aqol8d_from_k10,
   eq5d_fn = add_eq5d_from_draws,
   sf6d_fn = add_sf6d_from_draws,
@@ -20,7 +20,7 @@ make_utility_fns_ls(
 
 - add_to_ls:
 
-  Add to (a list), Default: NULL
+  Add to (a list), Default: list()
 
 - aqol8d_fn:
 

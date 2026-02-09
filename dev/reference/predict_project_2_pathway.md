@@ -9,13 +9,15 @@ effects and does not return a value.
 
 ``` r
 predict_project_2_pathway(
-  inputs_ls,
-  arm_1L_chr,
+  inputs_ls = NULL,
   add_logic_fn = identity,
+  arm_1L_chr,
   arms_for_intervention_costs_chr,
   arms_for_offsets_chr = character(0),
   arms_for_non_helpseeking_chr = character(0),
   arms_for_iar_adjustment_chr = character(0),
+  batch_1L_int = integer(0),
+  derive_extras_ls = list(),
   draws_tb = NULL,
   extra_draws_fn = NULL,
   horizon_dtm = lubridate::years(1),
@@ -27,7 +29,9 @@ predict_project_2_pathway(
   tfmn_ls = make_class_tfmns(),
   tx_duration_dtm = lubridate::weeks(12),
   treatment_ls = NULL,
-  utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
+  utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
+  utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
+  X_MimicConfiguration = MimicConfiguration()
 )
 ```
 
@@ -35,15 +39,15 @@ predict_project_2_pathway(
 
 - inputs_ls:
 
-  Inputs (a list)
-
-- arm_1L_chr:
-
-  Arm (a character vector of length one)
+  Inputs (a list), Default: NULL
 
 - add_logic_fn:
 
   Add logic (a function), Default: identity
+
+- arm_1L_chr:
+
+  Arm (a character vector of length one)
 
 - arms_for_intervention_costs_chr:
 
@@ -61,6 +65,14 @@ predict_project_2_pathway(
 
   Arms for Initial Assessment andeferral adjustment (a character
   vector), Default: character(0)
+
+- batch_1L_int:
+
+  Batch (an integer vector of length one), Default: integer(0)
+
+- derive_extras_ls:
+
+  Derive extras (a list), Default: list()
 
 - draws_tb:
 
@@ -111,6 +123,15 @@ predict_project_2_pathway(
 
   Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2",
   "SF6D", "SF6DM2")
+
+- utility_fns_ls:
+
+  Utility functions (a list), Default: make_utility_fns_ls(utilities_chr
+  = utilities_chr)
+
+- X_MimicConfiguration:
+
+  PARAM_DESCRIPTION, Default: MimicConfiguration()
 
 ## Value
 

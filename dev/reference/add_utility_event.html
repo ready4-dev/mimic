@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9004</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,6 @@
 <span>  add_sensitivity_1L_lgl <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  adjustment_1L_dbl <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  follow_up_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
-<span>  utility_fns_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  iterations_int <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100L</span>,</span>
 <span>  maintain_for_1L_int <span class="op">=</span> <span class="fl">0L</span>,</span>
 <span>  models_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -56,6 +55,7 @@
 <span>  tidy_cols_1L_lgl <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  update_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  utilities_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CHU9D"</span>, <span class="st">"AQoL6D"</span><span class="op">)</span>,</span>
+<span>  utility_fns_ls <span class="op">=</span> <span class="fu"><a href="make_utility_fns_ls.html">make_utility_fns_ls</a></span><span class="op">(</span>utilities_chr <span class="op">=</span> <span class="va">utilities_chr</span><span class="op">)</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Model"</span>, <span class="st">"Function"</span>, <span class="st">"Project"</span><span class="op">)</span>,</span>
 <span>  what_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"old"</span>, <span class="st">"new"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -83,10 +83,6 @@
 
 <dt id="arg-follow-up-l-int">follow_up_1L_int<a class="anchor" aria-label="anchor" href="#arg-follow-up-l-int"></a></dt>
 <dd><p>Follow up (an integer vector of length one), Default: integer(0)</p></dd>
-
-
-<dt id="arg-utility-fns-ls">utility_fns_ls<a class="anchor" aria-label="anchor" href="#arg-utility-fns-ls"></a></dt>
-<dd><p>Utility functions (a list), Default: NULL</p></dd>
 
 
 <dt id="arg-iterations-int">iterations_int<a class="anchor" aria-label="anchor" href="#arg-iterations-int"></a></dt>
@@ -131,6 +127,10 @@
 
 <dt id="arg-utilities-chr">utilities_chr<a class="anchor" aria-label="anchor" href="#arg-utilities-chr"></a></dt>
 <dd><p>Utilities (a character vector), Default: c("CHU9D", "AQoL6D")</p></dd>
+
+
+<dt id="arg-utility-fns-ls">utility_fns_ls<a class="anchor" aria-label="anchor" href="#arg-utility-fns-ls"></a></dt>
+<dd><p>Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)</p></dd>
 
 
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
