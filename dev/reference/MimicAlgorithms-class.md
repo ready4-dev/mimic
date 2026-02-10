@@ -20,6 +20,10 @@ The core set of functions that define simulation behaviour.
 
   Transformations (a list)
 
+- `x_MimicUtility`:
+
+  (an instance of the MimicUtility class)
+
 - `dissemination_1L_chr`:
 
   Dissemination (a character vector of length one)

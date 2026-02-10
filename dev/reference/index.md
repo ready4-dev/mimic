@@ -2,15 +2,15 @@
 
 ## S4 Classes
 
+- [`MimicUtility-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
+  [`MimicUtility`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
+  : MimicUtility
 - [`MimicAlgorithms-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
   [`MimicAlgorithms`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
   : MimicAlgorithms
 - [`MimicInputs-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   [`MimicInputs`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   : MimicInputs
-- [`MimicUtility-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
-  [`MimicUtility`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
-  : MimicUtility
 - [`MimicRepos-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   [`MimicRepos`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   : MimicRepos

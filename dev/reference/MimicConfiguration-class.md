@@ -40,10 +40,6 @@ Configuration details for a simulation run.
 
   Start (a date vector)
 
-- `utilities_chr`:
-
-  Utilities (a character vector)
-
 - `x_MimicAlgorithms`:
 
   (an instance of the MimicAlgorithms class)
