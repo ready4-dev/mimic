@@ -17,9 +17,9 @@ development:
 reference:
 - title: "S4 Classes"
 - contents:
+  - MimicUtility
   - MimicAlgorithms
   - MimicInputs
-  - MimicUtility
   - MimicRepos
   - MimicConfiguration
 - title: "Functions"

@@ -1,6 +1,6 @@
 #' MimicUtility
 #' 
-#' Utility algorithm data (instrument names, modules, mapping functions and transformation functions).
+#' Utility algorithms and supporting data (instrument names, modules, mapping functions and transformation functions).
 #' 
 #' @slot names_chr Names (a character vector)
 #' @slot data_ls Data (a list)

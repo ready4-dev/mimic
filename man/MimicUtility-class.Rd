@@ -6,7 +6,7 @@
 \alias{MimicUtility}
 \title{MimicUtility}
 \description{
-Utility algorithm data (instrument names, modules, mapping functions and transformation functions).
+Utility algorithms and supporting data (instrument names, modules, mapping functions and transformation functions).
 }
 \section{Slots}{
 

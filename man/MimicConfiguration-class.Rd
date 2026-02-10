@@ -29,8 +29,6 @@ Configuration details for a simulation run.
 
 \item{\code{start_dtm}}{Start (a date vector)}
 
-\item{\code{utilities_chr}}{Utilities (a character vector)}
-
 \item{\code{x_MimicAlgorithms}}{(an instance of the MimicAlgorithms class)}
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}
