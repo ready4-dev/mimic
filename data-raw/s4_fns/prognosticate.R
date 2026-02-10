@@ -44,42 +44,55 @@ prognosticate_MimicConfiguration <- function(x,
     }
     extras_ls <- list(...)
     args_ls <- list(
+      # inputs_ls = NULL,
       arms_chr = character(0),
-      # arms_tb = x@arms_tb,
-      comparator_fn = NULL,#x@x_MimicAlgorithms@main_ls$comparator_fn,
+      comparator_fn = NULL,
       draws_tb = draws_tb,
-      # drop_missing_1L_lgl = x@drop_missing_1L_lgl,
-      # drop_suffix_1L_chr = if(is.na(x@drop_suffix_1L_chr)){
-      #   character(0)
-      # }else{
-      #   x@drop_suffix_1L_chr 
-      # },
-      # extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
-      # horizon_dtm = x@horizon_dtm,
-      # inputs_ls = manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls"), 
-      intervention_fn = NULL,#x@x_MimicAlgorithms@main_ls$intervention_fn,
-      # iterations_ls = x@iterations_ls,
-      # modifiable_chr = if(is.na(x@modifiable_chr[1])){
-      #   character(0)
-      # }else{
-      #   x@modifiable_chr 
-      # },
+      drop_missing_1L_lgl = logical(0),
+      # drop_suffix_1L_chr = character(0), 
+      # extra_draws_fn = NULL,
+      horizon_dtm = lubridate::period(),
+      intervention_fn = NULL,
+      iterations_ls = NULL,
+      modifiable_chr = character(0),
+      # prior_batches_1L_int = 0, 
       purge_1L_lgl = purge_1L_lgl, 
-      # seed_1L_int = x@seed_1L_int,
-      # sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls,
-      # start_dtm = x@start_dtm,
-      # synthesis_fn = x@x_MimicAlgorithms@processing_ls$synthesis_fn,
-      # tfmn_ls = x@x_MimicAlgorithms@transformations_ls,
-      # utilities_chr = x@utilities_chr,
-      unlink_1L_lgl = unlink_1L_lgl,
-      write_to_1L_chr = write_to_1L_chr, 
+      seed_1L_int = integer(0),
+      sensitivities_ls = NULL,
+      start_dtm = lubridate::NA_Date_,
+      synthesis_fn = NULL,
+      tfmn_ls = NULL,
       type_1L_chr = type_1L_chr,
-      X_MimicConfiguration = x
-      # X_MimicAlgorithms = x@x_MimicAlgorithms,
-      # X_MimicInputs = x@x_MimicInputs,
-      # Y_MimicRepos = Y_MimicRepos
+      unlink_1L_lgl = unlink_1L_lgl,
+      utilities_chr = character(0),
+      utility_fns_ls = NULL, # list(),
+      write_to_1L_chr = write_to_1L_chr, 
+      X_MimicConfiguration = x,
+      Y_MimicRepos = Y_MimicRepos
     ) %>%
       append(extras_ls)
+    
+    # comparator_fn = predict_comparator_pathway, # make NULL
+    # draws_tb = NULL,
+    # drop_missing_1L_lgl = FALSE, 
+    # drop_suffix_1L_chr = character(0), 
+    # extra_draws_fn = NULL,
+    # intervention_fn = predict_digital_pathway, # make NULL
+    # iterations_ls = make_batches(5, of_1L_int = 20), 
+    # horizon_dtm = lubridate::years(1), 
+    # modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), # Remove default
+    # prior_batches_1L_int = 0, 
+    # purge_1L_lgl = TRUE, 
+    # seed_1L_int = 2001L, 
+    # sensitivities_ls = make_sensitivities_ls(), 
+    # synthesis_fn = make_project_results_synthesis,
+    # start_dtm = Sys.Date(), 
+    # tfmn_ls = make_class_tfmns(),
+    # type_1L_chr = c("D", "AB", "C", "NULL"), 
+    # unlink_1L_lgl = FALSE, 
+    # utilities_chr = c("AQoL6D", "CHU9D"), # Remove default
+    # write_to_1L_chr = character(0),
+    
     errors_ls <- rlang::exec(predict_with_sim, !!!args_ls)
   }
 

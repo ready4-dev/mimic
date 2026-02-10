@@ -1,7 +1,6 @@
 write_batch <- function (batch_1L_int, 
                          # add_logic_fn, 
                          arms_chr = character(0), 
-                         # arms_tb = make_arms_tb(),
                          # base_for_rates_int, 
                          comparator_fn = NULL, 
                          # draws_dir_1L_chr = character(0), 
@@ -22,12 +21,11 @@ write_batch <- function (batch_1L_int,
                          tfmn_ls = NULL, 
                          # tx_duration_dtm, 
                          utilities_chr = character(0), 
+                         utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
                          # variable_unit_1L_chr, 
                          write_to_1L_chr,
                          X_MimicConfiguration = MimicConfiguration(),
-                         # X_MimicAlgorithms = MimicAlgorithms(),
-                         # X_MimicInputs = MimicInputs(),
-                         # Y_MimicRepos = MimicRepos(),
+                         Y_MimicRepos = MimicRepos(),
                          ...) 
 {
   old_algorithm_1L_lgl <- T
@@ -60,37 +58,39 @@ write_batch <- function (batch_1L_int,
                                                drop_suffix_1L_chr = drop_suffix_1L_chr,
                                                extra_draws_fn = extra_draws_fn,
                                                horizon_dtm = horizon_dtm,
+                                               # initialise_ls = make_project_2_initialise_ls(),
                                                iterations_ls = iterations_ls,
                                                modifiable_chr = modifiable_chr,
                                                seed_1L_int = seed_1L_int,
                                                sensitivities_ls = sensitivities_ls,
                                                start_dtm = start_dtm,
                                                synthesis_fn = synthesis_fn,
-                                               utilities_chr = utilities_chr)
-    #   MimicConfiguration() %>%
-    #   renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl,
-    #             drop_suffix_1L_chr = drop_suffix_1L_chr,
-    #             horizon_dtm = horizon_dtm,
-    #             iterations_ls = iterations_ls,
-    #             modifiable_chr = modifiable_chr,
-    #             seed_1L_int = seed_1L_int,
-    #             start_dtm = start_dtm,
-    #             utilities_chr = utilities_chr)
-    # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,
-    #             "x_MimicAlgorithms@processing_ls",
-    #             list(extra_draws_fn = extra_draws_fn,
-    #                  synthesis_fn = synthesis_fn)) %>%
-    #   renewSlot("x_MimicAlgorithms@sensitivities_ls",
-    #             sensitivities_ls) %>%
-    #   renewSlot("x_MimicAlgorithms@transformations_ls",
-    #             tfmn_ls) %>%
-    #   renewSlot("arms_tb",
-    #             make_arms_tb(arms_chr,
-    #                          settings_ls = list(
-    #                            # Treatment = rep("MMHC",2),
-    #                            Algorithm = c("intervention_fn", "comparator_fn")))
-    #             # "arms_chr", c("MMHC","FlexPsych")
-    #   )
+                                               # transformations_ls = tfmn_ls, ###################
+                                               utilities_chr = utilities_chr,
+                                               utility_fns_ls = utility_fns_ls,
+                                               # arms_extras_ls = list(Algorithm = rep("Project 2", 2)) %>%
+                                               #   append(add_arm_columns_ls)
+                                               )
+    # arms_chr = arms_chr, # arm_1L_chr,
+    # drop_missing_1L_lgl = T,
+    # drop_suffix_1L_chr = "_mean",
+    # extra_draws_fn = extra_draws_fn,
+    # horizon_dtm = horizon_dtm,
+    # initialise_ls = make_project_2_initialise_ls(),
+    # inputs_ls = inputs_ls,
+    # iterations_ls = iterations_ls,#######################
+    # main_ls = list(`Project 2` = predict_project_2_pathway),
+    # modifiable_chr = modifiable_chr,
+    # seed_1L_int = seed_1L_int,
+    # sensitivities_ls = sensitivities_ls,
+    # start_dtm = start_dtm,
+    # synthesis_fn = NULL, ## DIFFERENT
+    # transformations_ls = tfmn_ls, ###################
+    # utilities_chr = utilities_chr,
+    # utility_fns_ls = utility_fns_ls,
+    # arms_extras_ls = list(Algorithm = rep("Project 2", 2)) %>%
+    #   append(add_arm_columns_ls)
+
   }
   # if(!identical(X_MimicAlgorithms = MimicAlgorithms())){
   #   
@@ -107,7 +107,7 @@ write_batch <- function (batch_1L_int,
   # iterations_int <- X_MimicConfiguration@iterations_ls[[batch_1L_int]] # manufacture method
   iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
   if(is.null(draws_tb)){
-    if(!identical(Y_MimicRepos, MimicRepos())){
+    if(!identical(Y_MimicRepos, MimicRepos())){ 
       draws_tb <- ingest(Y_MimicRepos, batches_int = batch_1L_int, type_1L_chr = "ParamDraws")
     }else{
       draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "draws_tb") 

@@ -40,8 +40,6 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 name_stub_chr = "Utility",
                                                                 slots_ls = list("names_chr", "data_ls", "mapping_ls", "transformations_ls") %>% list(), 
                                                                 pt_ls = list("character", "list", "list", "list") %>% list(),
-                                                                # vals_ls = list(list(names_chr = "names(make_utility_fns_ls())",
-                                                                #                     mapping_ls = "make_utility_fns_ls()")),
                                                                 class_desc_chr = "Utility algorithms and supporting data (instrument names, modules, mapping functions and transformation functions).",
                                                                 parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,

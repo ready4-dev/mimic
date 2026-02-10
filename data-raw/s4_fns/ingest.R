@@ -94,7 +94,7 @@ ingest_MimicRepos <- function(x,
       renewSlot("models_ls", ingest_xx$models_ls) %>%
       renewSlot("x_Ready4useDyad@ds_tb", ingest_xx$params_tb) %>%
       renewSlot("y_Ready4useDyad", ingest_xx$Synthetic_r4)
-    ingest_xx <- renewSlot(ingest_xx, "x_Ready4useDyad", renew(ingest_xx@x_Ready4useDyad, what_1L_chr = "dictionary",type_1L_chr = "new"))
+    ingest_xx <- renewSlot(ingest_xx, "x_Ready4useDyad", renew(ingest_xx@x_Ready4useDyad, what_1L_chr = "dictionary", type_1L_chr = "new"))
   }else{
     if(type_1L_chr == "element"){
       ingest_xx <- ingest_xx %>%

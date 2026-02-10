@@ -177,41 +177,68 @@ make_configuration <- function(arms_chr,
                                drop_suffix_1L_chr,
                                extra_draws_fn,
                                horizon_dtm,
+                               initialise_ls,
+                               inputs_ls,
                                iterations_ls,
+                               main_ls,
                                modifiable_chr,
                                seed_1L_int,
                                sensitivities_ls,
                                start_dtm,
-                               synthesis_fn,
+                               synthesis_fn = make_project_results_synthesis,
                                transformations_ls,
                                utilities_chr,
+                               utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
                                arms_extras_ls = list()){
+  # arms_chr = arms_chr, # arm_1L_chr,
+  # drop_missing_1L_lgl = T,
+  # drop_suffix_1L_chr = "_mean",
+  # extra_draws_fn = extra_draws_fn,
+  # horizon_dtm = horizon_dtm,
+  # initialise_ls = make_project_2_initialise_ls(),
+  # inputs_ls = inputs_ls,
+  # iterations_ls = iterations_ls,#######################
+  # main_ls = list(`Project 2` = predict_project_2_pathway),
+  # modifiable_chr = modifiable_chr,
+  # seed_1L_int = seed_1L_int,
+  # sensitivities_ls = sensitivities_ls,
+  # start_dtm = start_dtm,
+  # synthesis_fn = NULL, ## DIFFERENT
+  # transformations_ls = tfmn_ls, ###################
+  # utilities_chr = utilities_chr,
+  # utility_fns_ls = utility_fns_ls,
+  # arms_extras_ls = list(Algorithm = rep("Project 2", 2)) %>%
+  #   append(add_arm_columns_ls)
+  
+  
   X_MimicConfiguration <- MimicConfiguration() %>%
-    renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl,
-              drop_suffix_1L_chr = drop_suffix_1L_chr,
-              horizon_dtm = horizon_dtm,
-              iterations_ls = iterations_ls,
-              modifiable_chr = modifiable_chr,
-              seed_1L_int = seed_1L_int,
-              start_dtm = start_dtm,
-              utilities_chr = utilities_chr)
-  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,
-                                    "x_MimicAlgorithms@processing_ls",
-                                    list(extra_draws_fn = extra_draws_fn,
-                                         synthesis_fn = synthesis_fn)) %>%
-    renewSlot("x_MimicAlgorithms@sensitivities_ls",
-              sensitivities_ls) %>%
-    renewSlot("x_MimicAlgorithms@transformations_ls",
-              transformations_ls) %>%
-    renewSlot("arms_tb",
-              make_arms_tb(arms_chr,
-                           settings_ls = list(
-                             # Treatment = rep("MMHC",2),
-                             Algorithm = c("intervention_fn", "comparator_fn")) %>%
-                             append(arms_extras_ls)
-                           )
-              # "arms_chr", c("MMHC","FlexPsych")
-    )
+    renewSlot("x_MimicInputs", MimicInputs() %>%
+                renewSlot("models_ls", inputs_ls$models_ls) %>%
+                renewSlot("x_Ready4useDyad@ds_tb", inputs_ls$params_tb) %>%
+                renewSlot("y_Ready4useDyad", inputs_ls$Synthetic_r4))
+  X_MimicConfiguration <- MimicConfiguration() %>%
+    renewSlot("x_MimicInputs@x_Ready4useDyad", renew(X_MimicConfiguration@x_MimicInputs@x_Ready4useDyad, what_1L_chr = "dictionary", type_1L_chr = "new"))
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
+                                    renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", main_ls) %>%
+                   renewSlot("processing_ls", make_simulation_fns_ls("processing",
+                                                                     extra_draws_fn = extra_draws_fn,
+                                                                     initialise_ls = initialise_ls,
+                                                                     synthesis_fn = synthesis_fn)) %>%
+                   renewSlot("sensitivities_ls", sensitivities_ls)  %>%
+                   renewSlot("transformations_ls", transformations_ls) %>%
+                   renewSlot("x_MimicUtility@names_chr", utilities_chr) %>%
+                   renewSlot("x_MimicUtility@mapping_ls", utility_fns_ls))
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
+                                    "arms_tb",
+                                    make_arms_tb(arms_chr,
+                                                 settings_ls = arms_extras_ls)) %>% 
+    renewSlot("drop_missing_1L_lgl", drop_missing_1L_lgl) %>%
+    renewSlot("drop_suffix_1L_chr", drop_suffix_1L_chr) %>%
+    renewSlot("horizon_dtm", horizon_dtm) %>%
+    renewSlot("iterations_ls", iterations_ls) %>%
+    renewSlot("modifiable_chr", modifiable_chr) %>%
+    renewSlot("seed_1L_int", seed_1L_int) %>%
+    renewSlot("start_dtm", start_dtm) 
   return(X_MimicConfiguration)
 }
 make_confusion_ls <- function(regressions_ls,
@@ -563,6 +590,14 @@ make_iar_params <- function(processed_ls,
     parameters_dbl <- c(mean_1L_dbl, se_1L_dbl, n_1L_dbl)
   }
   return(parameters_dbl)
+}
+make_initialise_ls <- function(default_fn = identity,
+                               derive_ls = list(),
+                               update_fn = identity){
+  initialise_ls <- list(default_fn = default_fn,
+                        derive_ls = derive_ls,
+                        update_fn = update_fn)
+  return(initialise_ls)
 }
 make_interactions_summary <- function(processed_ls){
   interactions_tb <-processed_ls$overview@ds_tb %>% 
@@ -1545,7 +1580,18 @@ make_project_2_days_mdls <- function(X_Ready4useDyad,
                            "_mdl"))
   return(tpm_mdls_ls)
 }
-
+make_project_2_initialise_ls <- function(){
+  initialise_ls <- make_initialise_ls(default_fn = function(X) renewSlot(X, "ds_tb", 
+                                                           c("Episode",
+                                                             "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
+                                                             "Cost", "Cost_S1", "Cost_S2") %>%
+                                                             purrr::reduce(.init = X@ds_tb,
+                                                                           ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0))),
+                                      derive_ls = list(),
+                                      update_fn = function(modifiable_chr) setdiff(modifiable_chr,
+                                                                    c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins")))
+  return(initialise_ls)
+}
 make_project_2_k10_mdls <-function (X_Ready4useDyad) {
   K10_ls <- list()
   K10_ls <- list(OLS_1_mdl = lm(formula = K10_End ~ Intervention +
@@ -4637,9 +4683,13 @@ make_simulated_draws <- function(model_mdl,
     as.data.frame() %>% stats::setNames(paste0("sim_",iterations_int)) 
   return(simulations_df)
 }
+
+
 make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "sensitivity", "transformation"),
+                                   # add_chr = character(0),
                                    comparator_fn = identity,
                                    extra_draws_fn = NULL,
+                                   initialise_ls = make_initialise_ls(),
                                    intervention_fn = identity,
                                    sensitivities_ls = make_sensitivities_ls(),
                                    synthesis_fn = make_project_results_synthesis,
@@ -4648,23 +4698,25 @@ make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "
   type_1L_chr <- match.arg(type_1L_chr)
   extras_ls <- list(...)
     simulation_fns_ls <- list(comparator_fn = comparator_fn,
-                              extra_draws_fn = extra_draws_fn ,
+                              extra_draws_fn = extra_draws_fn,
+                              initialise_ls = initialise_ls,
                               intervention_fn = intervention_fn,
                               synthesis_fn = synthesis_fn,
                               sensitivities_ls = sensitivities_ls,
                               transformation_ls = transformation_ls) %>%
     append(extras_ls)
+  
     if(type_1L_chr=="main"){
-      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn","intervention_fn"))
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn","intervention_fn", names(extras_ls)))
     }
     if(type_1L_chr=="processing"){
-      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn","synthesis_fn"))
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn","initialise_ls","synthesis_fn", names(extras_ls)))
     }
     if(type_1L_chr=="sensitivity"){
-      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls"))
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls", names(extras_ls)))
     }
     if(type_1L_chr=="transformation"){
-      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls"))
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls", names(extras_ls)))
     }
 
   return(simulation_fns_ls)
@@ -5004,15 +5056,17 @@ make_utility_fns_ls <- function(add_to_ls = list(),
                                 sf6d_fn = add_sf6d_from_draws,
                                 utilities_chr = c("AQoL8D", "EQ5D", "SF6D")
 ){
-  utility_fns_ls <- list(AQoL8D = aqol8d_fn,
-                         EQ5D = eq5d_fn,
-                         EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr),
-                         SF6D = sf6d_fn,
-                         SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>%
-    purrr::keep_at(utilities_chr)
-  # if(!is.null(add_to_ls)){
-    utility_fns_ls <- append(utility_fns_ls, add_to_ls)
-  # }
+  if(identical(utilities_chr, character(0))){
+    utility_fns_ls <- list()
+  }else{
+    utility_fns_ls <- list(AQoL8D = aqol8d_fn,
+                           EQ5D = eq5d_fn,
+                           EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr),
+                           SF6D = sf6d_fn,
+                           SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>%
+      purrr::keep_at(utilities_chr)
+  }
+  utility_fns_ls <- append(utility_fns_ls, add_to_ls)
   return(utility_fns_ls)
 }
 make_utility_predictions_ds <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
