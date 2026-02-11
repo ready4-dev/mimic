@@ -8,9 +8,10 @@ procure method applied to MimicConfiguration
 # S4 method for class 'MimicConfiguration'
 procure(
   x,
-  arm_1L_chr = NA_character_,
   empty_xx = NULL,
+  match_value_xx = NULL,
   target_1L_chr = character(0),
+  type_1L_chr = "Arm",
   what_1L_chr = c("arm")
 )
 ```
@@ -21,17 +22,21 @@ procure(
 
   An object of class MimicConfiguration
 
-- arm_1L_chr:
-
-  Arm (a character vector of length one), Default: 'NA'
-
 - empty_xx:
 
   Empty (an object of multiple potential types), Default: 'NULL'
 
+- match_value_xx:
+
+  Match value (an object of multiple potential types), Default: 'NA'
+
 - target_1L_chr:
 
   Target (a character vector of length one), Default: character(0)
+
+- type_1L_chr:
+
+  Type (a character vector of length one), Default: c("Arm")
 
 - what_1L_chr:
 
