@@ -18,8 +18,10 @@
 #' @param start_dtm Start (a date vector), Default: Sys.Date()
 #' @param tfmn_ls Transformation (a list), Default: NULL
 #' @param utilities_chr Utilities (a character vector), Default: character(0)
+#' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @param write_to_1L_chr Write to (a character vector of length one)
 #' @param X_MimicConfiguration PARAM_DESCRIPTION, Default: MimicConfiguration()
+#' @param Y_MimicRepos PARAM_DESCRIPTION, Default: MimicRepos()
 #' @param ... Additional arguments
 #' @return No return value, called for side effects.
 #' @rdname write_batch
@@ -37,8 +39,9 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
     inputs_ls = NULL, intervention_fn = NULL, iterations_ls = NULL, 
     modifiable_chr = character(0), prior_batches_1L_int = integer(0), 
     seed_1L_int = 2001L, sensitivities_ls = NULL, start_dtm = Sys.Date(), 
-    tfmn_ls = NULL, utilities_chr = character(0), write_to_1L_chr, 
-    X_MimicConfiguration = MimicConfiguration(), ...) 
+    tfmn_ls = NULL, utilities_chr = character(0), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
+    write_to_1L_chr, X_MimicConfiguration = MimicConfiguration(), 
+    Y_MimicRepos = MimicRepos(), ...) 
 {
     old_algorithm_1L_lgl <- T
     if (!identical(X_MimicConfiguration, MimicConfiguration())) {
@@ -48,10 +51,12 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
         X_MimicConfiguration <- make_configuration(arms_chr = arms_chr, 
             drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
             extra_draws_fn = extra_draws_fn, horizon_dtm = horizon_dtm, 
-            iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
-            seed_1L_int = seed_1L_int, sensitivities_ls = sensitivities_ls, 
-            start_dtm = start_dtm, synthesis_fn = synthesis_fn, 
-            utilities_chr = utilities_chr)
+            initialise_ls = list("UPDATE"), inputs_ls = inputs_ls, 
+            iterations_ls = iterations_ls, main_ls = list("UPDATE"), 
+            modifiable_chr = modifiable_chr, seed_1L_int = seed_1L_int, 
+            sensitivities_ls = sensitivities_ls, start_dtm = start_dtm, 
+            synthesis_fn = synthesis_fn, transformations_ls = tfmn_ls, 
+            utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls)
     }
     iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
         what_1L_chr = "iterations")
@@ -88,7 +93,8 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
         if (!is.null(intervention_fn)) {
             args_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arms_chr[1], 
                 batch_1L_int = batch_1L_int, what_1L_chr = "args_all")
-            args_ls <- update_arguments_ls(new_args_ls, function_fn = intervention_fn)
+            args_ls <- update_arguments_ls(append(args_ls, extras_ls), 
+                function_fn = intervention_fn)
             Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
         }
         else {
@@ -97,7 +103,8 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
         if (!is.null(comparator_fn)) {
             args_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arms_chr[2], 
                 batch_1L_int = batch_1L_int, what_1L_chr = "args_all")
-            args_ls <- update_arguments_ls(args_ls, function_fn = comparator_fn)
+            args_ls <- update_arguments_ls(append(args_ls, extras_ls), 
+                function_fn = comparator_fn)
             Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
         }
         else {

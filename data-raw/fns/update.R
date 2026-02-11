@@ -6,97 +6,7 @@ update_arguments_ls <- function(args_ls,
   }
   return(args_ls)
 }
-update_project_2_configuration<- function (X_MimicConfiguration,
-                                           batch_1L_int,
-                                           arms_chr = character(0),
-                                           arms_for_intervention_costs_chr = character(0),
-                                           arms_for_offsets_chr = character(0), 
-                                           arms_for_non_helpseeking_chr = character(0), 
-                                           arms_for_iar_adjustment_chr = character(0), 
-                                           extra_draws_fn = NULL,
-                                           horizon_dtm = lubridate::years(1), 
-                                           inputs_ls = NULL, 
-                                           iterations_int = integer(0), 
-                                           modifiable_chr = make_project_2_vars("modify"),
-                                           seed_1L_int = 2001L, 
-                                           sensitivities_ls = make_project_2_sensitivities_ls(), 
-                                           start_dtm = Sys.Date(), 
-                                           tfmn_ls = make_class_tfmns(), 
-                                           tx_duration_dtm = lubridate::weeks(12), 
-                                           treatment_ls = NULL,
-                                           utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
-                                           utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)){
-  if(!identical(X_MimicConfiguration, MimicConfiguration())){
-    # X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "seed_1L_int",
-    #                                   X_MimicConfiguration@seed_1L_int + batch_1L_int)
-    if(is.na(X_MimicConfiguration@modifiable_chr[1])){
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "modifiable_chr",
-                                        character(0))
-    }
-    if(identical(names(X_MimicConfiguration@arms_tb), "Arm")){
-      arms_extras_ls <- make_project_2_arms_extras_ls(X_MimicConfiguration@arms_tb$Arm,
-                                                      arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
-                                                      arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
-                                                      arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
-                                                      arms_for_offsets_chr = arms_for_offsets_chr,
-                                                      treatment_ls = treatment_ls,
-                                                      tx_duration_dtm = tx_duration_dtm)
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
-                                        "arms_tb",
-                                        make_arms_tb(X_MimicConfiguration@arms_tb,
-                                                     settings_ls = arms_extras_ls))
-    }
-    if(identical(X_MimicConfiguration@x_MimicAlgorithms@main_ls, list("UPDATE"))){
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
-                                        renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", list(`Project 2` = predict_project_2_pathway)))
-    }
-    if(identical(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
-      new_ls <- make_simulation_fns_ls("processing",
-                                       initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
-      new_ls <- new_ls$initialise_ls
-      new_ls <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicAlgorithms@processing_ls", new_ls)
-    }
-  }else{
-    iterations_ls <- purrr::map(1:batch_1L_int,
-                                ~ {
-                                  if(.x == batch_1L_int){
-                                    iterations_int
-                                  }else{
-                                    integer(0)
-                                  }
-                                })
-    arms_extras_ls <- make_project_2_arms_extras_ls(arms_chr,
-                                                    arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
-                                                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
-                                                    arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
-                                                    arms_for_offsets_chr = arms_for_offsets_chr,
-                                                    treatment_ls = treatment_ls,
-                                                    tx_duration_dtm = tx_duration_dtm)
-    #####
-    X_MimicConfiguration <- make_configuration(
-      # add_logic_fn = identity, 
-      arms_chr = arms_chr, 
-      drop_missing_1L_lgl = T,
-      drop_suffix_1L_chr = "_mean",
-      extra_draws_fn = extra_draws_fn,
-      horizon_dtm = horizon_dtm,
-      initialise_ls = make_project_2_initialise_ls(derive_ls = utility_fns_ls),
-      inputs_ls = inputs_ls,
-      iterations_ls = iterations_ls,
-      main_ls = list(`Project 2` = predict_project_2_pathway),
-      modifiable_chr = modifiable_chr,
-      seed_1L_int = seed_1L_int - batch_1L_int, ## Note edit - Only currently relevant if draws are created within algorithm
-      sensitivities_ls = sensitivities_ls,
-      start_dtm = start_dtm,
-      synthesis_fn = NULL, ## DIFFERENT
-      transformations_ls = tfmn_ls, 
-      utilities_chr = utilities_chr,
-      utility_fns_ls = utility_fns_ls,
-      arms_extras_ls = arms_extras_ls)
-  }
-  return(X_MimicConfiguration)
-}
+
 update_current_date <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                  dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,
@@ -513,6 +423,97 @@ update_processed_tb <- function(data_tb,
                      Start = dplyr::first(Start),
                      End = dplyr::first(End))
   return(data_tb)
+}
+update_project_2_configuration<- function (X_MimicConfiguration,
+                                           batch_1L_int,
+                                           arms_chr = character(0),
+                                           arms_for_intervention_costs_chr = character(0),
+                                           arms_for_offsets_chr = character(0), 
+                                           arms_for_non_helpseeking_chr = character(0), 
+                                           arms_for_iar_adjustment_chr = character(0), 
+                                           extra_draws_fn = NULL,
+                                           horizon_dtm = lubridate::years(1), 
+                                           inputs_ls = NULL, 
+                                           iterations_int = integer(0), 
+                                           modifiable_chr = make_project_2_vars("modify"),
+                                           seed_1L_int = 2001L, 
+                                           sensitivities_ls = make_project_2_sensitivities_ls(), 
+                                           start_dtm = Sys.Date(), 
+                                           tfmn_ls = make_class_tfmns(), 
+                                           tx_duration_dtm = lubridate::weeks(12), 
+                                           treatment_ls = NULL,
+                                           utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
+                                           utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)){
+  if(!identical(X_MimicConfiguration, MimicConfiguration())){
+    # X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "seed_1L_int",
+    #                                   X_MimicConfiguration@seed_1L_int + batch_1L_int)
+    if(is.na(X_MimicConfiguration@modifiable_chr[1])){
+      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "modifiable_chr",
+                                        character(0))
+    }
+    if(identical(names(X_MimicConfiguration@arms_tb), "Arm")){
+      arms_extras_ls <- make_project_2_arms_extras_ls(X_MimicConfiguration@arms_tb$Arm,
+                                                      arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
+                                                      arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
+                                                      arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
+                                                      arms_for_offsets_chr = arms_for_offsets_chr,
+                                                      treatment_ls = treatment_ls,
+                                                      tx_duration_dtm = tx_duration_dtm)
+      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
+                                        "arms_tb",
+                                        make_arms_tb(X_MimicConfiguration@arms_tb,
+                                                     settings_ls = arms_extras_ls))
+    }
+    if(identical(X_MimicConfiguration@x_MimicAlgorithms@main_ls, list("UPDATE"))){
+      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
+                                        renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", list(`Project 2` = predict_project_2_pathway)))
+    }
+    if(identical(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
+      new_ls <- make_simulation_fns_ls("processing",
+                                       initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
+      new_ls <- new_ls$initialise_ls
+      new_ls <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
+      X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicAlgorithms@processing_ls", new_ls)
+    }
+  }else{
+    iterations_ls <- purrr::map(1:batch_1L_int,
+                                ~ {
+                                  if(.x == batch_1L_int){
+                                    iterations_int
+                                  }else{
+                                    integer(0)
+                                  }
+                                })
+    arms_extras_ls <- make_project_2_arms_extras_ls(arms_chr,
+                                                    arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
+                                                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
+                                                    arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
+                                                    arms_for_offsets_chr = arms_for_offsets_chr,
+                                                    treatment_ls = treatment_ls,
+                                                    tx_duration_dtm = tx_duration_dtm)
+    #####
+    X_MimicConfiguration <- make_configuration(
+      # add_logic_fn = identity, 
+      arms_chr = arms_chr, 
+      drop_missing_1L_lgl = T,
+      drop_suffix_1L_chr = "_mean",
+      extra_draws_fn = extra_draws_fn,
+      horizon_dtm = horizon_dtm,
+      initialise_ls = make_project_2_initialise_ls(derive_ls = utility_fns_ls),
+      inputs_ls = inputs_ls,
+      iterations_ls = iterations_ls,
+      main_ls = list(`Project 2` = predict_project_2_pathway),
+      modifiable_chr = modifiable_chr,
+      seed_1L_int = seed_1L_int - batch_1L_int, ## Note edit - Only currently relevant if draws are created within algorithm
+      sensitivities_ls = sensitivities_ls,
+      start_dtm = start_dtm,
+      synthesis_fn = NULL, ## DIFFERENT
+      transformations_ls = tfmn_ls, 
+      utilities_chr = utilities_chr,
+      utility_fns_ls = utility_fns_ls,
+      arms_extras_ls = arms_extras_ls)
+  }
+  return(X_MimicConfiguration)
 }
 update_project_2_param_names <- function(params_tb,
                                          intervention_1L_chr){

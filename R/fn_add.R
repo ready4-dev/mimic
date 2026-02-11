@@ -759,6 +759,7 @@ add_draws_from_pool <- function (draws_tb, inputs_ls, iterations_1L_int, scale_1
 #' @param arm_1L_chr Arm (a character vector of length one)
 #' @param draws_tb Draws (a tibble)
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
+#' @param default_args_ls Default arguments (a list), Default: list()
 #' @param default_fn Default (a function), Default: NULL
 #' @param derive_fn_ls Derive (a list of functions), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
@@ -774,11 +775,13 @@ add_draws_from_pool <- function (draws_tb, inputs_ls, iterations_1L_int, scale_1
 #' @importFrom lubridate years weeks NA_Date_
 #' @importFrom dplyr mutate select everything inner_join
 #' @importFrom purrr map_dfr reduce pluck
+#' @importFrom rlang exec
 #' @keywords internal
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
-    default_fn = NULL, derive_fn_ls = NULL, iterations_int = 1:100L, 
-    modifiable_chr = character(0), start_dtm = Sys.Date(), tidy_cols_1L_lgl = FALSE, 
-    tfmn_ls = NULL, tx_duration_dtm = lubridate::weeks(12), tx_prefix_1L_chr = "treatment") 
+    default_args_ls = list(), default_fn = NULL, derive_fn_ls = NULL, 
+    iterations_int = 1:100L, modifiable_chr = character(0), start_dtm = Sys.Date(), 
+    tidy_cols_1L_lgl = FALSE, tfmn_ls = NULL, tx_duration_dtm = lubridate::weeks(12), 
+    tx_prefix_1L_chr = "treatment") 
 {
     X_Ready4useDyad <- X_Ready4useDyad %>% update_population_classes(tfmn_ls = tfmn_ls)
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
@@ -801,7 +804,8 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
         dplyr::inner_join(draws_tb))
     if (!is.null(default_fn)) {
-        X_Ready4useDyad <- default_fn(X_Ready4useDyad)
+        X_Ready4useDyad <- rlang::exec(default_fn, X_Ready4useDyad, 
+            !!!default_args_ls)
     }
     if (!is.null(derive_fn_ls)) {
         X_Ready4useDyad <- names(derive_fn_ls) %>% purrr::reduce(.init = X_Ready4useDyad, 

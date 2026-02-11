@@ -64,6 +64,12 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 class_desc_chr = "Model input data (lookup tables, regression models, population and parameters).",
                                                                 parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Population",
+                                                                slots_ls = list("x_Ready4useDyad", "y_Ready4useDyad", "z_Ready4useDyad") %>% list(), 
+                                                                pt_ls = list("Ready4useDyad", "Ready4useDyad", "Ready4useDyad") %>% list(),
+                                                                class_desc_chr = "Model dynamic population data container (specifying population subgroups who are due for current event,  who are not due for current event but are still in model or who have exited model).",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Repos",
                                                                 slots_ls = list("batch_to_1L_chr",
                                                                                 "draw_to_1L_chr", 
@@ -161,7 +167,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                drop_suffix_1L_chr = "NA_character_", # "character(0)"
                                                                                horizon_dtm = "lubridate::years(1)",
                                                                                iterations_ls = "make_batches(5, of_1L_int = 20)",
-                                                                               modifiable_chr = "NA_character_", # "character(0)" Remove default
+                                                                               modifiable_chr = "character(0)", # "NA_character_", 
                                                                                prior_batches_1L_int = "0L",
                                                                                # purge_1L_lgl = TRUE,
                                                                                seed_1L_int = "2001L",
@@ -176,8 +182,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                )),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicInputs"
-                                                                                   # ,"MimicRepos"
+                                                                inc_clss_ls = list("MimicInputs", "MimicPopulation"
                                                                                    ) %>% list())
                    # 
                                       

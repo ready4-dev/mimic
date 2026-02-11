@@ -6,11 +6,13 @@
 \alias{MimicInputs}
 \title{MimicInputs}
 \description{
-Model input data (regression models, population and parameters).
+Model input data (lookup tables, regression models, population and parameters).
 }
 \section{Slots}{
 
 \describe{
+\item{\code{lookups_ls}}{Lookups (a list)}
+
 \item{\code{models_ls}}{Models (a list)}
 
 \item{\code{x_Ready4useDyad}}{(an instance of the Ready4useDyad class)}

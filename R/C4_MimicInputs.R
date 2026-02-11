@@ -1,7 +1,8 @@
 #' MimicInputs
 #' 
-#' Model input data (regression models, population and parameters).
+#' Model input data (lookup tables, regression models, population and parameters).
 #' 
+#' @slot lookups_ls Lookups (a list)
 #' @slot models_ls Models (a list)
 #' @slot x_Ready4useDyad  (an instance of the Ready4useDyad class)
 #' @slot y_Ready4useDyad  (an instance of the Ready4useDyad class)
@@ -13,8 +14,8 @@
 #' @exportClass MimicInputs
 MimicInputs <- methods::setClass("MimicInputs",
 contains = "Ready4Module",
-slots = c(models_ls = "list",x_Ready4useDyad = "Ready4useDyad",y_Ready4useDyad = "Ready4useDyad",dissemination_1L_chr = "character"),
-prototype =  list(models_ls = list(list()),x_Ready4useDyad = ready4use::Ready4useDyad(),y_Ready4useDyad = ready4use::Ready4useDyad()))
+slots = c(lookups_ls = "list",models_ls = "list",x_Ready4useDyad = "Ready4useDyad",y_Ready4useDyad = "Ready4useDyad",dissemination_1L_chr = "character"),
+prototype =  list(lookups_ls = list(list()),models_ls = list(list()),x_Ready4useDyad = ready4use::Ready4useDyad(),y_Ready4useDyad = ready4use::Ready4useDyad()))
 
 
 methods::setValidity(methods::className("MimicInputs"),

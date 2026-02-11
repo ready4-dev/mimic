@@ -8,6 +8,7 @@ make_simulation_fns_ls(
   type_1L_chr = c("all", "main", "processing", "sensitivity", "transformation"),
   comparator_fn = identity,
   extra_draws_fn = NULL,
+  initialise_ls = make_initialise_ls(),
   intervention_fn = identity,
   sensitivities_ls = make_sensitivities_ls(),
   synthesis_fn = make_project_results_synthesis,
@@ -21,6 +22,8 @@ make_simulation_fns_ls(
 \item{comparator_fn}{Comparator (a function), Default: identity}
 
 \item{extra_draws_fn}{Extra draws (a function), Default: NULL}
+
+\item{initialise_ls}{Initialise (a list), Default: make_initialise_ls()}
 
 \item{intervention_fn}{Intervention (a function), Default: identity}
 

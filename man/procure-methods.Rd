@@ -17,13 +17,13 @@
 \arguments{
 \item{x}{An object of class MimicConfiguration}
 
-\item{empty_xx}{Empty (an object of multiple potential types), Default: 'NULL'}
+\item{empty_xx}{Empty (an output object of multiple potential types), Default: NULL}
 
-\item{match_value_xx}{Match value (an object of multiple potential types), Default: 'NA'}
+\item{match_value_xx}{Match value (an output object of multiple potential types), Default: NULL}
 
 \item{target_1L_chr}{Target (a character vector of length one), Default: character(0)}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("Arm")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: 'Arm'}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("arm")}
 }

@@ -8,6 +8,7 @@ predict_comparator_pathway(
   inputs_ls,
   add_logic_fn = add_project_offset_logic,
   arm_1L_chr = "Comparator",
+  arms_chr,
   base_for_rates_int = c(1000L, 1, 1),
   draws_tb = NULL,
   extra_draws_fn = add_draws_from_pool,
@@ -30,6 +31,8 @@ predict_comparator_pathway(
 \item{add_logic_fn}{Add logic (a function), Default: add_project_offset_logic}
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: 'Comparator'}
+
+\item{arms_chr}{Arms (a character vector)}
 
 \item{base_for_rates_int}{Base for rates (an integer vector), Default: c(1000L, 1, 1)}
 

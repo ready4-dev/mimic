@@ -303,34 +303,54 @@ make_conditional_vars <- function (outcome_1L_chr, follow_up_1L_int = integer(0)
 #' @param drop_suffix_1L_chr Drop suffix (a character vector of length one)
 #' @param extra_draws_fn Extra draws (a function)
 #' @param horizon_dtm Horizon (a date vector)
+#' @param initialise_ls Initialise (a list)
+#' @param inputs_ls Inputs (a list)
 #' @param iterations_ls Iterations (a list)
+#' @param main_ls Main (a list)
 #' @param modifiable_chr Modifiable (a character vector)
 #' @param seed_1L_int Seed (an integer vector of length one)
 #' @param sensitivities_ls Sensitivities (a list)
 #' @param start_dtm Start (a date vector)
-#' @param synthesis_fn Synthesis (a function)
+#' @param synthesis_fn Synthesis (a function), Default: make_project_results_synthesis
 #' @param transformations_ls Transformations (a list)
 #' @param utilities_chr Utilities (a character vector)
+#' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @param arms_extras_ls Arms extras (a list), Default: list()
 #' @return X (Configuration details for a simulation run.)
 #' @rdname make_configuration
 #' @export 
 #' @keywords internal
 make_configuration <- function (arms_chr, drop_missing_1L_lgl, drop_suffix_1L_chr, 
-    extra_draws_fn, horizon_dtm, iterations_ls, modifiable_chr, 
-    seed_1L_int, sensitivities_ls, start_dtm, synthesis_fn, transformations_ls, 
-    utilities_chr, arms_extras_ls = list()) 
+    extra_draws_fn, horizon_dtm, initialise_ls, inputs_ls, iterations_ls, 
+    main_ls, modifiable_chr, seed_1L_int, sensitivities_ls, start_dtm, 
+    synthesis_fn = make_project_results_synthesis, transformations_ls, 
+    utilities_chr, utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
+    arms_extras_ls = list()) 
 {
-    X_MimicConfiguration <- MimicConfiguration() %>% renewSlot(drop_missing_1L_lgl = drop_missing_1L_lgl, 
-        drop_suffix_1L_chr = drop_suffix_1L_chr, horizon_dtm = horizon_dtm, 
-        iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
-        seed_1L_int = seed_1L_int, start_dtm = start_dtm, utilities_chr = utilities_chr)
-    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms@processing_ls", 
-        list(extra_draws_fn = extra_draws_fn, synthesis_fn = synthesis_fn)) %>% 
-        renewSlot("x_MimicAlgorithms@sensitivities_ls", sensitivities_ls) %>% 
-        renewSlot("x_MimicAlgorithms@transformations_ls", transformations_ls) %>% 
-        renewSlot("arms_tb", make_arms_tb(arms_chr, settings_ls = list(Algorithm = c("intervention_fn", 
-            "comparator_fn")) %>% append(arms_extras_ls)))
+    X_MimicConfiguration <- MimicConfiguration() %>% renewSlot("x_MimicInputs", 
+        MimicInputs() %>% renewSlot("models_ls", inputs_ls$models_ls) %>% 
+            renewSlot("x_Ready4useDyad@ds_tb", inputs_ls$params_tb) %>% 
+            renewSlot("y_Ready4useDyad", inputs_ls$Synthetic_r4))
+    X_MimicConfiguration <- X_MimicConfiguration %>% renewSlot("x_MimicInputs@x_Ready4useDyad", 
+        renew(X_MimicConfiguration@x_MimicInputs@x_Ready4useDyad, 
+            what_1L_chr = "dictionary", type_1L_chr = "new"))
+    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms", 
+        renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", 
+            main_ls) %>% renewSlot("processing_ls", make_simulation_fns_ls("processing", 
+            extra_draws_fn = extra_draws_fn, initialise_ls = initialise_ls, 
+            synthesis_fn = synthesis_fn)) %>% renewSlot("sensitivities_ls", 
+            sensitivities_ls) %>% renewSlot("transformations_ls", 
+            transformations_ls) %>% renewSlot("x_MimicUtility@names_chr", 
+            utilities_chr) %>% renewSlot("x_MimicUtility@mapping_ls", 
+            utility_fns_ls))
+    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "arms_tb", 
+        make_arms_tb(arms_chr, settings_ls = arms_extras_ls)) %>% 
+        renewSlot("drop_missing_1L_lgl", drop_missing_1L_lgl) %>% 
+        renewSlot("drop_suffix_1L_chr", drop_suffix_1L_chr) %>% 
+        renewSlot("horizon_dtm", horizon_dtm) %>% renewSlot("iterations_ls", 
+        iterations_ls) %>% renewSlot("modifiable_chr", modifiable_chr) %>% 
+        renewSlot("seed_1L_int", seed_1L_int) %>% renewSlot("start_dtm", 
+        start_dtm)
     return(X_MimicConfiguration)
 }
 #' Make confusion list
@@ -590,7 +610,7 @@ make_draws_tb <- function (inputs_ls, drop_missing_1L_lgl = FALSE, drop_suffix_1
     if (drop_missing_1L_lgl) {
         draws_tb <- draws_tb %>% dplyr::select(dplyr::where(~any(!is.na(.x))))
     }
-    if (!identical(drop_suffix_1L_chr, character(0))) {
+    if (!identical(drop_suffix_1L_chr, character(0)) & !is.na(drop_suffix_1L_chr)) {
         draws_tb <- draws_tb %>% dplyr::rename_with(~stringr::str_remove(., 
             drop_suffix_1L_chr))
     }
@@ -860,6 +880,21 @@ make_iar_params <- function (processed_ls, raw_mds_data_ls, test_1L_chr, compara
         parameters_dbl <- c(mean_1L_dbl, se_1L_dbl, n_1L_dbl)
     }
     return(parameters_dbl)
+}
+#' Make initialise list
+#' @description make_initialise_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make initialise list. The function returns Initialise (a list).
+#' @param default_fn Default (a function), Default: identity
+#' @param derive_ls Derive (a list), Default: list()
+#' @param update_fn Update (a function), Default: identity
+#' @return Initialise (a list)
+#' @rdname make_initialise_ls
+#' @export 
+#' @keywords internal
+make_initialise_ls <- function (default_fn = identity, derive_ls = list(), update_fn = identity) 
+{
+    initialise_ls <- list(default_fn = default_fn, derive_ls = derive_ls, 
+        update_fn = update_fn)
+    return(initialise_ls)
 }
 #' Make interactions summary
 #' @description make_interactions_summary() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make interactions summary. The function returns Interactions (a tibble).
@@ -2111,6 +2146,52 @@ make_project_1_results_synthesis <- function (inputs_ls, results_ls, modifiable_
         type_1L_chr = type_1L_chr)
     return(X_Ready4useDyad)
 }
+#' Make project 2 arms extras list
+#' @description make_project_2_arms_extras_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 arms extras list. The function returns Arms extras (a list).
+#' @param arms_chr Arms (a character vector)
+#' @param arms_for_iar_adjustment_chr Arms for Initial Assessment andeferral adjustment (a character vector), Default: character(0)
+#' @param arms_for_intervention_costs_chr Arms for intervention costs (a character vector), Default: character(0)
+#' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
+#' @param arms_for_offsets_chr Arms for offsets (a character vector), Default: character(0)
+#' @param treatment_ls Treatment (a list), Default: NULL
+#' @param tx_duration_dtm Treatment duration (a date vector), Default: lubridate::weeks(12)
+#' @return Arms extras (a list)
+#' @rdname make_project_2_arms_extras_ls
+#' @export 
+#' @importFrom lubridate weeks
+#' @importFrom purrr map map_lgl pluck flatten_chr
+#' @keywords internal
+make_project_2_arms_extras_ls <- function (arms_chr, arms_for_iar_adjustment_chr = character(0), 
+    arms_for_intervention_costs_chr = character(0), arms_for_non_helpseeking_chr = character(0), 
+    arms_for_offsets_chr = character(0), treatment_ls = NULL, 
+    tx_duration_dtm = lubridate::weeks(12)) 
+{
+    arms_extras_ls <- list(`Cost offsets` = arms_for_offsets_chr, 
+        `Helpseeking adjustment` = arms_for_non_helpseeking_chr, 
+        `IAR adjustment` = arms_for_iar_adjustment_chr, `Intervention costs` = arms_for_intervention_costs_chr)
+    arms_extras_ls <- arms_extras_ls %>% purrr::map(~{
+        if (identical(.x, character(0))) {
+            rep(FALSE, length(arms_chr))
+        }
+        else {
+            test_1L_chr <- .x
+            arms_chr %>% purrr::map_lgl(~.x == test_1L_chr)
+        }
+    })
+    if (is.null(treatment_ls)) {
+        treatment_ls <- list(Treatment = arms_chr)
+    }
+    else {
+        treatment_ls <- list(Treatment = arms_chr %>% purrr::map(~treatment_ls %>% 
+            purrr::pluck(.x)) %>% purrr::flatten_chr())
+    }
+    arms_extras_ls <- arms_extras_ls %>% append(treatment_ls)
+    arms_extras_ls <- arms_extras_ls %>% append(list(`Treatment duration` = rep(tx_duration_dtm, 
+        length(arms_chr))))
+    arms_extras_ls <- list(Algorithm = rep("Project 2", 2)) %>% 
+        append(arms_extras_ls)
+    return(arms_extras_ls)
+}
 #' Make project 2 days models
 #' @description make_project_2_days_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 days models. The function returns Tpm models (a list).
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2167,6 +2248,39 @@ make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), f
         stats::setNames(paste0("TPM_", 1:length(x_part_1_ls), 
             "_mdl"))
     return(tpm_mdls_ls)
+}
+#' Make project 2 initialise list
+#' @description make_project_2_initialise_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 initialise list. The function returns Initialise (a list).
+#' @param derive_ls Derive (a list), Default: list()
+#' @return Initialise (a list)
+#' @rdname make_project_2_initialise_ls
+#' @export 
+#' @importFrom purrr reduce
+#' @importFrom dplyr mutate
+#' @importFrom rlang sym
+#' @keywords internal
+make_project_2_initialise_ls <- function (derive_ls = list()) 
+{
+    initialise_ls <- make_initialise_ls(default_fn = function(X, 
+        sensitivities_ls = NULL) {
+        if (is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, 
+            list())) {
+            costs_chr <- character(0)
+        }
+        else {
+            costs_chr <- paste0("Cost", c("", paste0("_", sensitivities_ls$costs_ls %>% 
+                names())))
+        }
+        renewSlot(X, "ds_tb", c("Episode", "ClinicalPsychologistUseMins", 
+            "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", 
+            "NurseUseMins", "OtherUseMins", "TotalUseMins", costs_chr) %>% 
+            purrr::reduce(.init = X@ds_tb, ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
+                0))))
+    }, derive_ls = derive_ls, update_fn = function(modifiable_chr) setdiff(modifiable_chr, 
+        c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", 
+            "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", 
+            "TotalUseMins")))
+    return(initialise_ls)
 }
 #' Make project 2 K10 change models
 #' @description make_project_2_k10_change_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 k10 change models. The function returns K10 (a list).
@@ -5771,6 +5885,7 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 #' @param type_1L_chr Type (a character vector of length one), Default: c("all", "main", "processing", "sensitivity", "transformation")
 #' @param comparator_fn Comparator (a function), Default: identity
 #' @param extra_draws_fn Extra draws (a function), Default: NULL
+#' @param initialise_ls Initialise (a list), Default: make_initialise_ls()
 #' @param intervention_fn Intervention (a function), Default: identity
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param synthesis_fn Synthesis (a function), Default: make_project_results_synthesis
@@ -5783,29 +5898,32 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 #' @keywords internal
 make_simulation_fns_ls <- function (type_1L_chr = c("all", "main", "processing", "sensitivity", 
     "transformation"), comparator_fn = identity, extra_draws_fn = NULL, 
-    intervention_fn = identity, sensitivities_ls = make_sensitivities_ls(), 
-    synthesis_fn = make_project_results_synthesis, transformation_ls = make_class_tfmns(), 
-    ...) 
+    initialise_ls = make_initialise_ls(), intervention_fn = identity, 
+    sensitivities_ls = make_sensitivities_ls(), synthesis_fn = make_project_results_synthesis, 
+    transformation_ls = make_class_tfmns(), ...) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     extras_ls <- list(...)
     simulation_fns_ls <- list(comparator_fn = comparator_fn, 
-        extra_draws_fn = extra_draws_fn, intervention_fn = intervention_fn, 
-        synthesis_fn = synthesis_fn, sensitivities_ls = sensitivities_ls, 
-        transformation_ls = transformation_ls) %>% append(extras_ls)
+        extra_draws_fn = extra_draws_fn, initialise_ls = initialise_ls, 
+        intervention_fn = intervention_fn, synthesis_fn = synthesis_fn, 
+        sensitivities_ls = sensitivities_ls, transformation_ls = transformation_ls) %>% 
+        append(extras_ls)
     if (type_1L_chr == "main") {
         simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn", 
-            "intervention_fn"))
+            "intervention_fn", names(extras_ls)))
     }
     if (type_1L_chr == "processing") {
         simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn", 
-            "synthesis_fn"))
+            "initialise_ls", "synthesis_fn", names(extras_ls)))
     }
     if (type_1L_chr == "sensitivity") {
-        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls"))
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls", 
+            names(extras_ls)))
     }
     if (type_1L_chr == "transformation") {
-        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls"))
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("transformation_ls", 
+            names(extras_ls)))
     }
     return(simulation_fns_ls)
 }
@@ -6288,14 +6406,19 @@ make_utility_fns_ls <- function (add_to_ls = list(), aqol8d_fn = add_aqol8d_from
     eq5d_fn = add_eq5d_from_draws, sf6d_fn = add_sf6d_from_draws, 
     utilities_chr = c("AQoL8D", "EQ5D", "SF6D")) 
 {
-    utility_fns_ls <- list(AQoL8D = aqol8d_fn, EQ5D = eq5d_fn, 
-        EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, 
-            source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, 
-            type_1L_chr = "external", var_1L_chr = var_1L_chr), 
-        SF6D = sf6d_fn, SF6DM2 = function(X, var_1L_chr) add_sf6d_from_k10(X, 
-            source_1L_chr = "10.1192/bjp.bp.113.136036", tidy_cols_1L_lgl = T, 
-            type_1L_chr = "external", var_1L_chr = var_1L_chr)) %>% 
-        purrr::keep_at(utilities_chr)
+    if (identical(utilities_chr, character(0))) {
+        utility_fns_ls <- list()
+    }
+    else {
+        utility_fns_ls <- list(AQoL8D = aqol8d_fn, EQ5D = eq5d_fn, 
+            EQ5DM2 = function(X, var_1L_chr) add_eq5d_from_k10(X, 
+                source_1L_chr = "10.1192/bjp.bp.113.136036", 
+                tidy_cols_1L_lgl = T, type_1L_chr = "external", 
+                var_1L_chr = var_1L_chr), SF6D = sf6d_fn, SF6DM2 = function(X, 
+                var_1L_chr) add_sf6d_from_k10(X, source_1L_chr = "10.1192/bjp.bp.113.136036", 
+                tidy_cols_1L_lgl = T, type_1L_chr = "external", 
+                var_1L_chr = var_1L_chr)) %>% purrr::keep_at(utilities_chr)
+    }
     utility_fns_ls <- append(utility_fns_ls, add_to_ls)
     return(utility_fns_ls)
 }

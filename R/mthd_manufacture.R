@@ -19,8 +19,9 @@ methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (what_1L_chr == "args_all") {
-        object_xx <- list(arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, 
-            X_MimicConfiguration = x) %>% append(extras_ls)
+        object_xx <- list(arm_1L_chr = arm_1L_chr, arms_chr = x@arms_tb$Arm, 
+            batch_1L_int = batch_1L_int, X_MimicConfiguration = x) %>% 
+            append(extras_ls)
     }
     if (what_1L_chr == "draws_tb") {
         iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, 
