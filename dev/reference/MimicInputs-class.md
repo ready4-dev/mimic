@@ -1,8 +1,13 @@
 # MimicInputs
 
-Model input data (regression models, population and parameters).
+Model input data (lookup tables, regression models, population and
+parameters).
 
 ## Slots
+
+- `lookups_ls`:
+
+  Lookups (a list)
 
 - `models_ls`:
 

@@ -27,8 +27,10 @@ write_batch(
   start_dtm = Sys.Date(),
   tfmn_ls = NULL,
   utilities_chr = character(0),
+  utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
   write_to_1L_chr,
   X_MimicConfiguration = MimicConfiguration(),
+  Y_MimicRepos = MimicRepos(),
   ...
 )
 ```
@@ -107,6 +109,11 @@ write_batch(
 
   Utilities (a character vector), Default: character(0)
 
+- utility_fns_ls:
+
+  Utility functions (a list), Default: make_utility_fns_ls(utilities_chr
+  = utilities_chr)
+
 - write_to_1L_chr:
 
   Write to (a character vector of length one)
@@ -114,6 +121,10 @@ write_batch(
 - X_MimicConfiguration:
 
   PARAM_DESCRIPTION, Default: MimicConfiguration()
+
+- Y_MimicRepos:
+
+  PARAM_DESCRIPTION, Default: MimicRepos()
 
 - ...:
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9006</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,14 +44,18 @@
 <span>  <span class="va">drop_suffix_1L_chr</span>,</span>
 <span>  <span class="va">extra_draws_fn</span>,</span>
 <span>  <span class="va">horizon_dtm</span>,</span>
+<span>  <span class="va">initialise_ls</span>,</span>
+<span>  <span class="va">inputs_ls</span>,</span>
 <span>  <span class="va">iterations_ls</span>,</span>
+<span>  <span class="va">main_ls</span>,</span>
 <span>  <span class="va">modifiable_chr</span>,</span>
 <span>  <span class="va">seed_1L_int</span>,</span>
 <span>  <span class="va">sensitivities_ls</span>,</span>
 <span>  <span class="va">start_dtm</span>,</span>
-<span>  <span class="va">synthesis_fn</span>,</span>
+<span>  synthesis_fn <span class="op">=</span> <span class="va">make_project_results_synthesis</span>,</span>
 <span>  <span class="va">transformations_ls</span>,</span>
 <span>  <span class="va">utilities_chr</span>,</span>
+<span>  utility_fns_ls <span class="op">=</span> <span class="fu"><a href="make_utility_fns_ls.html">make_utility_fns_ls</a></span><span class="op">(</span>utilities_chr <span class="op">=</span> <span class="va">utilities_chr</span><span class="op">)</span>,</span>
 <span>  arms_extras_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -80,8 +84,20 @@
 <dd><p>Horizon (a date vector)</p></dd>
 
 
+<dt id="arg-initialise-ls">initialise_ls<a class="anchor" aria-label="anchor" href="#arg-initialise-ls"></a></dt>
+<dd><p>Initialise (a list)</p></dd>
+
+
+<dt id="arg-inputs-ls">inputs_ls<a class="anchor" aria-label="anchor" href="#arg-inputs-ls"></a></dt>
+<dd><p>Inputs (a list)</p></dd>
+
+
 <dt id="arg-iterations-ls">iterations_ls<a class="anchor" aria-label="anchor" href="#arg-iterations-ls"></a></dt>
 <dd><p>Iterations (a list)</p></dd>
+
+
+<dt id="arg-main-ls">main_ls<a class="anchor" aria-label="anchor" href="#arg-main-ls"></a></dt>
+<dd><p>Main (a list)</p></dd>
 
 
 <dt id="arg-modifiable-chr">modifiable_chr<a class="anchor" aria-label="anchor" href="#arg-modifiable-chr"></a></dt>
@@ -101,7 +117,7 @@
 
 
 <dt id="arg-synthesis-fn">synthesis_fn<a class="anchor" aria-label="anchor" href="#arg-synthesis-fn"></a></dt>
-<dd><p>Synthesis (a function)</p></dd>
+<dd><p>Synthesis (a function), Default: make_project_results_synthesis</p></dd>
 
 
 <dt id="arg-transformations-ls">transformations_ls<a class="anchor" aria-label="anchor" href="#arg-transformations-ls"></a></dt>
@@ -110,6 +126,10 @@
 
 <dt id="arg-utilities-chr">utilities_chr<a class="anchor" aria-label="anchor" href="#arg-utilities-chr"></a></dt>
 <dd><p>Utilities (a character vector)</p></dd>
+
+
+<dt id="arg-utility-fns-ls">utility_fns_ls<a class="anchor" aria-label="anchor" href="#arg-utility-fns-ls"></a></dt>
+<dd><p>Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)</p></dd>
 
 
 <dt id="arg-arms-extras-ls">arms_extras_ls<a class="anchor" aria-label="anchor" href="#arg-arms-extras-ls"></a></dt>

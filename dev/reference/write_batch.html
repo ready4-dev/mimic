@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9006</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,8 +57,10 @@
 <span>  start_dtm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  tfmn_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  utilities_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  utility_fns_ls <span class="op">=</span> <span class="fu"><a href="make_utility_fns_ls.html">make_utility_fns_ls</a></span><span class="op">(</span>utilities_chr <span class="op">=</span> <span class="va">utilities_chr</span><span class="op">)</span>,</span>
 <span>  <span class="va">write_to_1L_chr</span>,</span>
 <span>  X_MimicConfiguration <span class="op">=</span> <span class="fu"><a href="MimicConfiguration-class.html">MimicConfiguration</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  Y_MimicRepos <span class="op">=</span> <span class="fu"><a href="MimicRepos-class.html">MimicRepos</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -139,12 +141,20 @@
 <dd><p>Utilities (a character vector), Default: character(0)</p></dd>
 
 
+<dt id="arg-utility-fns-ls">utility_fns_ls<a class="anchor" aria-label="anchor" href="#arg-utility-fns-ls"></a></dt>
+<dd><p>Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)</p></dd>
+
+
 <dt id="arg-write-to-l-chr">write_to_1L_chr<a class="anchor" aria-label="anchor" href="#arg-write-to-l-chr"></a></dt>
 <dd><p>Write to (a character vector of length one)</p></dd>
 
 
 <dt id="arg-x-mimicconfiguration">X_MimicConfiguration<a class="anchor" aria-label="anchor" href="#arg-x-mimicconfiguration"></a></dt>
 <dd><p>PARAM_DESCRIPTION, Default: MimicConfiguration()</p></dd>
+
+
+<dt id="arg-y-mimicrepos">Y_MimicRepos<a class="anchor" aria-label="anchor" href="#arg-y-mimicrepos"></a></dt>
+<dd><p>PARAM_DESCRIPTION, Default: MimicRepos()</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

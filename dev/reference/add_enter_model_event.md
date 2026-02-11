@@ -13,6 +13,7 @@ add_enter_model_event(
   arm_1L_chr,
   draws_tb,
   horizon_dtm = lubridate::years(1),
+  default_args_ls = list(),
   default_fn = NULL,
   derive_fn_ls = NULL,
   iterations_int = 1:100L,
@@ -42,6 +43,10 @@ add_enter_model_event(
 - horizon_dtm:
 
   Horizon (a date vector), Default: lubridate::years(1)
+
+- default_args_ls:
+
+  Default arguments (a list), Default: list()
 
 - default_fn:
 

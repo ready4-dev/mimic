@@ -12,6 +12,7 @@ predict_comparator_pathway(
   inputs_ls,
   add_logic_fn = add_project_offset_logic,
   arm_1L_chr = "Comparator",
+  arms_chr,
   base_for_rates_int = c(1000L, 1, 1),
   draws_tb = NULL,
   extra_draws_fn = add_draws_from_pool,
@@ -42,6 +43,10 @@ predict_comparator_pathway(
 - arm_1L_chr:
 
   Arm (a character vector of length one), Default: 'Comparator'
+
+- arms_chr:
+
+  Arms (a character vector)
 
 - base_for_rates_int:
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9006</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,7 @@
 <span>  <span class="va">arm_1L_chr</span>,</span>
 <span>  <span class="va">draws_tb</span>,</span>
 <span>  horizon_dtm <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">years</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>  default_args_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  default_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  derive_fn_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  iterations_int <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100L</span>,</span>
@@ -73,6 +74,10 @@
 
 <dt id="arg-horizon-dtm">horizon_dtm<a class="anchor" aria-label="anchor" href="#arg-horizon-dtm"></a></dt>
 <dd><p>Horizon (a date vector), Default: lubridate::years(1)</p></dd>
+
+
+<dt id="arg-default-args-ls">default_args_ls<a class="anchor" aria-label="anchor" href="#arg-default-args-ls"></a></dt>
+<dd><p>Default arguments (a list), Default: list()</p></dd>
 
 
 <dt id="arg-default-fn">default_fn<a class="anchor" aria-label="anchor" href="#arg-default-fn"></a></dt>

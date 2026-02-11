@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9006</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>, <span class="st">"main"</span>, <span class="st">"processing"</span>, <span class="st">"sensitivity"</span>, <span class="st">"transformation"</span><span class="op">)</span>,</span>
 <span>  comparator_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  extra_draws_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  initialise_ls <span class="op">=</span> <span class="fu"><a href="make_initialise_ls.html">make_initialise_ls</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  intervention_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  sensitivities_ls <span class="op">=</span> <span class="fu"><a href="make_sensitivities_ls.html">make_sensitivities_ls</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  synthesis_fn <span class="op">=</span> <span class="va">make_project_results_synthesis</span>,</span>
@@ -64,6 +65,10 @@
 
 <dt id="arg-extra-draws-fn">extra_draws_fn<a class="anchor" aria-label="anchor" href="#arg-extra-draws-fn"></a></dt>
 <dd><p>Extra draws (a function), Default: NULL</p></dd>
+
+
+<dt id="arg-initialise-ls">initialise_ls<a class="anchor" aria-label="anchor" href="#arg-initialise-ls"></a></dt>
+<dd><p>Initialise (a list), Default: make_initialise_ls()</p></dd>
 
 
 <dt id="arg-intervention-fn">intervention_fn<a class="anchor" aria-label="anchor" href="#arg-intervention-fn"></a></dt>

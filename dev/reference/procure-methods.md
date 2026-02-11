@@ -24,11 +24,12 @@ procure(
 
 - empty_xx:
 
-  Empty (an object of multiple potential types), Default: 'NULL'
+  Empty (an output object of multiple potential types), Default: NULL
 
 - match_value_xx:
 
-  Match value (an object of multiple potential types), Default: 'NA'
+  Match value (an output object of multiple potential types), Default:
+  NULL
 
 - target_1L_chr:
 
@@ -36,7 +37,7 @@ procure(
 
 - type_1L_chr:
 
-  Type (a character vector of length one), Default: c("Arm")
+  Type (a character vector of length one), Default: 'Arm'
 
 - what_1L_chr:
 

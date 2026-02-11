@@ -12,6 +12,7 @@ predict_digital_pathway(
   inputs_ls,
   add_logic_fn = add_project_offset_logic,
   arm_1L_chr = "Intervention",
+  arms_chr,
   base_for_rates_int = c(1000L, 1L, 1L),
   draws_tb = NULL,
   extra_draws_fn = add_draws_from_pool,
@@ -42,6 +43,10 @@ predict_digital_pathway(
 - arm_1L_chr:
 
   Arm (a character vector of length one), Default: 'Intervention'
+
+- arms_chr:
+
+  Arms (a character vector)
 
 - base_for_rates_int:
 

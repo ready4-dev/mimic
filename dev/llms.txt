@@ -31,6 +31,9 @@ devtools::install_github("ready4-dev/mimic")
 - [`MimicInputs-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   [`MimicInputs`](https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.md)
   : MimicInputs
+- [`MimicPopulation-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicPopulation-class.md)
+  [`MimicPopulation`](https://ready4-dev.github.io/mimic/dev/reference/MimicPopulation-class.md)
+  : MimicPopulation
 - [`MimicRepos-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   [`MimicRepos`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   : MimicRepos

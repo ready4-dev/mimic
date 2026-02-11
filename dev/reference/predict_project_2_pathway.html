@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9006</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,12 +42,12 @@
 <span>  inputs_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  add_logic_fn <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  <span class="va">arm_1L_chr</span>,</span>
-<span>  <span class="va">arms_for_intervention_costs_chr</span>,</span>
+<span>  <span class="va">arms_chr</span>,</span>
+<span>  arms_for_intervention_costs_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  arms_for_offsets_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  arms_for_non_helpseeking_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  arms_for_iar_adjustment_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  batch_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
-<span>  derive_extras_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  draws_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  extra_draws_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  horizon_dtm <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">years</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
@@ -81,8 +81,12 @@
 <dd><p>Arm (a character vector of length one)</p></dd>
 
 
+<dt id="arg-arms-chr">arms_chr<a class="anchor" aria-label="anchor" href="#arg-arms-chr"></a></dt>
+<dd><p>Arms (a character vector)</p></dd>
+
+
 <dt id="arg-arms-for-intervention-costs-chr">arms_for_intervention_costs_chr<a class="anchor" aria-label="anchor" href="#arg-arms-for-intervention-costs-chr"></a></dt>
-<dd><p>Arms for intervention costs (a character vector)</p></dd>
+<dd><p>Arms for intervention costs (a character vector), Default: character(0)</p></dd>
 
 
 <dt id="arg-arms-for-offsets-chr">arms_for_offsets_chr<a class="anchor" aria-label="anchor" href="#arg-arms-for-offsets-chr"></a></dt>
@@ -99,10 +103,6 @@
 
 <dt id="arg-batch-l-int">batch_1L_int<a class="anchor" aria-label="anchor" href="#arg-batch-l-int"></a></dt>
 <dd><p>Batch (an integer vector of length one), Default: integer(0)</p></dd>
-
-
-<dt id="arg-derive-extras-ls">derive_extras_ls<a class="anchor" aria-label="anchor" href="#arg-derive-extras-ls"></a></dt>
-<dd><p>Derive extras (a list), Default: list()</p></dd>
 
 
 <dt id="arg-draws-tb">draws_tb<a class="anchor" aria-label="anchor" href="#arg-draws-tb"></a></dt>
