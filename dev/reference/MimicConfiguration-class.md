@@ -48,6 +48,10 @@ Configuration details for a simulation run.
 
   (an instance of the MimicInputs class)
 
+- `x_MimicPopulation`:
+
+  (an instance of the MimicPopulation class)
+
 - `dissemination_1L_chr`:
 
   Dissemination (a character vector of length one)
