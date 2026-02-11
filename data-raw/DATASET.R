@@ -133,9 +133,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   # "utilities_chr",# = c("AQoL6D", "CHU9D"), # Remove default
                                                                   # write_to_1L_chr = character(0),# ,
                                                                   "x_MimicAlgorithms",
-                                                                  "x_MimicInputs"
-                                                                  # ,
-                                                                  # "x_MimicRepos"
+                                                                  "x_MimicInputs",
+                                                                  "x_MimicPopulation"
                                                                                 ) %>% list(), # Change
                                                                 pt_ls = list(
                                                                   # "character",
@@ -156,9 +155,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   #
                                                                   # "character",
                                                                   "MimicAlgorithms",
-                                                                  "MimicInputs"
-                                                                  # ,
-                                                                  # "MimicRepos"
+                                                                  "MimicInputs",
+                                                                  "MimicPopulation"
                                                                   ) %>% list(),
                                                                 vals_ls = list(list(
                                                                   # arms_chr = "c('Intervention', 'Comparator')",
@@ -182,7 +180,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                )),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicInputs", "MimicPopulation"
+                                                                inc_clss_ls = list("MimicAlgorithms","MimicInputs", "MimicPopulation"
                                                                                    ) %>% list())
                    # 
                                       
