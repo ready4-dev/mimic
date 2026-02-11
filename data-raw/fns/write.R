@@ -58,16 +58,19 @@ write_batch <- function (batch_1L_int,
                                                drop_suffix_1L_chr = drop_suffix_1L_chr,
                                                extra_draws_fn = extra_draws_fn,
                                                horizon_dtm = horizon_dtm,
-                                               # initialise_ls = make_project_2_initialise_ls(),
+                                               initialise_ls = list("UPDATE"),
+                                               inputs_ls = inputs_ls,
                                                iterations_ls = iterations_ls,
+                                               main_ls = list("UPDATE"),
                                                modifiable_chr = modifiable_chr,
                                                seed_1L_int = seed_1L_int,
                                                sensitivities_ls = sensitivities_ls,
                                                start_dtm = start_dtm,
                                                synthesis_fn = synthesis_fn,
-                                               # transformations_ls = tfmn_ls, ###################
+                                               transformations_ls = tfmn_ls, ###################
                                                utilities_chr = utilities_chr,
-                                               utility_fns_ls = utility_fns_ls,
+                                               utility_fns_ls = utility_fns_ls
+                                               # ,
                                                # arms_extras_ls = list(Algorithm = rep("Project 2", 2)) %>%
                                                #   append(add_arm_columns_ls)
                                                )
@@ -181,7 +184,7 @@ write_batch <- function (batch_1L_int,
       #                 # , variable_unit_1L_chr = variable_unit_1L_chr
       # ) %>%
       #   append(extras_ls) 
-      args_ls <- update_arguments_ls(new_args_ls, function_fn = intervention_fn)
+      args_ls <- update_arguments_ls(append(args_ls, extras_ls), function_fn = intervention_fn)
       Y_Ready4useDyad <- rlang::exec(intervention_fn, !!!args_ls)
     }  else {
       Y_Ready4useDyad <- ready4use::Ready4useDyad()
@@ -207,7 +210,7 @@ write_batch <- function (batch_1L_int,
       #                 # variable_unit_1L_chr = variable_unit_1L_chr
       # ) %>%
       #   append(extras_ls)
-      args_ls <- update_arguments_ls(args_ls, function_fn = comparator_fn)
+      args_ls <- update_arguments_ls(append(args_ls, extras_ls), function_fn = comparator_fn)
       Z_Ready4useDyad <- rlang::exec(comparator_fn, !!!args_ls)
     }  else {
       Z_Ready4useDyad <- ready4use::Ready4useDyad()

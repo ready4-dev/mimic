@@ -631,6 +631,7 @@ add_draws_from_pool <- function(draws_tb,
   return(draws_tb)
 }
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
+                                   default_args_ls = list(),
                                    default_fn = NULL,
                                    derive_fn_ls = NULL,
                                    iterations_int = 1:100L, modifiable_chr = character(0), start_dtm = Sys.Date(), 
@@ -657,7 +658,7 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                  dplyr::inner_join(draws_tb))
   if(!is.null(default_fn)){
-    X_Ready4useDyad <- default_fn(X_Ready4useDyad)
+    X_Ready4useDyad <- rlang::exec(default_fn, X_Ready4useDyad, !!!default_args_ls)
   }
   if(!is.null(derive_fn_ls)){
     X_Ready4useDyad <-  names(derive_fn_ls) %>% 

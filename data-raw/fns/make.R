@@ -190,33 +190,12 @@ make_configuration <- function(arms_chr,
                                utilities_chr,
                                utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
                                arms_extras_ls = list()){
-  # arms_chr = arms_chr, # arm_1L_chr,
-  # drop_missing_1L_lgl = T,
-  # drop_suffix_1L_chr = "_mean",
-  # extra_draws_fn = extra_draws_fn,
-  # horizon_dtm = horizon_dtm,
-  # initialise_ls = make_project_2_initialise_ls(),
-  # inputs_ls = inputs_ls,
-  # iterations_ls = iterations_ls,#######################
-  # main_ls = list(`Project 2` = predict_project_2_pathway),
-  # modifiable_chr = modifiable_chr,
-  # seed_1L_int = seed_1L_int,
-  # sensitivities_ls = sensitivities_ls,
-  # start_dtm = start_dtm,
-  # synthesis_fn = NULL, ## DIFFERENT
-  # transformations_ls = tfmn_ls, ###################
-  # utilities_chr = utilities_chr,
-  # utility_fns_ls = utility_fns_ls,
-  # arms_extras_ls = list(Algorithm = rep("Project 2", 2)) %>%
-  #   append(add_arm_columns_ls)
-  
-  
   X_MimicConfiguration <- MimicConfiguration() %>%
     renewSlot("x_MimicInputs", MimicInputs() %>%
                 renewSlot("models_ls", inputs_ls$models_ls) %>%
                 renewSlot("x_Ready4useDyad@ds_tb", inputs_ls$params_tb) %>%
                 renewSlot("y_Ready4useDyad", inputs_ls$Synthetic_r4))
-  X_MimicConfiguration <- MimicConfiguration() %>%
+  X_MimicConfiguration <- X_MimicConfiguration %>%
     renewSlot("x_MimicInputs@x_Ready4useDyad", renew(X_MimicConfiguration@x_MimicInputs@x_Ready4useDyad, what_1L_chr = "dictionary", type_1L_chr = "new"))
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
                                     renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", main_ls) %>%
@@ -238,7 +217,7 @@ make_configuration <- function(arms_chr,
     renewSlot("iterations_ls", iterations_ls) %>%
     renewSlot("modifiable_chr", modifiable_chr) %>%
     renewSlot("seed_1L_int", seed_1L_int) %>%
-    renewSlot("start_dtm", start_dtm) 
+    renewSlot("start_dtm", start_dtm)
   return(X_MimicConfiguration)
 }
 make_confusion_ls <- function(regressions_ls,
@@ -426,7 +405,7 @@ make_draws_tb <- function (inputs_ls,
   if(drop_missing_1L_lgl){
     draws_tb <- draws_tb %>% dplyr::select(dplyr::where(~any(!is.na(.x))))
   }
-  if(!identical(drop_suffix_1L_chr, character(0))){
+  if(!identical(drop_suffix_1L_chr, character(0)) & !is.na(drop_suffix_1L_chr)){
     draws_tb <- draws_tb %>% dplyr::rename_with(~ stringr::str_remove(., drop_suffix_1L_chr))
   }
   return(draws_tb)
@@ -1507,6 +1486,37 @@ make_project_1_results_synthesis <- function (inputs_ls, results_ls, modifiable_
                                             modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   return(X_Ready4useDyad)
 }
+make_project_2_arms_extras_ls <- function(arms_chr,
+                                          arms_for_iar_adjustment_chr = character(0),
+                                          arms_for_intervention_costs_chr = character(0),
+                                          arms_for_non_helpseeking_chr = character(0),
+                                          arms_for_offsets_chr = character(0), 
+                                          treatment_ls = NULL,
+                                          tx_duration_dtm = lubridate::weeks(12)){
+  arms_extras_ls <- list(`Cost offsets` = arms_for_offsets_chr,
+                         `Helpseeking adjustment` = arms_for_non_helpseeking_chr,
+                         `IAR adjustment` = arms_for_iar_adjustment_chr,
+                         `Intervention costs` = arms_for_intervention_costs_chr) 
+  arms_extras_ls <- arms_extras_ls %>%
+    purrr::map(~{
+      if(identical(.x, character(0))){
+        rep(FALSE, length(arms_chr))
+      }else{
+        test_1L_chr <- .x
+        arms_chr %>% purrr::map_lgl(~.x==test_1L_chr)
+      }
+    })
+  if(is.null(treatment_ls)){
+    treatment_ls <- list(Treatment = arms_chr) 
+  }else{
+    treatment_ls <- list(Treatment = arms_chr %>% purrr::map(~treatment_ls %>% purrr::pluck(.x)) %>% purrr::flatten_chr())
+  }  
+  arms_extras_ls <- arms_extras_ls %>% append(treatment_ls)
+  arms_extras_ls <- arms_extras_ls %>% append(list(`Treatment duration` = rep(tx_duration_dtm, length(arms_chr))))
+  arms_extras_ls <- list(Algorithm = rep("Project 2", 2)) %>%
+    append(arms_extras_ls)
+  return(arms_extras_ls)
+}
 make_project_2_days_mdls <- function(X_Ready4useDyad, 
                                      add_chr = character(0),
                                      family_2_1L_chr = "Gamma(link = 'log')", #inverse
@@ -1580,16 +1590,23 @@ make_project_2_days_mdls <- function(X_Ready4useDyad,
                            "_mdl"))
   return(tpm_mdls_ls)
 }
-make_project_2_initialise_ls <- function(){
-  initialise_ls <- make_initialise_ls(default_fn = function(X) renewSlot(X, "ds_tb", 
-                                                           c("Episode",
-                                                             "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
-                                                             "Cost", "Cost_S1", "Cost_S2") %>%
-                                                             purrr::reduce(.init = X@ds_tb,
-                                                                           ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0))),
-                                      derive_ls = list(),
-                                      update_fn = function(modifiable_chr) setdiff(modifiable_chr,
-                                                                    c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins")))
+make_project_2_initialise_ls <- function(derive_ls = list()){
+  initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL) {
+    if(is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, list())){
+      costs_chr <- character(0)
+    }else{
+      costs_chr <- paste0("Cost",c("", paste0("_",sensitivities_ls$costs_ls %>% names())))
+    }
+    renewSlot(X, "ds_tb", 
+              c("Episode",
+                "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
+                costs_chr) %>%
+                purrr::reduce(.init = X@ds_tb,
+                              ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0)))
+    },
+    derive_ls = derive_ls,
+    update_fn = function(modifiable_chr) setdiff(modifiable_chr,
+                                                 c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins")))
   return(initialise_ls)
 }
 make_project_2_k10_mdls <-function (X_Ready4useDyad) {
