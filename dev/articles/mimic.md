@@ -6,9 +6,14 @@ library(mimic)
 #> Registered S3 method overwritten by 'BCEA':
 #>   method     from
 #>   plot.evppi voi
-#> Registered S3 method overwritten by 'tsibble':
-#>   method               from 
-#>   as_tibble.grouped_df dplyr
+#> Registered S3 methods overwritten by 'ggtime':
+#>   method           from      
+#>   autolayer.fbl_ts fabletools
+#>   autolayer.tbl_ts fabletools
+#>   autoplot.dcmp_ts fabletools
+#>   autoplot.fbl_ts  fabletools
+#>   autoplot.tbl_ts  fabletools
+#>   fortify.fbl_ts   fabletools
 #> Registered S3 methods overwritten by 'ggalt':
 #>   method                  from   
 #>   grobHeight.absoluteGrob ggplot2

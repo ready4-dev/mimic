@@ -9,6 +9,7 @@ procure method applied to MimicConfiguration
 procure(
   x,
   arm_1L_chr = NA_character_,
+  empty_xx = NULL,
   target_1L_chr = character(0),
   what_1L_chr = c("arm")
 )
@@ -23,6 +24,10 @@ procure(
 - arm_1L_chr:
 
   Arm (a character vector of length one), Default: 'NA'
+
+- empty_xx:
+
+  Empty (an object of multiple potential types), Default: 'NULL'
 
 - target_1L_chr:
 
