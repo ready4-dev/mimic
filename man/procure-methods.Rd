@@ -7,20 +7,23 @@
 \usage{
 \S4method{procure}{MimicConfiguration}(
   x,
-  arm_1L_chr = NA_character_,
   empty_xx = NULL,
+  match_value_xx = NULL,
   target_1L_chr = character(0),
+  type_1L_chr = "Arm",
   what_1L_chr = c("arm")
 )
 }
 \arguments{
 \item{x}{An object of class MimicConfiguration}
 
-\item{arm_1L_chr}{Arm (a character vector of length one), Default: 'NA'}
-
 \item{empty_xx}{Empty (an object of multiple potential types), Default: 'NULL'}
 
+\item{match_value_xx}{Match value (an object of multiple potential types), Default: 'NA'}
+
 \item{target_1L_chr}{Target (a character vector of length one), Default: character(0)}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("Arm")}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("arm")}
 }
