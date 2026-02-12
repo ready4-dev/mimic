@@ -43,9 +43,13 @@
   : Ingest data
 - [`manufacture(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  [`manufacture(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicInputs>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   : Manufacture a new object
 - [`procure(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/procure-methods.md)
   : Procure data from a model module
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
   : Prognosticate (make predictions) by solving a forward problem
+- [`renew(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+  [`renew(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+  : Renew (update) values

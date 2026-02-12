@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   mimic: mimic.html
-last_built: 2026-02-11T23:45Z
+last_built: 2026-02-12T04:03Z
 urls:
   reference: https://ready4-dev.github.io/mimic/reference
   article: https://ready4-dev.github.io/mimic/articles

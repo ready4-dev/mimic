@@ -4,6 +4,8 @@ manufacture method applied to MimicConfiguration
 
 manufacture method applied to MimicRepos
 
+manufacture method applied to MimicPopulation
+
 manufacture method applied to MimicInputs
 
 ## Usage
@@ -15,7 +17,7 @@ manufacture(
   arm_1L_chr = NA_character_,
   batch_1L_int = integer(0),
   extras_ls = list(),
-  what_1L_chr = c("draws_tb", "args_all", "iterations")
+  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
 )
 
 # S4 method for class 'MimicRepos'
@@ -28,6 +30,9 @@ manufacture(
   what_1L_chr = c("sim_ws_dirs_chr"),
   ...
 )
+
+# S4 method for class 'MimicPopulation'
+manufacture(x, what_1L_chr = c("population_ls"), ...)
 
 # S4 method for class 'MimicInputs'
 manufacture(x, what_1L_chr = c("inputs_ls"))
@@ -78,6 +83,8 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
   Additional arguments
 
 ## Value
+
+Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
 
