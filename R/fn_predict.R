@@ -382,7 +382,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
         start_dtm = X_MimicConfiguration@start_dtm, tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls, 
         tx_duration_dtm = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, 
             empty_xx = character(0), target_1L_chr = "Treatment duration"), 
-        arm_1L_chr = arm_1L_chr, default_args_ls = list(sensitivities_ls = sensitivities_ls), 
+        arm_1L_chr = arm_1L_chr, default_args_ls = list(sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls), 
         draws_tb = draws_tb, iterations_int = iterations_int, 
         tidy_cols_1L_lgl = T, tx_prefix_1L_chr = tx_prefix_1L_chr) %>% 
         update_population_ls(population_ls = NULL, type_1L_chr = "form")
@@ -533,10 +533,23 @@ predict_with_sim <- function (inputs_ls = NULL, arms_chr = c("Intervention", "Co
             "/", .x)))
     }
     extras_ls <- list(...)
-    output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
+    if (!identical(X_MimicConfiguration, MimicConfiguration())) {
+        batches_int <- 1:length(X_MimicConfiguration@iterations_ls)
+    }
+    else {
+        batches_int <- 1:length(iterations_ls)
+    }
+    output_xx <- batches_int %>% purrr::map(~{
         if (!is.null(draws_tb)) {
+            if (!identical(X_MimicConfiguration, MimicConfiguration())) {
+                iterations_int <- manufacture(X_MimicConfiguration, 
+                  batch_1L_int = .x, what_1L_chr = "iterations")
+            }
+            else {
+                iterations_int <- iterations_ls[[.x]]
+            }
             filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% 
-                iterations_ls[[.x]])
+                iterations_int)
         }
         else {
             filtered_draws_tb <- NULL
@@ -559,7 +572,7 @@ predict_with_sim <- function (inputs_ls = NULL, arms_chr = c("Intervention", "Co
         output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
     }
     if (purge_1L_lgl) {
-        1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
+        batches_int %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
             "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
     }
     if (type_1L_chr != "NULL") {

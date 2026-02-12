@@ -28,7 +28,6 @@ write_batch <- function (batch_1L_int,
                          Y_MimicRepos = MimicRepos(),
                          ...) 
 {
-  old_algorithm_1L_lgl <- T
   if(!identical(X_MimicConfiguration, MimicConfiguration())){
     # drop_missing_1L_lgl = X_MimicConfiguration@drop_missing_1L_lgl
     # drop_suffix_1L_chr = if(is.na(X_MimicConfiguration@drop_suffix_1L_chr)){
@@ -53,6 +52,7 @@ write_batch <- function (batch_1L_int,
     # utilities_chr = X_MimicConfiguration@utilities_chr
     old_algorithm_1L_lgl <- F
   }else{
+    old_algorithm_1L_lgl <- T
     X_MimicConfiguration <- make_configuration(arms_chr = arms_chr,
                                                drop_missing_1L_lgl = drop_missing_1L_lgl,
                                                drop_suffix_1L_chr = drop_suffix_1L_chr,

@@ -2,7 +2,7 @@ update_arguments_ls <- function(args_ls,
                                 function_fn){
   allowed_chr <- names(formals(function_fn))
   if(!"..." %in% allowed_chr){
-    args_ls <- args_ls[allowed_chr]
+    args_ls <- args_ls[intersect(allowed_chr, names(args_ls))]
   }
   return(args_ls)
 }

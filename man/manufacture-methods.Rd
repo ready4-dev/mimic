@@ -5,6 +5,8 @@
 \alias{manufacture,MimicConfiguration-method}
 \alias{manufacture-MimicRepos}
 \alias{manufacture,MimicRepos-method}
+\alias{manufacture-MimicPopulation}
+\alias{manufacture,MimicPopulation-method}
 \alias{manufacture-MimicInputs}
 \alias{manufacture,MimicInputs-method}
 \title{Manufacture a new object}
@@ -14,7 +16,7 @@
   arm_1L_chr = NA_character_,
   batch_1L_int = integer(0),
   extras_ls = list(),
-  what_1L_chr = c("draws_tb", "args_all", "iterations")
+  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
 )
 
 \S4method{manufacture}{MimicRepos}(
@@ -26,6 +28,8 @@
   what_1L_chr = c("sim_ws_dirs_chr"),
   ...
 )
+
+\S4method{manufacture}{MimicPopulation}(x, what_1L_chr = c("population_ls"), ...)
 
 \S4method{manufacture}{MimicInputs}(x, what_1L_chr = c("inputs_ls"))
 }
@@ -56,11 +60,15 @@ Object (an output object of multiple potential types)
 Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
+
+Object (an output object of multiple potential types)
 }
 \description{
 manufacture method applied to MimicConfiguration
 
 manufacture method applied to MimicRepos
+
+manufacture method applied to MimicPopulation
 
 manufacture method applied to MimicInputs
 }

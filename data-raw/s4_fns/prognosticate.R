@@ -8,7 +8,7 @@ prognosticate_MimicConfiguration <- function(x,
                                              suffix_1L_chr = "",
                                              type_1L_chr = c("NULL", "D", "AB", "C"),
                                              what_1L_chr = c("all", "batch"),
-                                             unlink_1L_lgl = TRUE,
+                                             unlink_1L_lgl = TRUE, # default to FALSE
                                              ...){
   draws_1L_chr <- match.arg(draws_1L_chr)
   type_1L_chr <- match.arg(type_1L_chr)
@@ -38,11 +38,12 @@ prognosticate_MimicConfiguration <- function(x,
                                              msg = "Iterations in iteration list and composite parameter draws table do not match.")
     }else{
       draws_tb <- NULL
-      batches_int <- manufacture(Y, return_1L_chr = "batches",type_1L_chr = "draw_to")
+      batches_int <- manufacture(Y_MimicRepos, return_1L_chr = "batches",type_1L_chr = "draw_to") ####
       test_1L_lgl <- assertthat::assert_that(identical(batches_int, 1:length(X@iterations_ls)),
                                              msg = "Batches of parameter draws tables do not match batches of iterations in iterations list.")
     }
     extras_ls <- list(...)
+    # Most of these arguments can be removed once appropriate defaults are added to predict_with_sim
     args_ls <- list(
       # inputs_ls = NULL,
       arms_chr = character(0),

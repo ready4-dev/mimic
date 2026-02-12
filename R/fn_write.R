@@ -43,11 +43,11 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
     write_to_1L_chr, X_MimicConfiguration = MimicConfiguration(), 
     Y_MimicRepos = MimicRepos(), ...) 
 {
-    old_algorithm_1L_lgl <- T
     if (!identical(X_MimicConfiguration, MimicConfiguration())) {
         old_algorithm_1L_lgl <- F
     }
     else {
+        old_algorithm_1L_lgl <- T
         X_MimicConfiguration <- make_configuration(arms_chr = arms_chr, 
             drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
             extra_draws_fn = extra_draws_fn, horizon_dtm = horizon_dtm, 

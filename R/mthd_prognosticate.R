@@ -51,7 +51,7 @@ methods::setMethod("prognosticate", "MimicConfiguration", function (x, Y_MimicRe
         }
         else {
             draws_tb <- NULL
-            batches_int <- manufacture(Y, return_1L_chr = "batches", 
+            batches_int <- manufacture(Y_MimicRepos, return_1L_chr = "batches", 
                 type_1L_chr = "draw_to")
             test_1L_lgl <- assertthat::assert_that(identical(batches_int, 
                 1:length(X@iterations_ls)), msg = "Batches of parameter draws tables do not match batches of iterations in iterations list.")

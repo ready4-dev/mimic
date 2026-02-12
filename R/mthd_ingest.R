@@ -49,30 +49,28 @@ methods::setMethod("ingest", "MimicRepos", function (x, batches_int = integer(0)
             metadata_1L_lgl = F)
         what_chr <- setdiff(what_chr, names(ingest_xx))
     }
-    if ("models_ls" %in% what_chr) {
-        ingest_xx <- ingest_xx %>% append(list(models_ls = x@path_to_private_1L_chr %>% 
-            import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
-                r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "regressions", 
-                type_1L_chr = "custom", names_ls = list("models_ls")) %>% 
-            purrr::pluck("models_ls")))
-    }
-    if ("params_tb" %in% what_chr) {
-        ingest_xx <- ingest_xx %>% append(list(params_tb = x@path_to_private_1L_chr %>% 
-            import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
-                r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "parameters", 
-                type_1L_chr = "custom", names_ls = list("params_tb")) %>% 
-            purrr::pluck("params_tb")))
-    }
-    if ("Synthetic_r4" %in% what_chr) {
-        ingest_xx <- ingest_xx %>% append(list(Synthetic_r4 = x@path_to_private_1L_chr %>% 
-            import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
-                r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "population", 
-                type_1L_chr = "custom", names_ls = list("fully_synthetic_ls")) %>% 
-            purrr::pluck("fully_synthetic_ls") %>% purrr::pluck("Synthetic_r4")))
-    }
-    if (type_1L_chr == "ParamDraws") {
-        dir_1L_chr <- manufacture(x, type_1L_chr = "draw_to", 
-            what_1L_chr = "sim_ws_dirs_chr")
+    if (!type_1L_chr %in% "ParamDraws") {
+        if ("models_ls" %in% what_chr) {
+            ingest_xx <- ingest_xx %>% append(list(models_ls = x@path_to_private_1L_chr %>% 
+                import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
+                  r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "regressions", 
+                  type_1L_chr = "custom", names_ls = list("models_ls")) %>% 
+                purrr::pluck("models_ls")))
+        }
+        if ("params_tb" %in% what_chr) {
+            ingest_xx <- ingest_xx %>% append(list(params_tb = x@path_to_private_1L_chr %>% 
+                import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
+                  r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "parameters", 
+                  type_1L_chr = "custom", names_ls = list("params_tb")) %>% 
+                purrr::pluck("params_tb")))
+        }
+        if ("Synthetic_r4" %in% what_chr) {
+            ingest_xx <- ingest_xx %>% append(list(Synthetic_r4 = x@path_to_private_1L_chr %>% 
+                import_project_data(dir_1L_chr = x@processed_dir_1L_chr, 
+                  r_dir_1L_chr = x@r_dir_1L_chr, custom_1L_chr = "population", 
+                  type_1L_chr = "custom", names_ls = list("fully_synthetic_ls")) %>% 
+                purrr::pluck("fully_synthetic_ls") %>% purrr::pluck("Synthetic_r4")))
+        }
     }
     if (type_1L_chr %in% "ParamDraws") {
         if (identical(batches_int, integer(0))) {

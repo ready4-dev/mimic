@@ -6,7 +6,7 @@
 #' @param arm_1L_chr Arm (a character vector of length one), Default: 'NA'
 #' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
 #' @param extras_ls Extras (a list), Default: list()
-#' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "args_all", "iterations")
+#' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "args_all", "iterations", "population_ls")
 #' @return Object (an output object of multiple potential types)
 #' @rdname manufacture-methods
 #' @aliases manufacture,MimicConfiguration-method
@@ -15,7 +15,7 @@
 #' @importFrom ready4 manufacture
 methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr = NA_character_, batch_1L_int = integer(0), 
     extras_ls = list(), what_1L_chr = c("draws_tb", "args_all", 
-        "iterations")) 
+        "iterations", "population_ls")) 
 {
     what_1L_chr <- match.arg(what_1L_chr)
     if (what_1L_chr == "args_all") {
@@ -42,6 +42,9 @@ methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr 
         else {
             object_xx <- x@iterations_ls[[batch_1L_int]]
         }
+    }
+    if (what_1L_chr == "population_ls") {
+        object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
     }
     return(object_xx)
 })
@@ -101,6 +104,27 @@ methods::setMethod("manufacture", "MimicRepos", function (x, prefix_1L_chr = cha
                 stringr::str_sub(end = -5) %>% as.integer() %>% 
                 sort()
         }
+    }
+    return(object_xx)
+})
+#' 
+#' Manufacture a new object
+#' @name manufacture-MimicPopulation
+#' @description manufacture method applied to MimicPopulation
+#' @param x An object of class MimicPopulation
+#' @param what_1L_chr What (a character vector of length one), Default: c("population_ls")
+#' @param ... Additional arguments
+#' @return Object (an output object of multiple potential types)
+#' @rdname manufacture-methods
+#' @aliases manufacture,MimicPopulation-method
+#' @export 
+#' @importFrom ready4 manufacture
+methods::setMethod("manufacture", "MimicPopulation", function (x, what_1L_chr = c("population_ls"), ...) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "population_ls") {
+        object_xx <- list(X_Ready4useDyad = x@x_Ready4useDyad, 
+            Y_Ready4useDyad = x@y_Ready4useDyad, Z_Ready4useDyad = x@z_Ready4useDyad)
     }
     return(object_xx)
 })

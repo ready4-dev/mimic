@@ -2,7 +2,7 @@ manufacture_MimicConfiguration <- function(x,
                                            arm_1L_chr = NA_character_,
                                            batch_1L_int = integer(0),
                                            extras_ls = list(),
-                                           what_1L_chr = c("draws_tb", "args_all", "iterations")){
+                                           what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")){
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "args_all"){
     object_xx <- list(
@@ -25,13 +25,18 @@ manufacture_MimicConfiguration <- function(x,
                               drop_suffix_1L_chr = x@drop_suffix_1L_chr, 
                               seed_1L_int = x@seed_1L_int + batch_1L_int)
   }
-
   if(what_1L_chr == "iterations"){
     if(identical(batch_1L_int, integer(0))){
       object_xx <- x@iterations_ls %>% purrr::flatten_int()
     }else{
       object_xx <- x@iterations_ls[[batch_1L_int]]
     } 
+  }
+  if(what_1L_chr == "population_ls"){
+    object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+    # object_xx <- list(X_Ready4useDyad = x@x_MimicPopulation@x_Ready4useDyad,
+    #                   Y_Ready4useDyad = x@x_MimicPopulation@y_Ready4useDyad,
+    #                   Z_Ready4useDyad = x@x_MimicPopulation@z_Ready4useDyad)
   }
   return(object_xx)
 }
@@ -41,6 +46,17 @@ manufacture_MimicInputs <- function(x,
     object_xx <- list(models_ls = x@models_ls,
                       params_tb = x@x_Ready4useDyad@ds_tb,
                       Synthetic_r4 = x@y_Ready4useDyad)
+  }
+  return(object_xx)
+}
+manufacture_MimicPopulation <- function(x,
+                                        what_1L_chr = c("population_ls"),
+                                        ...){
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "population_ls"){
+    object_xx <- list(X_Ready4useDyad = x@x_Ready4useDyad,
+                      Y_Ready4useDyad = x@y_Ready4useDyad,
+                      Z_Ready4useDyad = x@z_Ready4useDyad)
   }
   return(object_xx)
 }

@@ -318,6 +318,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # Update classes then start with methodising the following.
   ###
   ## Enter model
+  ##
+  # X_MimicConfiguration <- renew_MimicConfiguration(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, draws_tb = draws_tb, iterations_int = iterations_int, tx_prefix_1L_chr = "Treatment", type_1L_chr = "form", what_1L_chr = "population")
+  ##
   population_ls <- add_enter_model_event(X_Ready4useDyad = X_MimicConfiguration@x_MimicInputs@y_Ready4useDyad, #inputs_ls$Synthetic_r4,
                                          default_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
                                          derive_fn_ls = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
@@ -327,12 +330,17 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                          tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls, 
                                          tx_duration_dtm = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment duration"),
                                          arm_1L_chr = arm_1L_chr, 
-                                         default_args_ls = list(sensitivities_ls = sensitivities_ls),
+                                         default_args_ls = list(sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls),
                                          draws_tb = draws_tb,
                                          iterations_int = iterations_int, 
                                          tidy_cols_1L_lgl = T,
                                          tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
     update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+  ##
+  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+  #                                   renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
+  # population_ls <- manufacture_MimicConfiguration(X_MimicConfiguration, what_1L_chr = "population_ls")
+  ##
   ## Update population (if comparator)
   population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad,
                                                        arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")) 
@@ -489,12 +497,22 @@ predict_with_sim <- function (inputs_ls = NULL,
                                                                                  "/", .x)))
   }
   extras_ls <- list(...)
-  output_xx <- 1:length(iterations_ls) %>% purrr::map(~{
-    if(!is.null(draws_tb)){
-      filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% iterations_ls[[.x]]) 
+  if(!identical(X_MimicConfiguration,MimicConfiguration())){
+    batches_int <- 1:length(X_MimicConfiguration@iterations_ls)
+  }else{
+    batches_int <- 1:length(iterations_ls)
+    }
+  output_xx <- batches_int %>% purrr::map(~{ 
+    if(!is.null(draws_tb)){ #####
+      if(!identical(X_MimicConfiguration,MimicConfiguration())){
+        iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = .x, what_1L_chr = "iterations")
+      }else{
+        iterations_int <- iterations_ls[[.x]]
+      }
+      filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% iterations_int) 
     }else{
       filtered_draws_tb <- NULL
-    }
+    } ####
     args_ls <- list(batch_1L_int = .x, 
                     # add_logic_fn = add_logic_fn, 
                     arms_chr = arms_chr, # set to character(0) if arms_tb is not empty
@@ -530,8 +548,8 @@ predict_with_sim <- function (inputs_ls = NULL,
     output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
   }
   if (purge_1L_lgl) {
-    1:length(iterations_ls) %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-                                                           "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
+    batches_int %>% purrr::walk(~unlink(paste0(write_to_1L_chr, ####
+                                               "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
   }
   if (type_1L_chr != "NULL") {
     if(!identical(X_MimicConfiguration,MimicConfiguration())){

@@ -37,6 +37,9 @@ reference:
   - ingest-MimicRepos
   - manufacture-MimicConfiguration
   - manufacture-MimicInputs
+  - manufacture-MimicPopulation
   - manufacture-MimicRepos
   - procure-MimicConfiguration
   - prognosticate-MimicConfiguration
+  - renew-MimicConfiguration
+  - renew-MimicPopulation
