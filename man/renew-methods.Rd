@@ -9,8 +9,16 @@
 \usage{
 \S4method{renew}{MimicPopulation}(
   x,
+  invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | x == Inf | x
+    < 0),
   population_ls = NULL,
-  type_1L_chr = c("default", "customise", "transform"),
+  schedule_args_ls = list(),
+  schedule_fn = NULL,
+  step_dtm = lubridate::days(0),
+  type_1L_chr = c("default", "customise", "schedule", "transform"),
+  use_1L_chr = c("Y", "Z"),
+  validate_chr = character(0),
+  what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   ...
 )
@@ -18,8 +26,8 @@
 \S4method{renew}{MimicConfiguration}(
   x,
   arm_1L_chr = character(0),
+  batch_1L_int = integer(0),
   draws_tb = NULL,
-  iterations_int = integer(0),
   tx_prefix_1L_chr = character(0),
   type_1L_chr = c("default", "form"),
   what_1L_chr = c("population"),
@@ -31,7 +39,17 @@
 
 \item{population_ls}{Population (a list), Default: NULL}
 
+\item{schedule_args_ls}{Schedule arguments (a list), Default: list()}
+
+\item{schedule_fn}{Schedule (a function), Default: NULL}
+
+\item{step_dtm}{Step (a date vector), Default: lubridate::days(0)}
+
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form")}
+
+\item{use_1L_chr}{Use (a character vector of length one), Default: c("Y", "Z")}
+
+\item{what_1L_chr}{What (a character vector of length one), Default: c("population")}
 
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
@@ -39,13 +57,11 @@
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: character(0)}
 
+\item{batch_1L_int}{Batch (an integer vector), Default: integer(0)}
+
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
-\item{iterations_int}{Iterations (an integer vector), Default: integer(0)}
-
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
-
-\item{what_1L_chr}{What (a character vector of length one), Default: c("population")}
 }
 \value{
 x (An object of class MimicPopulation)

@@ -290,6 +290,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     horizon_dtm <- X_MimicConfiguration@horizon_dtm
     initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls) # Note modification -> update X_MimicConfiguration
     inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls")
+    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations")
     iterations_ls <- X_MimicConfiguration@iterations_ls
     modifiable_chr <- X_MimicConfiguration@modifiable_chr
     seed_1L_int <- X_MimicConfiguration@seed_1L_int
@@ -319,52 +320,66 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   ## Enter model
   ##
-  # X_MimicConfiguration <- renew_MimicConfiguration(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, draws_tb = draws_tb, iterations_int = iterations_int, tx_prefix_1L_chr = "Treatment", type_1L_chr = "form", what_1L_chr = "population")
+  X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
+                                tx_prefix_1L_chr = "Treatment", type_1L_chr = "form", what_1L_chr = "population")
   ##
-  population_ls <- add_enter_model_event(X_Ready4useDyad = X_MimicConfiguration@x_MimicInputs@y_Ready4useDyad, #inputs_ls$Synthetic_r4,
-                                         default_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
-                                         derive_fn_ls = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
-                                         horizon_dtm = X_MimicConfiguration@horizon_dtm,
-                                         modifiable_chr = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(X_MimicConfiguration@modifiable_chr),
-                                         start_dtm = X_MimicConfiguration@start_dtm,  
-                                         tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls, 
-                                         tx_duration_dtm = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment duration"),
-                                         arm_1L_chr = arm_1L_chr, 
-                                         default_args_ls = list(sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls),
-                                         draws_tb = draws_tb,
-                                         iterations_int = iterations_int, 
-                                         tidy_cols_1L_lgl = T,
-                                         tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
-    update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+  # population_ls <- add_enter_model_event(X_Ready4useDyad = X_MimicConfiguration@x_MimicInputs@y_Ready4useDyad, #inputs_ls$Synthetic_r4,
+  #                                        default_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
+  #                                        derive_fn_ls = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
+  #                                        horizon_dtm = X_MimicConfiguration@horizon_dtm,
+  #                                        modifiable_chr = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(X_MimicConfiguration@modifiable_chr),
+  #                                        start_dtm = X_MimicConfiguration@start_dtm,  
+  #                                        tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls, 
+  #                                        tx_duration_dtm = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment duration"),
+  #                                        arm_1L_chr = arm_1L_chr, 
+  #                                        default_args_ls = list(sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls),
+  #                                        draws_tb = draws_tb,
+  #                                        iterations_int = iterations_int, 
+  #                                        tidy_cols_1L_lgl = T,
+  #                                        tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
+  #   update_population_ls(population_ls = NULL,  type_1L_chr = "form")
   ##
-  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
-  #                                   renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
-  # population_ls <- manufacture_MimicConfiguration(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+                                    renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
+
   ## Update population (if comparator)
-  population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad,
-                                                       arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")) 
-  population_ls$X_Ready4useDyad <- add_non_iar(population_ls$X_Ready4useDyad,
-                                               arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"))
-  ### Remove those who are non helpseekers (for comparator only)
-  population_ls <- update_population_ls(population_ls)
+  # population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad,
+  #                                                      arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")) 
+  # population_ls$X_Ready4useDyad <- add_non_iar(population_ls$X_Ready4useDyad,
+  #                                              arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"))
+  # ### Remove those who are non helpseekers (for comparator only)
+  # population_ls <- update_population_ls(population_ls)
+  ##
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+                                    renew(X_MimicConfiguration@x_MimicPopulation, 
+                                                          invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0),
+                                                          schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
+                                                                                  iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations"), 
+                                                                                  treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")),
+                                                          schedule_fn = add_episode_wait_time,
+                                                          use_1L_chr = c("Y"),
+                                                          validate_chr = "WaitInDays",
+                                                          what_1L_chr = "StartEpisode",
+                                                          type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration)) 
+  population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
   ## Schedule start of episode of care 
-  if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
-    population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "StartEpisode", 
-                                                       schedule_fn = add_episode_wait_time,
-                                                       schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
-                                                                               iterations_int = iterations_int, 
-                                                                               treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")))
-    print_errors(population_ls$X_Ready4useDyad,
-                 vars_chr = c("WaitInDays"),
-                 assert_1L_lgl = FALSE,
-                 invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
-    population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
-    population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
-    ### Remove those who won't receive any episodes
-    population_ls <- update_population_ls(population_ls)
-  }
+  # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
+  #   population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "StartEpisode", 
+  #                                                      schedule_fn = add_episode_wait_time,
+  #                                                      schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
+  #                                                                              iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations"), 
+  #                                                                              treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")))
+  #   print_errors(population_ls$X_Ready4useDyad,
+  #                vars_chr = c("WaitInDays"),
+  #                assert_1L_lgl = FALSE,
+  #                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+  #   population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
+  #   population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+  #   ### Remove those who won't receive any episodes
+  #   population_ls <- update_population_ls(population_ls)
+  # }
   
   ##
   ## Add episode of care
