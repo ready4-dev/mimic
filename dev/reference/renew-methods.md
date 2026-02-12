@@ -10,8 +10,16 @@ renew method applied to MimicConfiguration
 # S4 method for class 'MimicPopulation'
 renew(
   x,
+  invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | x == Inf | x
+    < 0),
   population_ls = NULL,
-  type_1L_chr = c("default", "customise", "transform"),
+  schedule_args_ls = list(),
+  schedule_fn = NULL,
+  step_dtm = lubridate::days(0),
+  type_1L_chr = c("default", "customise", "schedule", "transform"),
+  use_1L_chr = c("Y", "Z"),
+  validate_chr = character(0),
+  what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   ...
 )
@@ -20,8 +28,8 @@ renew(
 renew(
   x,
   arm_1L_chr = character(0),
+  batch_1L_int = integer(0),
   draws_tb = NULL,
-  iterations_int = integer(0),
   tx_prefix_1L_chr = character(0),
   type_1L_chr = c("default", "form"),
   what_1L_chr = c("population"),
@@ -39,9 +47,29 @@ renew(
 
   Population (a list), Default: NULL
 
+- schedule_args_ls:
+
+  Schedule arguments (a list), Default: list()
+
+- schedule_fn:
+
+  Schedule (a function), Default: NULL
+
+- step_dtm:
+
+  Step (a date vector), Default: lubridate::days(0)
+
 - type_1L_chr:
 
   Type (a character vector of length one), Default: c("default", "form")
+
+- use_1L_chr:
+
+  Use (a character vector of length one), Default: c("Y", "Z")
+
+- what_1L_chr:
+
+  What (a character vector of length one), Default: c("population")
 
 - X_MimicConfiguration:
 
@@ -55,22 +83,18 @@ renew(
 
   Arm (a character vector of length one), Default: character(0)
 
+- batch_1L_int:
+
+  Batch (an integer vector), Default: integer(0)
+
 - draws_tb:
 
   Draws (a tibble), Default: NULL
-
-- iterations_int:
-
-  Iterations (an integer vector), Default: integer(0)
 
 - tx_prefix_1L_chr:
 
   Treatment prefix (a character vector of length one), Default:
   character(0)
-
-- what_1L_chr:
-
-  What (a character vector of length one), Default: c("population")
 
 ## Value
 

@@ -44,8 +44,16 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S4 method for class 'MimicPopulation'</span></span>
 <span><span class="fu">renew</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
+<span>  invalid_fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.nan</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">|</span> <span class="va">x</span> <span class="op">==</span> <span class="op">-</span><span class="cn">Inf</span> <span class="op">|</span> <span class="va">x</span> <span class="op">==</span> <span class="cn">Inf</span> <span class="op">|</span> <span class="va">x</span></span>
+<span>    <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span>,</span>
 <span>  population_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"default"</span>, <span class="st">"customise"</span>, <span class="st">"transform"</span><span class="op">)</span>,</span>
+<span>  schedule_args_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  schedule_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  step_dtm <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">days</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"default"</span>, <span class="st">"customise"</span>, <span class="st">"schedule"</span>, <span class="st">"transform"</span><span class="op">)</span>,</span>
+<span>  use_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Y"</span>, <span class="st">"Z"</span><span class="op">)</span>,</span>
+<span>  validate_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  what_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  X_MimicConfiguration <span class="op">=</span> <span class="fu"><a href="MimicConfiguration-class.html">MimicConfiguration</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
@@ -54,8 +62,8 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <span><span class="fu">renew</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  arm_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  batch_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  draws_tb <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  iterations_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  tx_prefix_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"default"</span>, <span class="st">"form"</span><span class="op">)</span>,</span>
 <span>  what_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"population"</span><span class="op">)</span>,</span>
@@ -75,8 +83,28 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <dd><p>Population (a list), Default: NULL</p></dd>
 
 
+<dt id="arg-schedule-args-ls">schedule_args_ls<a class="anchor" aria-label="anchor" href="#arg-schedule-args-ls"></a></dt>
+<dd><p>Schedule arguments (a list), Default: list()</p></dd>
+
+
+<dt id="arg-schedule-fn">schedule_fn<a class="anchor" aria-label="anchor" href="#arg-schedule-fn"></a></dt>
+<dd><p>Schedule (a function), Default: NULL</p></dd>
+
+
+<dt id="arg-step-dtm">step_dtm<a class="anchor" aria-label="anchor" href="#arg-step-dtm"></a></dt>
+<dd><p>Step (a date vector), Default: lubridate::days(0)</p></dd>
+
+
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
 <dd><p>Type (a character vector of length one), Default: c("default", "form")</p></dd>
+
+
+<dt id="arg-use-l-chr">use_1L_chr<a class="anchor" aria-label="anchor" href="#arg-use-l-chr"></a></dt>
+<dd><p>Use (a character vector of length one), Default: c("Y", "Z")</p></dd>
+
+
+<dt id="arg-what-l-chr">what_1L_chr<a class="anchor" aria-label="anchor" href="#arg-what-l-chr"></a></dt>
+<dd><p>What (a character vector of length one), Default: c("population")</p></dd>
 
 
 <dt id="arg-x-mimicconfiguration">X_MimicConfiguration<a class="anchor" aria-label="anchor" href="#arg-x-mimicconfiguration"></a></dt>
@@ -91,20 +119,16 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <dd><p>Arm (a character vector of length one), Default: character(0)</p></dd>
 
 
+<dt id="arg-batch-l-int">batch_1L_int<a class="anchor" aria-label="anchor" href="#arg-batch-l-int"></a></dt>
+<dd><p>Batch (an integer vector), Default: integer(0)</p></dd>
+
+
 <dt id="arg-draws-tb">draws_tb<a class="anchor" aria-label="anchor" href="#arg-draws-tb"></a></dt>
 <dd><p>Draws (a tibble), Default: NULL</p></dd>
 
 
-<dt id="arg-iterations-int">iterations_int<a class="anchor" aria-label="anchor" href="#arg-iterations-int"></a></dt>
-<dd><p>Iterations (an integer vector), Default: integer(0)</p></dd>
-
-
 <dt id="arg-tx-prefix-l-chr">tx_prefix_1L_chr<a class="anchor" aria-label="anchor" href="#arg-tx-prefix-l-chr"></a></dt>
 <dd><p>Treatment prefix (a character vector of length one), Default: character(0)</p></dd>
-
-
-<dt id="arg-what-l-chr">what_1L_chr<a class="anchor" aria-label="anchor" href="#arg-what-l-chr"></a></dt>
-<dd><p>What (a character vector of length one), Default: c("population")</p></dd>
 
 </dl></div>
     <div class="section level2">
