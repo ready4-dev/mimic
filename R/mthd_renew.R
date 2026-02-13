@@ -1,19 +1,65 @@
 #' 
 #' Renew (update) values
+#' @name renew-MimicActive
+#' @description renew method applied to MimicActive
+#' @param x An object of class MimicActive
+#' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
+#' @param env_ls Environment (a list), Default: list()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("default", "customise", "schedule")
+#' @param X_MimicConfiguration X_MimicConfiguration, Default: MimicConfiguration()
+#' @param X_MimicSchedule X_MimicSchedule, Default: X_MimicSchedule()
+#' @param ... Additional arguments
+#' @return x (An object of class MimicActive)
+#' @rdname renew-methods
+#' @aliases renew,MimicActive-method
+#' @export 
+methods::setMethod("renew", "MimicActive", function(x,
+                                                    batch_1L_int = integer(0),
+                                                    env_ls = list(),
+                                                    type_1L_chr = c("default", "customise", "schedule"),
+                                                    X_MimicConfiguration = MimicConfiguration(),
+                                                    X_MimicSchedule = MimicSchedule(),
+                                                    ...){
+  
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr == "customise"){
+    x <- renewSlot(x, "x_Ready4useDyad",
+                   add_non_helpseekers(x@x_Ready4useDyad,
+                                       arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"))) 
+    x <- renewSlot(x, "x_Ready4useDyad",
+                   add_non_iar(x@x_Ready4useDyad,
+                               arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment")))
+  }
+  if(type_1L_chr == "schedule"){
+    x@x_Ready4useDyad <- add_time_to_event(x@x_Ready4useDyad, 
+                                           event_1L_chr = X_MimicSchedule@event_1L_chr, 
+                                           schedule_fn = X_MimicSchedule@functions_ls$schedule_fn,
+                                           schedule_args_ls = manufacture(X_MimicSchedule@x_MimicArguments, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+                                                                          what_1L_chr = "args_ls", X_MimicConfiguration = X_MimicConfiguration),
+                                           step_dtm = X_MimicSchedule@step_dtm)
+    print_errors(x@x_Ready4useDyad,
+                 vars_chr = X_MimicSchedule@validate_chr,
+                 assert_1L_lgl = X_MimicSchedule@assert_1L_lgl,
+                 invalid_fn = X_MimicSchedule@functions_ls$invalid_fn)
+    x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_current_event(x@x_Ready4useDyad)
+    
+  }
+  return(x)
+})
+
+#' 
+#' Renew (update) values
 #' @name renew-MimicPopulation
 #' @description renew method applied to MimicPopulation
 #' @param x An object of class MimicPopulation
-#' @param invalid_fn Invalid (a function), Default: function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | 
-#'    x == Inf | x < 0)
-#' @param schedule_args_ls Schedule arguments (a list), Default: list()
-#' @param schedule_fn Schedule (a function), Default: NULL
+#' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
+#' @param env_ls Environment (a list), Default: list()
 #' @param population_ls Population (a list), Default: NULL
-#' @param step_dtm Step (a date vector), Default: lubridate::days(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("default", "customise", "schedule", "transform")
-#' @param use_1L_chr Use (a character vector of length one), Default: c("Y", "Z")
-#' @param validate_chr Validate (a character vector), Default: character(0)
 #' @param what_1L_chr What (a character vector of length one), Default: character(0)
-#' @param X_MimicConfiguration PARAM_DESCRIPTION, Default: MimicConfiguration()
+#' @param X_MimicConfiguration X_MimicConfiguration, Default: MimicConfiguration()
+#' @param X_MimicSchedule X_MimicSchedule, Default: MimicSchedule()
 #' @param ... Additional arguments
 #' @return x (An object of class MimicPopulation)
 #' @rdname renew-methods
@@ -21,49 +67,39 @@
 #' @export 
 #' @importFrom lubridate days
 #' @importFrom ready4 renew
-methods::setMethod("renew", "MimicPopulation", function (x, invalid_fn = function(x) (is.na(x) | is.nan(x) | 
-    is.null(x) | x == -Inf | x == Inf | x < 0), schedule_args_ls = list(), 
-    schedule_fn = NULL, population_ls = NULL, step_dtm = lubridate::days(0), 
-    type_1L_chr = c("default", "customise", "schedule", "transform"), 
-    use_1L_chr = c("Y", "Z"), validate_chr = character(0), what_1L_chr = character(0), 
-    X_MimicConfiguration = MimicConfiguration(), ...) 
-{
-    type_1L_chr <- match.arg(type_1L_chr)
-    use_1L_chr <- match.arg(use_1L_chr)
-    if (type_1L_chr == "customise") {
-        population_ls <- manufacture(x, what_1L_chr = "population_ls")
-        population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad, 
-            arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, 
-                empty_xx = character(0), match_value_xx = T, 
-                target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"))
-        population_ls$X_Ready4useDyad <- add_non_iar(population_ls$X_Ready4useDyad, 
-            arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, 
-                empty_xx = character(0), match_value_xx = T, 
-                target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"))
-        population_ls <- update_population_ls(population_ls)
-        x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
+methods::setMethod("renew", "MimicPopulation", function(x,
+                                                        batch_1L_int = integer(0),
+                                                        env_ls = list(),
+                                                        population_ls = NULL,
+                                                        type_1L_chr = c("default", "customise", "schedule", "transform"),
+                                                        what_1L_chr = character(0),
+                                                        X_MimicConfiguration = MimicConfiguration(),
+                                                        X_MimicSchedule = MimicSchedule(),
+                                                        ...){
+  type_1L_chr <- match.arg(type_1L_chr)
+  if(type_1L_chr == "customise"){
+    population_ls <- manufacture(x, what_1L_chr = "population_ls")
+    population_ls$X_Ready4useDyad <- renew(x@x_MimicActive, type_1L_chr = type_1L_chr, X_MimicConfiguration = X_MimicConfiguration) %>%
+      procureSlot("x_Ready4useDyad")
+    population_ls <- update_population_ls(population_ls)
+    x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
+  }
+  if(type_1L_chr == "schedule"){
+    if(nrow(x@x_MimicActive@x_Ready4useDyad@ds_tb)>0){
+      population_ls <- manufacture(x, what_1L_chr = "population_ls")
+      X_MimicActive <- renew(x@x_MimicActive, batch_1L_int = batch_1L_int, env_ls = env_ls, type_1L_chr = "schedule", 
+                             X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicSchedule)
+      population_ls$X_Ready4useDyad <- X_MimicActive@x_Ready4useDyad
+      population_ls <- update_population_ls(population_ls, use_1L_chr = X_MimicSchedule@use_1L_chr)
+      x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
     }
-    if (type_1L_chr == "schedule") {
-        population_ls <- manufacture(x, what_1L_chr = "population_ls")
-        if (nrow(population_ls$X_Ready4useDyad@ds_tb) > 0) {
-            population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, 
-                event_1L_chr = what_1L_chr, schedule_fn = schedule_fn, 
-                schedule_args_ls = schedule_args_ls, step_dtm = step_dtm)
-            print_errors(population_ls$X_Ready4useDyad, vars_chr = validate_chr, 
-                assert_1L_lgl = FALSE, invalid_fn = invalid_fn)
-            population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
-            population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
-            population_ls <- update_population_ls(population_ls, 
-                use_1L_chr = use_1L_chr)
-            x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
-        }
-    }
-    if (type_1L_chr == "transform") {
-        x <- renewSlot(x, "x_Ready4useDyad", population_ls$X_Ready4useDyad) %>% 
-            renewSlot("y_Ready4useDyad", population_ls$Y_Ready4useDyad) %>% 
-            renewSlot("z_Ready4useDyad", population_ls$Z_Ready4useDyad)
-    }
-    return(x)
+  }
+  if(type_1L_chr == "transform"){
+    x <- renewSlot(x,"x_MimicActive@x_Ready4useDyad", population_ls$X_Ready4useDyad) %>%
+      renewSlot("y_Ready4useDyad", population_ls$Y_Ready4useDyad) %>%
+      renewSlot("z_Ready4useDyad", population_ls$Z_Ready4useDyad)
+  }
+  return(x)
 })
 #' 
 #' Renew (update) values

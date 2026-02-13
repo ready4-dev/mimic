@@ -14,7 +14,7 @@
 MimicDerivations <- methods::setClass("MimicDerivations",
 contains = "Ready4Module",
 slots = c(method_1L_chr = "character",args_env_ls = "list",args_fixed_ls = "list",dissemination_1L_chr = "character"),
-prototype =  list(method_1L_chr = NA_character_,args_env_ls = list(list()),args_fixed_ls = list(list())))
+prototype =  list(method_1L_chr = NA_character_,args_env_ls = list(),args_fixed_ls = list()))
 
 
 methods::setValidity(methods::className("MimicDerivations"),

@@ -15,7 +15,7 @@
 MimicUtility <- methods::setClass("MimicUtility",
 contains = "Ready4Module",
 slots = c(names_chr = "character",data_ls = "list",mapping_ls = "list",transformations_ls = "list",dissemination_1L_chr = "character"),
-prototype =  list(names_chr = NA_character_,data_ls = list(list()),mapping_ls = list(list()),transformations_ls = list(list())))
+prototype =  list(names_chr = NA_character_,data_ls = list(),mapping_ls = list(),transformations_ls = list()))
 
 
 methods::setValidity(methods::className("MimicUtility"),

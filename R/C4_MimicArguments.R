@@ -14,7 +14,7 @@
 MimicArguments <- methods::setClass("MimicArguments",
 contains = "Ready4Module",
 slots = c(iterations_1L_lgl = "logical",derive_ls = "list",models_ls = "list",dissemination_1L_chr = "character"),
-prototype =  list(iterations_1L_lgl = NA,derive_ls = list(list()),models_ls = list(list())))
+prototype =  list(iterations_1L_lgl = FALSE, derive_ls = list(list()), models_ls = list(list())))
 
 
 methods::setValidity(methods::className("MimicArguments"),

@@ -1,3 +1,30 @@
+manufacture_MimicArguments <- function(x,
+                                       batch_1L_int = integer(0),
+                                       env_ls = list(),
+                                       what_1L_chr = c("args_ls"),
+                                       X_MimicConfiguration = MimicConfiguration(),
+                                       ...){
+  what_1L_chr <- match.arg(what_1L_chr)
+  object_xx <- list()
+  if(what_1L_chr == "args_ls"){
+    if(!identical(x@derive_ls, list())){
+      object_xx <- object_xx %>%
+        append(x@derive_ls %>% purrr::map(~{
+          manufacture(.x, env_ls = env_ls, X_MimicConfiguration = X_MimicConfiguration) %>% unlist()
+        }))
+    }
+    if(!identical(x@models_ls, list())){
+      object_xx <- object_xx %>%
+        append(x@models_ls %>%
+                 purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls") %>% purrr::pluck(.x)))
+    }
+    if(!identical(batch_1L_int, integer(0))){
+      object_xx <- object_xx %>%
+        append(list(iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
+    }
+  }
+  return(object_xx)
+}
 manufacture_MimicConfiguration <- function(x,
                                            arm_1L_chr = NA_character_,
                                            batch_1L_int = integer(0),
@@ -34,9 +61,32 @@ manufacture_MimicConfiguration <- function(x,
   }
   if(what_1L_chr == "population_ls"){
     object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
-    # object_xx <- list(X_Ready4useDyad = x@x_MimicPopulation@x_Ready4useDyad,
-    #                   Y_Ready4useDyad = x@x_MimicPopulation@y_Ready4useDyad,
-    #                   Z_Ready4useDyad = x@x_MimicPopulation@z_Ready4useDyad)
+  }
+  return(object_xx)
+}
+manufacture_MimicDerivations <- function(x,
+                                         env_ls = list(),
+                                         name_1L_chr = character(0),
+                                         what_1L_chr = c("args_ls"),
+                                         X_MimicConfiguration = MimicConfiguration(),
+                                         ...){
+  if(what_1L_chr=="args_ls"){
+    object_xx <- list()
+    if(!is.na(x@method_1L_chr[1])){
+      # class_1L_chr <- class(X_MimicConfiguration) %>% as.character()
+      # allowed_chr <- names(Rdpack::S4formals(x@method_1L_chr, class_1L_chr))
+      if(!identical(env_ls, list())){
+        object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
+          append(x@args_fixed_ls)
+      }
+      if(!is.na(x@method_1L_chr)){
+        object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
+        if(!identical(name_1L_chr, character(0))){
+          object_xx <- object_xx %>% stats::setNames(name_1L_chr)
+        }
+      }
+      # procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")
+    }
   }
   return(object_xx)
 }
@@ -54,7 +104,7 @@ manufacture_MimicPopulation <- function(x,
                                         ...){
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "population_ls"){
-    object_xx <- list(X_Ready4useDyad = x@x_Ready4useDyad,
+    object_xx <- list(X_Ready4useDyad = x@x_MimicActive@x_Ready4useDyad,
                       Y_Ready4useDyad = x@y_Ready4useDyad,
                       Z_Ready4useDyad = x@z_Ready4useDyad)
   }

@@ -15,7 +15,7 @@ Model event scheduling data.
 
 \item{\code{event_1L_chr}}{Event (a character vector of length one)}
 
-\item{\code{fail_with_ls}}{Fail with (a list)}
+\item{\code{functions_ls}}{Functions (a list)}
 
 \item{\code{step_dtm}}{Step (a date vector)}
 
@@ -25,7 +25,7 @@ Model event scheduling data.
 
 \item{\code{validate_chr}}{Validate (a character vector)}
 
-\item{\code{x_MimicArguments}}{(an instance of the Ready4Module class)}
+\item{\code{x_MimicArguments}}{(an instance of the MimicArguments class)}
 
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}

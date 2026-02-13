@@ -15,7 +15,7 @@
 MimicInputs <- methods::setClass("MimicInputs",
 contains = "Ready4Module",
 slots = c(lookups_ls = "list",models_ls = "list",x_Ready4useDyad = "Ready4useDyad",y_Ready4useDyad = "Ready4useDyad",dissemination_1L_chr = "character"),
-prototype =  list(lookups_ls = list(list()),models_ls = list(list()),x_Ready4useDyad = ready4use::Ready4useDyad(),y_Ready4useDyad = ready4use::Ready4useDyad()))
+prototype =  list(lookups_ls = list(),models_ls = list(),x_Ready4useDyad = ready4use::Ready4useDyad(),y_Ready4useDyad = ready4use::Ready4useDyad()))
 
 
 methods::setValidity(methods::className("MimicInputs"),

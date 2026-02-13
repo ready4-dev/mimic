@@ -11,7 +11,7 @@ Model dynamic population data container (specifying population subgroups who are
 \section{Slots}{
 
 \describe{
-\item{\code{x_Ready4useDyad}}{(an instance of the Ready4useDyad class)}
+\item{\code{x_MimicActive}}{(an instance of the MimicActive class)}
 
 \item{\code{y_Ready4useDyad}}{(an instance of the Ready4useDyad class)}
 

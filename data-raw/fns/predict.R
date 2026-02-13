@@ -313,10 +313,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   }
   # treatment_1L_chr <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")
   tx_prefix_1L_chr <- "Treatment"
-  # Add below to MimicConfiguration@x_MimicAlgorithms
   # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
   ###
-  # Update classes then start with methodising the following.
   ###
   ## Enter model
   ##
@@ -340,7 +338,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #   update_population_ls(population_ls = NULL,  type_1L_chr = "form")
   ##
   ##
-  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+  X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation",
                                     renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
 
   ## Update population (if comparator)
@@ -351,23 +349,18 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # ### Remove those who are non helpseekers (for comparator only)
   # population_ls <- update_population_ls(population_ls)
   ##
+  X_MimicSchedule <- MimicSchedule()
+  X_MimicSchedule@event_1L_chr <- "StartEpisode"
+  X_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
+  X_MimicSchedule@validate_chr <- "WaitInDays"
+  X_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  X_MimicSchedule@x_MimicArguments@models_ls = list(episode_start_mdl = "EpisodeStart_mdl")
+  X_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+                                                                                         args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                                                         args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
-                                    renew(X_MimicConfiguration@x_MimicPopulation, 
-                                          invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0),
-                                          # x_MimicArguments = MimicArguments(models_ls = list(episode_start_mdl = "EpisodeStart_mdl"),
-                                          #                                           iterations_1L_lgl = T,
-                                          #                                           derived_ls = list(treatment_1L_chr = list(method = procure,
-                                          #                                                                                             args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment"),
-                                          #                                                                                             args_env_ls = list(match_value_xx = "arm_1L_chr")))),
-                                          schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
-                                                                  iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations"), 
-                                                                  treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")),
-                                          schedule_fn = add_episode_wait_time,
-                                          use_1L_chr = c("Y"),
-                                          validate_chr = "WaitInDays",
-                                          what_1L_chr = "StartEpisode",
-                                          type_1L_chr = "schedule", 
-                                          X_MimicConfiguration = X_MimicConfiguration)) 
+                                    renew(X_MimicConfiguration@x_MimicPopulation,
+                                          batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicSchedule))
   population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
   ## Schedule start of episode of care 

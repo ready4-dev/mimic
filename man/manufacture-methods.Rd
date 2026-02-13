@@ -3,6 +3,10 @@
 \name{manufacture-MimicConfiguration}
 \alias{manufacture-MimicConfiguration}
 \alias{manufacture,MimicConfiguration-method}
+\alias{manufacture-MimicDerivations}
+\alias{manufacture,MimicDerivations-method}
+\alias{manufacture-MimicArguments}
+\alias{manufacture,MimicArguments-method}
 \alias{manufacture-MimicRepos}
 \alias{manufacture,MimicRepos-method}
 \alias{manufacture-MimicPopulation}
@@ -17,6 +21,24 @@
   batch_1L_int = integer(0),
   extras_ls = list(),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
+)
+
+\S4method{manufacture}{MimicDerivations}(
+  x,
+  env_ls = list(),
+  name_1L_chr = character(0),
+  what_1L_chr = c("args_ls"),
+  X_MimicConfiguration = MimicConfiguration(),
+  ...
+)
+
+\S4method{manufacture}{MimicArguments}(
+  x,
+  batch_1L_int = integer(0),
+  env_ls = list(),
+  what_1L_chr = c("args_ls"),
+  X_MimicConfiguration = MimicConfiguration(),
+  ...
 )
 
 \S4method{manufacture}{MimicRepos}(
@@ -44,6 +66,14 @@
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("inputs_ls")}
 
+\item{env_ls}{Environment (a list), Default: list()}
+
+\item{name_1L_chr}{Name (a character vector of length one), Default: character(0)}
+
+\item{X_MimicConfiguration}{X_MimicConfiguration, Default: MimicConfiguration()}
+
+\item{...}{Additional arguments}
+
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 
 \item{return_1L_chr}{Return (a character vector of length one), Default: c("default", "batches", "files")}
@@ -51,10 +81,12 @@
 \item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ''}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
-
-\item{...}{Additional arguments}
 }
 \value{
+Object (an output object of multiple potential types)
+
+Object (an output object of multiple potential types)
+
 Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
@@ -65,6 +97,10 @@ Object (an output object of multiple potential types)
 }
 \description{
 manufacture method applied to MimicConfiguration
+
+manufacture method applied to MimicDerivations
+
+manufacture method applied to MimicArguments
 
 manufacture method applied to MimicRepos
 
