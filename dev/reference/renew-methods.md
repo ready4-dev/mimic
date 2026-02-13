@@ -12,9 +12,9 @@ renew(
   x,
   invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | x == Inf | x
     < 0),
-  population_ls = NULL,
   schedule_args_ls = list(),
   schedule_fn = NULL,
+  population_ls = NULL,
   step_dtm = lubridate::days(0),
   type_1L_chr = c("default", "customise", "schedule", "transform"),
   use_1L_chr = c("Y", "Z"),
@@ -43,9 +43,10 @@ renew(
 
   An object of class MimicConfiguration
 
-- population_ls:
+- invalid_fn:
 
-  Population (a list), Default: NULL
+  Invalid (a function), Default: function(x) (is.na(x) \| is.nan(x) \|
+  is.null(x) \| x == -Inf \| x == Inf \| x \< 0)
 
 - schedule_args_ls:
 
@@ -54,6 +55,10 @@ renew(
 - schedule_fn:
 
   Schedule (a function), Default: NULL
+
+- population_ls:
+
+  Population (a list), Default: NULL
 
 - step_dtm:
 
@@ -66,6 +71,10 @@ renew(
 - use_1L_chr:
 
   Use (a character vector of length one), Default: c("Y", "Z")
+
+- validate_chr:
+
+  Validate (a character vector), Default: character(0)
 
 - what_1L_chr:
 
@@ -85,7 +94,7 @@ renew(
 
 - batch_1L_int:
 
-  Batch (an integer vector), Default: integer(0)
+  Batch (an integer vector of length one), Default: integer(0)
 
 - draws_tb:
 

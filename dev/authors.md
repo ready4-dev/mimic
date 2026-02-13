@@ -13,13 +13,13 @@ Source:
 Matthew Hamilton \<matthew.hamilton1@monash.edu\> \[aut, cph and cre\]
 (\<https://orcid.org/0000-0001-7407-9194\>) (2026). mimic: Implement
 Microsimulations to Economically Evaluate Mental Health Services.
-Version 0.3.1.9009. https://doi.org/10.5281/zenodo.1523285
+Version 0.3.1.9010. https://doi.org/10.5281/zenodo.1523285
 
     @Manual{,
       doi = {10.5281/zenodo.1523285},
       title = {mimic: Implement Microsimulations to Economically Evaluate Mental Health Services},
       author = {Matthew Hamilton <matthew.hamilton1@monash.edu> [aut, cph, cre] (<https://orcid.org/0000-0001-7407-9194>)},
       year = {2026},
-      note = {R package version 0.3.1.9009},
+      note = {R package version 0.3.1.9010},
       url = {https://ready4-dev.github.io/mimic/},
     }

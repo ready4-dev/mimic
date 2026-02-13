@@ -2,6 +2,9 @@
 
 ## S4 Classes
 
+- [`MimicActive-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicActive-class.md)
+  [`MimicActive`](https://ready4-dev.github.io/mimic/dev/reference/MimicActive-class.md)
+  : MimicActive
 - [`MimicUtility-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
   [`MimicUtility`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
   : MimicUtility
@@ -20,6 +23,15 @@
 - [`MimicConfiguration-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
   [`MimicConfiguration`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
   : MimicConfiguration
+- [`MimicDerivations-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.md)
+  [`MimicDerivations`](https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.md)
+  : MimicDerivations
+- [`MimicArguments-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.md)
+  [`MimicArguments`](https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.md)
+  : MimicArguments
+- [`MimicSchedule-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
+  [`MimicSchedule`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
+  : MimicSchedule
 
 ## Functions
 
