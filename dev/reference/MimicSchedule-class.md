@@ -12,9 +12,9 @@ Model event scheduling data.
 
   Event (a character vector of length one)
 
-- `fail_with_ls`:
+- `functions_ls`:
 
-  Fail with (a list)
+  Functions (a list)
 
 - `step_dtm`:
 
@@ -34,7 +34,7 @@ Model event scheduling data.
 
 - `x_MimicArguments`:
 
-  (an instance of the Ready4Module class)
+  (an instance of the MimicArguments class)
 
 - `dissemination_1L_chr`:
 

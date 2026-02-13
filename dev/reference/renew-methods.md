@@ -1,5 +1,7 @@
 # Renew (update) values
 
+renew method applied to MimicActive
+
 renew method applied to MimicPopulation
 
 renew method applied to MimicConfiguration
@@ -7,20 +9,27 @@ renew method applied to MimicConfiguration
 ## Usage
 
 ``` r
+# S4 method for class 'MimicActive'
+renew(
+  x,
+  batch_1L_int = integer(0),
+  env_ls = list(),
+  type_1L_chr = c("default", "customise", "schedule"),
+  X_MimicConfiguration = MimicConfiguration(),
+  X_MimicSchedule = MimicSchedule(),
+  ...
+)
+
 # S4 method for class 'MimicPopulation'
 renew(
   x,
-  invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | x == Inf | x
-    < 0),
-  schedule_args_ls = list(),
-  schedule_fn = NULL,
+  batch_1L_int = integer(0),
+  env_ls = list(),
   population_ls = NULL,
-  step_dtm = lubridate::days(0),
   type_1L_chr = c("default", "customise", "schedule", "transform"),
-  use_1L_chr = c("Y", "Z"),
-  validate_chr = character(0),
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
+  X_MimicSchedule = MimicSchedule(),
   ...
 )
 
@@ -43,58 +52,41 @@ renew(
 
   An object of class MimicConfiguration
 
-- invalid_fn:
+- batch_1L_int:
 
-  Invalid (a function), Default: function(x) (is.na(x) \| is.nan(x) \|
-  is.null(x) \| x == -Inf \| x == Inf \| x \< 0)
+  Batch (an integer vector of length one), Default: integer(0)
 
-- schedule_args_ls:
+- env_ls:
 
-  Schedule arguments (a list), Default: list()
-
-- schedule_fn:
-
-  Schedule (a function), Default: NULL
-
-- population_ls:
-
-  Population (a list), Default: NULL
-
-- step_dtm:
-
-  Step (a date vector), Default: lubridate::days(0)
+  Environment (a list), Default: list()
 
 - type_1L_chr:
 
   Type (a character vector of length one), Default: c("default", "form")
 
-- use_1L_chr:
-
-  Use (a character vector of length one), Default: c("Y", "Z")
-
-- validate_chr:
-
-  Validate (a character vector), Default: character(0)
-
-- what_1L_chr:
-
-  What (a character vector of length one), Default: c("population")
-
 - X_MimicConfiguration:
 
-  PARAM_DESCRIPTION, Default: MimicConfiguration()
+  X_MimicConfiguration, Default: MimicConfiguration()
+
+- X_MimicSchedule:
+
+  X_MimicSchedule, Default: MimicSchedule()
 
 - ...:
 
   Additional arguments
 
+- population_ls:
+
+  Population (a list), Default: NULL
+
+- what_1L_chr:
+
+  What (a character vector of length one), Default: c("population")
+
 - arm_1L_chr:
 
   Arm (a character vector of length one), Default: character(0)
-
-- batch_1L_int:
-
-  Batch (an integer vector of length one), Default: integer(0)
 
 - draws_tb:
 
@@ -106,6 +98,8 @@ renew(
   character(0)
 
 ## Value
+
+x (An object of class MimicActive)
 
 x (An object of class MimicPopulation)
 

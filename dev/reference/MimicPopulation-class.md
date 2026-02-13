@@ -6,9 +6,9 @@ still in model or who have exited model).
 
 ## Slots
 
-- `x_Ready4useDyad`:
+- `x_MimicActive`:
 
-  (an instance of the Ready4useDyad class)
+  (an instance of the MimicActive class)
 
 - `y_Ready4useDyad`:
 

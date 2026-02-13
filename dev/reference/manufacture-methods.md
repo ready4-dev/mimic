@@ -2,6 +2,10 @@
 
 manufacture method applied to MimicConfiguration
 
+manufacture method applied to MimicDerivations
+
+manufacture method applied to MimicArguments
+
 manufacture method applied to MimicRepos
 
 manufacture method applied to MimicPopulation
@@ -18,6 +22,26 @@ manufacture(
   batch_1L_int = integer(0),
   extras_ls = list(),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
+)
+
+# S4 method for class 'MimicDerivations'
+manufacture(
+  x,
+  env_ls = list(),
+  name_1L_chr = character(0),
+  what_1L_chr = c("args_ls"),
+  X_MimicConfiguration = MimicConfiguration(),
+  ...
+)
+
+# S4 method for class 'MimicArguments'
+manufacture(
+  x,
+  batch_1L_int = integer(0),
+  env_ls = list(),
+  what_1L_chr = c("args_ls"),
+  X_MimicConfiguration = MimicConfiguration(),
+  ...
 )
 
 # S4 method for class 'MimicRepos'
@@ -60,6 +84,22 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
 
   What (a character vector of length one), Default: c("inputs_ls")
 
+- env_ls:
+
+  Environment (a list), Default: list()
+
+- name_1L_chr:
+
+  Name (a character vector of length one), Default: character(0)
+
+- X_MimicConfiguration:
+
+  X_MimicConfiguration, Default: MimicConfiguration()
+
+- ...:
+
+  Additional arguments
+
 - prefix_1L_chr:
 
   Prefix (a character vector of length one), Default: character(0)
@@ -78,11 +118,11 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
   Type (a character vector of length one), Default: c("all", "batch_to",
   "draw_to")
 
-- ...:
-
-  Additional arguments
-
 ## Value
+
+Object (an output object of multiple potential types)
+
+Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
 
