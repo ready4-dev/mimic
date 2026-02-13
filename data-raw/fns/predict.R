@@ -311,7 +311,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     #                           iterations_int = iterations_int, 
     #                           seed_1L_int = seed_1L_int)
   }
-  treatment_1L_chr <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")
+  # treatment_1L_chr <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")
   tx_prefix_1L_chr <- "Treatment"
   # Add below to MimicConfiguration@x_MimicAlgorithms
   # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
@@ -353,15 +353,21 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ##
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
                                     renew(X_MimicConfiguration@x_MimicPopulation, 
-                                                          invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0),
-                                                          schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
-                                                                                  iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations"), 
-                                                                                  treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")),
-                                                          schedule_fn = add_episode_wait_time,
-                                                          use_1L_chr = c("Y"),
-                                                          validate_chr = "WaitInDays",
-                                                          what_1L_chr = "StartEpisode",
-                                                          type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration)) 
+                                          invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0),
+                                          # x_MimicArguments = MimicArguments(models_ls = list(episode_start_mdl = "EpisodeStart_mdl"),
+                                          #                                           iterations_1L_lgl = T,
+                                          #                                           derived_ls = list(treatment_1L_chr = list(method = procure,
+                                          #                                                                                             args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment"),
+                                          #                                                                                             args_env_ls = list(match_value_xx = "arm_1L_chr")))),
+                                          schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$EpisodeStart_mdl, 
+                                                                  iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = 1, what_1L_chr = "iterations"), 
+                                                                  treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")),
+                                          schedule_fn = add_episode_wait_time,
+                                          use_1L_chr = c("Y"),
+                                          validate_chr = "WaitInDays",
+                                          what_1L_chr = "StartEpisode",
+                                          type_1L_chr = "schedule", 
+                                          X_MimicConfiguration = X_MimicConfiguration)) 
   population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
   ## Schedule start of episode of care 
@@ -399,8 +405,10 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     ## Schedule representation (new episode of care)
     population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "Represent", 
                                                        schedule_fn = add_episode_wait_time,
-                                                       schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$Representation_mdl, iterations_int = iterations_int, 
-                                                                               type_1L_chr = "repeat", treatment_1L_chr = treatment_1L_chr))
+                                                       schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$Representation_mdl, 
+                                                                               iterations_int = iterations_int, 
+                                                                               type_1L_chr = "repeat", 
+                                                                               treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")))
     print_errors(population_ls$X_Ready4useDyad,
                  vars_chr = c("DaysToYearOneRepresentation"),
                  assert_1L_lgl = FALSE,
@@ -421,7 +429,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                  k10_var_1L_chr = "K10",
                                                  sensitivities_ls = sensitivities_ls,
                                                  tfmn_ls = tfmn_ls,
-                                                 treatment_1L_chr = treatment_1L_chr,
+                                                 treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment"),
                                                  tx_prefix_1L_chr = tx_prefix_1L_chr,
                                                  utilities_chr = utilities_chr,
                                                  utility_fns_ls = utility_fns_ls)

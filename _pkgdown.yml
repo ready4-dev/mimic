@@ -17,12 +17,16 @@ development:
 reference:
 - title: "S4 Classes"
 - contents:
+  - MimicActive
   - MimicUtility
   - MimicAlgorithms
   - MimicInputs
   - MimicPopulation
   - MimicRepos
   - MimicConfiguration
+  - MimicDerivations
+  - MimicArguments
+  - MimicSchedule
 - title: "Functions"
 - contents:
   - predict_comparator_pathway

@@ -11,9 +11,9 @@
   x,
   invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf | x == Inf | x
     < 0),
-  population_ls = NULL,
   schedule_args_ls = list(),
   schedule_fn = NULL,
+  population_ls = NULL,
   step_dtm = lubridate::days(0),
   type_1L_chr = c("default", "customise", "schedule", "transform"),
   use_1L_chr = c("Y", "Z"),
@@ -37,17 +37,22 @@
 \arguments{
 \item{x}{An object of class MimicConfiguration}
 
-\item{population_ls}{Population (a list), Default: NULL}
+\item{invalid_fn}{Invalid (a function), Default: function(x) (is.na(x) | is.nan(x) | is.null(x) | x == -Inf |
+x == Inf | x < 0)}
 
 \item{schedule_args_ls}{Schedule arguments (a list), Default: list()}
 
 \item{schedule_fn}{Schedule (a function), Default: NULL}
+
+\item{population_ls}{Population (a list), Default: NULL}
 
 \item{step_dtm}{Step (a date vector), Default: lubridate::days(0)}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form")}
 
 \item{use_1L_chr}{Use (a character vector of length one), Default: c("Y", "Z")}
+
+\item{validate_chr}{Validate (a character vector), Default: character(0)}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("population")}
 
@@ -57,7 +62,7 @@
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: character(0)}
 
-\item{batch_1L_int}{Batch (an integer vector), Default: integer(0)}
+\item{batch_1L_int}{Batch (an integer vector of length one), Default: integer(0)}
 
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 

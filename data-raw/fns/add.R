@@ -1828,7 +1828,8 @@ add_project_2_model_wrap_up <- function(X_Ready4useDyad,
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
   }
-  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, 
+                                       event_1L_chr = "UpdateK10", 
                                        step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
