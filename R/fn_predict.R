@@ -356,7 +356,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
         initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
         inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, 
             what_1L_chr = "inputs_ls")
-        iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = 1, 
+        iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
             what_1L_chr = "iterations")
         iterations_ls <- X_MimicConfiguration@iterations_ls
         modifiable_chr <- X_MimicConfiguration@modifiable_chr
