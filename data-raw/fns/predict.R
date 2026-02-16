@@ -316,8 +316,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
   ###
   ###
-  ## Enter model
-  ##
+  #### Enter model ####
+  ###
   X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
                                 tx_prefix_1L_chr = "Treatment", type_1L_chr = "form", what_1L_chr = "population")
   ##
@@ -337,7 +337,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                                        tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
   #   update_population_ls(population_ls = NULL,  type_1L_chr = "form")
   ##
-  ##
+  ###
+  #### Customise population [conditionally] ####
+  ###
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation",
                                     renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
 
@@ -349,6 +351,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # ### Remove those who are non helpseekers (for comparator only)
   # population_ls <- update_population_ls(population_ls)
   ##
+  ###
+  #### Schedule start of Episode of Care ####
+  ###
   X_MimicSchedule <- MimicSchedule()
   X_MimicSchedule@event_1L_chr <- "StartEpisode"
   X_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
@@ -363,7 +368,6 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                           batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicSchedule))
   population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
-  ## Schedule start of episode of care 
   # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
   #   population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "StartEpisode", 
   #                                                      schedule_fn = add_episode_wait_time,
@@ -381,7 +385,26 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # }
   
   ##
-  ## Add episode of care
+  ###
+  #### Trigger Episode of Care event ####
+  ###
+  ## Schedule:
+  ### - end of episode of care
+  ### - change in resource use (e.g. minutes) [at 0s]
+  ### - change in clinical outcomes (e.g. K10) [at 0s]
+  ### - change in utility [at 0s]
+  #
+  # Y_MimicSchedule <- MimicSchedule()
+  # Y_MimicSchedule@event_1L_chr <- "UpdateK10"
+  # # Y_MimicSchedule@functions_ls$schedule_fn <- NULL
+  # # Y_MimicSchedule@step_dtm <- lubridate::days(0)
+  # Y_MimicSchedule@validate_chr <- "K10"
+  # Y_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  # Y_MimicSchedule@x_MimicArguments@models_ls = list(episode_start_mdl = "K10_mdl")
+  # Y_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+  #                                                                                        args_env_ls = list(match_value_xx = "arm_1L_chr"),
+  #                                                                                        args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
+  ###
   if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
     population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,
                                                  assert_1L_lgl = FALSE,
@@ -395,7 +418,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                  tx_prefix_1L_chr = tx_prefix_1L_chr,
                                                  utilities_chr = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr,
                                                  utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
-    ## Schedule representation (new episode of care)
+    ###
+    #### Schedule Representation (new episode of care) event ####
+    ### 
     population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "Represent", 
                                                        schedule_fn = add_episode_wait_time,
                                                        schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls")$Representation_mdl, 
@@ -411,8 +436,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     ### Remove those who do not have a repeat presentation
     population_ls <- update_population_ls(population_ls, use_1L_chr = "Z")
   }
-  ##
-  ## Add episode of care for representers
+  ###
+  #### Trigger Representation (new episode of care) event ####
+  ### 
   if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
     population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,
                                                  assert_1L_lgl = FALSE,
@@ -432,11 +458,17 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     population_ls <- update_population_ls(population_ls, type_1L_chr = "join", use_1L_chr = "Z") 
   }
   ##
-  ## Apply regression to mean logic to group that did not receive any episode of care
   if(nrow(population_ls$Y_Ready4useDyad@ds_tb)>0){
+    ###
+    #### Schedule Regression to mean event (only for sub-group who did not receive any episode of care) ####
+    ### 
     population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb",
                                                population_ls$Y_Ready4useDyad@ds_tb  %>%
-                                                 dplyr::mutate(CurrentDate = EndDate)) %>%
+                                                 dplyr::mutate(CurrentDate = EndDate)) 
+    ###
+    #### Trigger Regression to mean event (only for sub-group who did not receive any episode of care) ####
+    ### 
+    population_ls$Y_Ready4useDyad <- population_ls$Y_Ready4useDyad %>%
       add_regression_to_mean(sensitivities_ls = sensitivities_ls,
                              k10_draws_fn = add_project_2_k10_draws,
                              tfmn_ls = tfmn_ls,
@@ -446,12 +478,16 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
     ## Return group who did not receive an episode of care
     population_ls <- update_population_ls(population_ls, type_1L_chr = "join")
   }
-  ##
-  ## Model exit and wrap-up
+  ###
+  #### Schedule Model Exit events ####
+  ### 
   population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "WrapUp", 
                                                      schedule_fn = update_scheduled_date)
   population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
   population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+  ###
+  #### Trigger Model Exit events (includes model wrap up) ###
+  ### 
   population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad,
                                                                arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
                                                                arms_for_offsets_chr = arms_for_offsets_chr,

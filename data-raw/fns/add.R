@@ -698,8 +698,7 @@ add_episode <- function(X_Ready4useDyad,
   ## (Possibly) Add Episode Count Update
   X_Ready4useDyad <- add_episode_start(X_Ready4useDyad)
   # X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(Episode = Episode + 1))
-  ## To do
-  ## Add conditional (on Episode>1) logic for K10 / Utility update
+  ## Add conditional (on Episode>1) logic to calculate K10 / Utility at start of episode
   if(episode_1L_int >1){
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                    dplyr::mutate(K10Discharge = K10, 
@@ -722,6 +721,7 @@ add_episode <- function(X_Ready4useDyad,
                                    dplyr::select(- c(K10Discharge,K10ChangeDischarge)))
     update_1L_int <- update_1L_int + 1
   }
+  ## Schedule end of Episode of Care
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "EndEpisode", 
                                        schedule_fn = add_episode_duration,
                                        schedule_args_ls = list(episode_end_mdl = inputs_ls$models_ls %>% purrr::pluck(episode_end_1L_chr), #$EpisodeEnd_mdl, 
@@ -733,6 +733,7 @@ add_episode <- function(X_Ready4useDyad,
                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  ## RESOURCE USE CALCULATIONS
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateMinutes", 
                                        step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -746,6 +747,7 @@ add_episode <- function(X_Ready4useDyad,
                vars_chr = paste0(c(workers_chr, "Total"),"UseMins"),
                assert_1L_lgl = assert_1L_lgl,
                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
+ 
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                X_Ready4useDyad@ds_tb %>% dplyr::mutate(TotalUseMins = rowSums(dplyr::across(tidyselect::all_of(paste0(workers_chr,"UseMins"))))))
   
@@ -753,6 +755,8 @@ add_episode <- function(X_Ready4useDyad,
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(MedicalUseMins = rowSums(dplyr::across(tidyselect::all_of(paste0(intersect(workers_chr, medical_chr),"UseMins"))))))
   }
+  ##
+  ## OUTCOME CALCULATION [FIRST EPISODE OF CARE]
   X_Ready4useDyad <- add_outcomes_update(X_Ready4useDyad,
                                          assert_1L_lgl = assert_1L_lgl,
                                          k10_mdl = inputs_ls$models_ls %>% purrr::pluck(k10_1L_chr), #$K10_mdl,
@@ -2120,6 +2124,7 @@ add_outcomes_update <- function(X_Ready4useDyad,
                                 utilities_chr,
                                 utility_fns_ls,
                                 types_chr = c("Model", "Function")){
+  ## Move to default scheduling method
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
