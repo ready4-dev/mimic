@@ -354,18 +354,52 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   #### Schedule start of Episode of Care ####
   ###
-  X_MimicSchedule <- MimicSchedule()
-  X_MimicSchedule@event_1L_chr <- "StartEpisode"
-  X_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
-  X_MimicSchedule@validate_chr <- "WaitInDays"
-  X_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
-  X_MimicSchedule@x_MimicArguments@models_ls = list(episode_start_mdl = "EpisodeStart_mdl")
-  X_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+  X_MimicEvent <- MimicEvent()
+  X_MimicEvent@x_MimicSchedule@event_1L_chr <- "EpisodeofCareSequence" #"StartEpisode"
+  X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
+  X_MimicEvent@x_MimicSchedule@validate_chr <- "WaitInDays"
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = "EpisodeStart_mdl")
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
                                                                                          args_env_ls = list(match_value_xx = "arm_1L_chr"),
                                                                                          args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
+  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@y_MimicTrigger@event_1L_chr <- "EpisodeofCareSequence"
+  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_episode
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicDerivations <- MimicDerivations()
+  #
+  X_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE,
+                                           # episode_1L_int = 1,
+                                           k10_var_1L_chr = "K10",
+                                           tx_prefix_1L_chr = tx_prefix_1L_chr)
+  X_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int",
+                                         inputs_ls = "inputs_ls",
+                                         iterations_int = "iterations_int",
+                                         sensitivities_ls = "sensitivities_ls",
+                                         tfmn_ls =  "tfmn_ls",
+                                         treatment_1L_chr = "treatment_1L_chr",
+                                         utilities_chr = "utilities_chr",
+                                         utility_fns_ls = "utility_fns_ls"
+                                         )
+  ##
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
                                     renew(X_MimicConfiguration@x_MimicPopulation,
-                                          batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicSchedule))
+                                          batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", 
+                                          X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicEvent@x_MimicSchedule))
+  args_ls <- manufacture(X_MimicDerivations, env_ls = list(episode_1L_int = 1,
+                                                           inputs_ls = manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls"),
+                                                           iterations_int = manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"),
+                                                           sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls,
+                                                           tfmn_ls =  X_MimicConfiguration@x_MimicAlgorithms@transformations_ls,
+                                                           treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment"),
+                                                           tx_prefix_1L_chr = tx_prefix_1L_chr,
+                                                           utilities_chr = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr,
+                                                           utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
+  # !!rlang::exec(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn,
+  #               X_MimicConfiguration@x_MimicPopulation@x_MimicActive@x_Ready4useDyad,
+  #               !!!args_ls)
+
   population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
   ##
   # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
@@ -390,20 +424,28 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   ## Schedule:
   ### - end of episode of care
+  Y_MimicSchedule <- MimicSchedule()
+  Y_MimicSchedule@event_1L_chr <- "EndEpisode"
+  Y_MimicSchedule@functions_ls$schedule_fn <- add_episode_duration
+  # Y_MimicSchedule@step_dtm <- lubridate::days(0)
+  Y_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  Y_MimicSchedule@x_MimicArguments@models_ls = list(episode_end_mdl = "EpisodeEnd_mdl")
+  Y_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+                                                                                         args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                                                         args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
+  Y_MimicSchedule@validate_chr <- "EpisodeDurationDays"
   ### - change in resource use (e.g. minutes) [at 0s]
+  Z_MimicSchedule <- MimicSchedule()
+  Z_MimicSchedule@event_1L_chr <- "UpdateMinutes"
   ### - change in clinical outcomes (e.g. K10) [at 0s]
+  A_MimicSchedule <- MimicSchedule()
+  A_MimicSchedule@event_1L_chr <- "UpdateK10"
+  A_MimicSchedule@validate_chr <- "K10"
   ### - change in utility [at 0s]
+  B_MimicSchedule <- MimicSchedule()
+  B_MimicSchedule@event_1L_chr <- "UpdateUtility"
+  B_MimicSchedule@validate_chr <- "K10"
   #
-  # Y_MimicSchedule <- MimicSchedule()
-  # Y_MimicSchedule@event_1L_chr <- "UpdateK10"
-  # # Y_MimicSchedule@functions_ls$schedule_fn <- NULL
-  # # Y_MimicSchedule@step_dtm <- lubridate::days(0)
-  # Y_MimicSchedule@validate_chr <- "K10"
-  # Y_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
-  # Y_MimicSchedule@x_MimicArguments@models_ls = list(episode_start_mdl = "K10_mdl")
-  # Y_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
-  #                                                                                        args_env_ls = list(match_value_xx = "arm_1L_chr"),
-  #                                                                                        args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
   ###
   if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
     population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,

@@ -694,8 +694,12 @@ add_episode <- function(X_Ready4useDyad,
                         treatment_1L_chr = character(0),
                         workers_chr = make_worker_types()){ 
   update_1L_int <- episode_1L_int
-  ## To Do:
-  ## (Possibly) Add Episode Count Update
+  ## Schedule Start of episode of care
+  X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "StartEpisode", 
+                                       step_dtm = lubridate::days(0))
+  X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+  X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  ## Trigger episode start event
   X_Ready4useDyad <- add_episode_start(X_Ready4useDyad)
   # X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(Episode = Episode + 1))
   ## Add conditional (on Episode>1) logic to calculate K10 / Utility at start of episode
@@ -721,7 +725,7 @@ add_episode <- function(X_Ready4useDyad,
                                    dplyr::select(- c(K10Discharge,K10ChangeDischarge)))
     update_1L_int <- update_1L_int + 1
   }
-  ## Schedule end of Episode of Care
+  ## Schedule End of Episode of care event
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "EndEpisode", 
                                        schedule_fn = add_episode_duration,
                                        schedule_args_ls = list(episode_end_mdl = inputs_ls$models_ls %>% purrr::pluck(episode_end_1L_chr), #$EpisodeEnd_mdl, 
@@ -733,11 +737,12 @@ add_episode <- function(X_Ready4useDyad,
                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
-  ## RESOURCE USE CALCULATIONS
+  ## Schedule resource use updates
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateMinutes", 
                                        step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  ## Trigger resource use updates
   X_Ready4useDyad <- workers_chr %>%
     purrr::reduce(.init = X_Ready4useDyad,
                   ~ add_minutes_event(.x, add_dependency_1L_lgl = F,iterations_int = iterations_int, # 
@@ -756,7 +761,7 @@ add_episode <- function(X_Ready4useDyad,
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(MedicalUseMins = rowSums(dplyr::across(tidyselect::all_of(paste0(intersect(workers_chr, medical_chr),"UseMins"))))))
   }
   ##
-  ## OUTCOME CALCULATION [FIRST EPISODE OF CARE]
+  ## Schedule and trigger outcome and utility calculations [FIRST EPISODE OF CARE]
   X_Ready4useDyad <- add_outcomes_update(X_Ready4useDyad,
                                          assert_1L_lgl = assert_1L_lgl,
                                          k10_mdl = inputs_ls$models_ls %>% purrr::pluck(k10_1L_chr), #$K10_mdl,
@@ -1853,7 +1858,7 @@ add_project_2_model_wrap_up <- function(X_Ready4useDyad,
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
   X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
                                        add_sensitivity_1L_lgl = T,
-                                       iterations_int = 1:iterations_int, 
+                                       iterations_int = iterations_int, 
                                        sensitivities_ls = sensitivities_ls,
                                        tfmn_ls = 1:length(utilities_chr) %>% purrr::map(~identity) %>% stats::setNames(utilities_chr),
                                        tidy_cols_1L_lgl = T,
@@ -2039,8 +2044,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
                                    k10_draws_fn = k10_draws_fn,
                                    k10_mdl = inputs_ls$models_ls$K10_mdl, iterations_int = iterations_int, 
                                    params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
-                                   suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == 
-                                                                                                            "Project", "Project", k10_method_1L_chr),
+                                   suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == "Project", "Project", k10_method_1L_chr),
                                    tx_prefix_1L_chr = tx_prefix_1L_chr, update_1L_int = update_1L_int)
   X_Ready4useDyad <- update_k10_event_schedule(X_Ready4useDyad, type_1L_chr = k10_method_1L_chr)
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility", 
@@ -2125,9 +2129,11 @@ add_outcomes_update <- function(X_Ready4useDyad,
                                 utility_fns_ls,
                                 types_chr = c("Model", "Function")){
   ## Move to default scheduling method
+  ## Schedule outcome change
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", step_dtm = lubridate::days(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  ## Trigger outcome change
   X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, 
                                    k10_mdl = k10_mdl,
                                    k10_var_1L_chr = k10_var_1L_chr,
@@ -2142,9 +2148,11 @@ add_outcomes_update <- function(X_Ready4useDyad,
                vars_chr = k10_var_1L_chr,
                assert_1L_lgl = assert_1L_lgl,
                invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x<10 | x>50))
+  ## Schedule utility change
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility",  step_dtm = lubridate::weeks(0))
   X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
   X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+  ## Trigger utility change
   X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
                                        add_sensitivity_1L_lgl = F,
                                        iterations_int = iterations_int, 

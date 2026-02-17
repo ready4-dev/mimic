@@ -191,15 +191,37 @@ y <- ready4class::ready4class_constructor() %>%
                                                                              ) %>% list(),
                                                                 vals_ls = list(list(
                                                                   assert_1L_lgl = "FALSE",
-                                                                  functions_ls = "list(invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0), functions_ls = NULL)", #"NA_character_", # "character(0)"
+                                                                  functions_ls = "list(invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf | x <0), schedule_fn = NULL)", #"NA_character_", # "character(0)"
                                                                   step_dtm = "lubridate::days(0)",
                                                                   update_type_1L_chr = "'split'", # "NA_character_", 
                                                                   use_1L_chr = "'Y'",
-                                                                  seed_1L_int = "2001L",
                                                                   validate_chr = "character(0)")),
                                                                 class_desc_chr = "Model event scheduling data.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicArguments") %>% list())
+                                                                inc_clss_ls = list("MimicArguments") %>% list()),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
+                                                                name_stub_chr = "Trigger",
+                                                                slots_ls = list("assert_1L_lgl", "event_1L_chr", "functions_ls","validate_chr","x_MimicArguments") %>% list(), 
+                                                                pt_ls = list("logical","character","list","character", "MimicArguments" ## UPDATE
+                                                                ) %>% list(),
+                                                                vals_ls = list(list(
+                                                                  assert_1L_lgl = "FALSE",
+                                                                  functions_ls = "list(action_fn = identity, invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf))", #"NA_character_", # "character(0)"
+                                                                  validate_chr = "character(0)")),
+                                                                class_desc_chr = "Model event logic data.",
+                                                                parent_class_chr = "Ready4Module",
+                                                                inc_clss_ls = list("MimicArguments") %>% list()),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Event",
+                                                                slots_ls = list("x_MimicSchedule",
+                                                                                "y_MimicTrigger") %>% list(), 
+                                                                pt_ls = list("MimicSchedule", 
+                                                                             "MimicTrigger") %>% list(),
+                                                                class_desc_chr = "Model event scheduling and event logic data.",
+                                                                parent_class_chr = "Ready4Module",
+                                                                inc_clss_ls = list("MimicSchedule", "MimicTrigger") %>% list())
+                   
+                   
   )
 z <- ready4pack::make_pt_ready4pack_manifest(x,
                                              constructor_r3 = y) %>%

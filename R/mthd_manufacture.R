@@ -71,19 +71,17 @@ methods::setMethod("manufacture", "MimicDerivations", function(x,
                                                                X_MimicConfiguration = MimicConfiguration(),
                                                                ...){
   if(what_1L_chr=="args_ls"){
-    object_xx <- list()
-    if(!is.na(x@method_1L_chr[1])){
+    object_xx <- x@args_fixed_ls
       if(!identical(env_ls, list())){
         object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
           append(x@args_fixed_ls)
       }
-      if(!is.na(x@method_1L_chr)){
+      if(!is.na(x@method_1L_chr[1])){
         object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
         if(!identical(name_1L_chr, character(0))){
           object_xx <- object_xx %>% stats::setNames(name_1L_chr)
         }
       }
-    }
   }
   return(object_xx)
 })
