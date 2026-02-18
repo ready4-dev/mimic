@@ -55,6 +55,7 @@ methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr 
 #' @description manufacture method applied to MimicDerivations
 #' @param x An object of class MimicDerivations
 #' @param env_ls Environment (a list), Default: list()
+#' @param flatten_1L_lgl Flatten (a logical vector of length one), Default: FALSE
 #' @param name_1L_chr Name (a character vector of length one), Default: character(0)
 #' @param what_1L_chr What (a character vector of length one), Default: c("args_ls")
 #' @param X_MimicConfiguration X_MimicConfiguration, Default: MimicConfiguration()
@@ -66,22 +67,26 @@ methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr 
 #' @importFrom ready4 manufacture
 methods::setMethod("manufacture", "MimicDerivations", function(x,
                                                                env_ls = list(),
+                                                               flatten_1L_lgl = FALSE,
                                                                name_1L_chr = character(0),
                                                                what_1L_chr = c("args_ls"),
                                                                X_MimicConfiguration = MimicConfiguration(),
                                                                ...){
   if(what_1L_chr=="args_ls"){
     object_xx <- x@args_fixed_ls
-      if(!identical(env_ls, list())){
-        object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
-          append(x@args_fixed_ls)
+    if(!identical(env_ls, list())){
+      object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
+        append(object_xx)
+    }
+    if(!is.na(x@method_1L_chr[1])){
+      object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
+      if(!identical(name_1L_chr, character(0))){
+        object_xx <- object_xx %>% stats::setNames(name_1L_chr)
       }
-      if(!is.na(x@method_1L_chr[1])){
-        object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
-        if(!identical(name_1L_chr, character(0))){
-          object_xx <- object_xx %>% stats::setNames(name_1L_chr)
-        }
+      if(flatten_1L_lgl){
+        object_xx <- object_xx %>% purrr::flatten()
       }
+    }
   }
   return(object_xx)
 })
@@ -109,12 +114,12 @@ methods::setMethod("manufacture", "MimicArguments",
                             X_MimicConfiguration = MimicConfiguration(),
                             ...){
                      what_1L_chr <- match.arg(what_1L_chr)
-                     object_xx <- list()
                      if(what_1L_chr == "args_ls"){
+                       object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
                        if(!identical(x@derive_ls, list())){
                          object_xx <- object_xx %>%
                            append(x@derive_ls %>% purrr::map(~{
-                             manufacture(.x, env_ls = env_ls, X_MimicConfiguration = X_MimicConfiguration) %>% unlist()
+                             manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, X_MimicConfiguration = X_MimicConfiguration) 
                            }))
                        }
                        if(!identical(x@models_ls, list())){
@@ -128,7 +133,7 @@ methods::setMethod("manufacture", "MimicArguments",
                        }
                      }
                      return(object_xx)
-                   })
+})
 
 
 #' 

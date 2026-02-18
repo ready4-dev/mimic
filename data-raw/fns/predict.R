@@ -261,6 +261,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
 ) 
 {
   old_algorithm_1L_lgl <- identical(X_MimicConfiguration, MimicConfiguration())
+  ## Revised version of below needs to be made into a renew method option
   X_MimicConfiguration <- update_project_2_configuration(X_MimicConfiguration = X_MimicConfiguration,
                                                          batch_1L_int = batch_1L_int,
                                                          arms_chr = arms_chr,
@@ -362,40 +363,35 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = "EpisodeStart_mdl")
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
                                                                                          args_env_ls = list(match_value_xx = "arm_1L_chr"),
-                                                                                         args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
+                                                                                         args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))))
   X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
   X_MimicEvent@y_MimicTrigger@event_1L_chr <- "EpisodeofCareSequence"
   X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_episode
   X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
-  X_MimicDerivations <- MimicDerivations()
-  #
-  X_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE,
-                                           # episode_1L_int = 1,
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
+                                                                 sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
+                                                                 tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
+                                                                 treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                                                                     args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
+                                                                 utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
+                                                                 utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
+  # X_MimicDerivations <- MimicDerivations()
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE,
                                            k10_var_1L_chr = "K10",
                                            tx_prefix_1L_chr = tx_prefix_1L_chr)
-  X_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int",
-                                         inputs_ls = "inputs_ls",
-                                         iterations_int = "iterations_int",
-                                         sensitivities_ls = "sensitivities_ls",
-                                         tfmn_ls =  "tfmn_ls",
-                                         treatment_1L_chr = "treatment_1L_chr",
-                                         utilities_chr = "utilities_chr",
-                                         utility_fns_ls = "utility_fns_ls"
-                                         )
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int",
+                                         tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  args_ls <- manufacture(X_MimicEvent@y_MimicTrigger@x_MimicArguments, batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, tx_prefix_1L_chr = tx_prefix_1L_chr),
+                         what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
+  # test_ls <- manufacture(X_MimicEvent@y_MimicTrigger@x_MimicArguments,batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
+  # 
+  # test_ls <- manufacture(X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations, env_ls = list(episode_1L_int = 1, tx_prefix_1L_chr = tx_prefix_1L_chr), flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls")) %>%
+  #   append(test_ls)
   ##
   X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
                                     renew(X_MimicConfiguration@x_MimicPopulation,
                                           batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", 
                                           X_MimicConfiguration = X_MimicConfiguration, X_MimicSchedule = X_MimicEvent@x_MimicSchedule))
-  args_ls <- manufacture(X_MimicDerivations, env_ls = list(episode_1L_int = 1,
-                                                           inputs_ls = manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls"),
-                                                           iterations_int = manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"),
-                                                           sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls,
-                                                           tfmn_ls =  X_MimicConfiguration@x_MimicAlgorithms@transformations_ls,
-                                                           treatment_1L_chr = procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment"),
-                                                           tx_prefix_1L_chr = tx_prefix_1L_chr,
-                                                           utilities_chr = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr,
-                                                           utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
   # !!rlang::exec(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn,
   #               X_MimicConfiguration@x_MimicPopulation@x_MimicActive@x_Ready4useDyad,
   #               !!!args_ls)

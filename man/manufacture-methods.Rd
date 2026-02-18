@@ -26,6 +26,7 @@
 \S4method{manufacture}{MimicDerivations}(
   x,
   env_ls = list(),
+  flatten_1L_lgl = FALSE,
   name_1L_chr = character(0),
   what_1L_chr = c("args_ls"),
   X_MimicConfiguration = MimicConfiguration(),
@@ -67,6 +68,8 @@
 \item{what_1L_chr}{What (a character vector of length one), Default: c("inputs_ls")}
 
 \item{env_ls}{Environment (a list), Default: list()}
+
+\item{flatten_1L_lgl}{Flatten (a logical vector of length one), Default: FALSE}
 
 \item{name_1L_chr}{Name (a character vector of length one), Default: character(0)}
 

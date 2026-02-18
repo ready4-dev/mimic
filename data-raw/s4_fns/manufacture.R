@@ -5,12 +5,13 @@ manufacture_MimicArguments <- function(x,
                                        X_MimicConfiguration = MimicConfiguration(),
                                        ...){
   what_1L_chr <- match.arg(what_1L_chr)
-  object_xx <- list()
+  # object_xx <- list()
   if(what_1L_chr == "args_ls"){
+       object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
     if(!identical(x@derive_ls, list())){
       object_xx <- object_xx %>%
         append(x@derive_ls %>% purrr::map(~{
-          manufacture(.x, env_ls = env_ls, X_MimicConfiguration = X_MimicConfiguration) %>% unlist()
+          manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, X_MimicConfiguration = X_MimicConfiguration) 
         }))
     }
     if(!identical(x@models_ls, list())){
@@ -66,6 +67,7 @@ manufacture_MimicConfiguration <- function(x,
 }
 manufacture_MimicDerivations <- function(x,
                                          env_ls = list(),
+                                         flatten_1L_lgl = FALSE,
                                          name_1L_chr = character(0),
                                          what_1L_chr = c("args_ls"),
                                          X_MimicConfiguration = MimicConfiguration(),
@@ -77,12 +79,15 @@ manufacture_MimicDerivations <- function(x,
       # allowed_chr <- names(Rdpack::S4formals(x@method_1L_chr, class_1L_chr))
       if(!identical(env_ls, list())){
         object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
-          append(x@args_fixed_ls)
+          append(object_xx)
       }
       if(!is.na(x@method_1L_chr[1])){
         object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
         if(!identical(name_1L_chr, character(0))){
           object_xx <- object_xx %>% stats::setNames(name_1L_chr)
+        }
+        if(flatten_1L_lgl){
+          object_xx <- object_xx %>% purrr::flatten()
         }
       }
       # procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, empty_xx = character(0), target_1L_chr = "Treatment")

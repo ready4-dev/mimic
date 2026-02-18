@@ -17,6 +17,8 @@ Method argument data.
 
 \item{\code{models_ls}}{Models (a list)}
 
+\item{\code{x_MimicDerivations}}{x (an instance of the MimicDerivations class)}
+
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}
 
