@@ -79,12 +79,12 @@ methods::setMethod("manufacture", "MimicDerivations", function(x,
         append(object_xx)
     }
     if(!is.na(x@method_1L_chr[1])){
-      object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) %>% list()
-      if(!identical(name_1L_chr, character(0))){
-        object_xx <- object_xx %>% stats::setNames(name_1L_chr)
-      }
-      if(flatten_1L_lgl){
-        object_xx <- object_xx %>% purrr::flatten()
+      object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx) 
+      if(!flatten_1L_lgl){
+        object_xx <- object_xx %>% list()
+        if(!identical(name_1L_chr, character(0))){
+          object_xx <- object_xx %>% stats::setNames(name_1L_chr)
+        }
       }
     }
   }
