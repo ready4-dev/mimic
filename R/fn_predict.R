@@ -376,34 +376,25 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
     }
     tx_prefix_1L_chr <- "Treatment"
     X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
-        batch_1L_int = batch_1L_int, draws_tb = draws_tb, tx_prefix_1L_chr = "Treatment", 
+        batch_1L_int = batch_1L_int, draws_tb = draws_tb, tx_prefix_1L_chr = tx_prefix_1L_chr, 
         type_1L_chr = "form", what_1L_chr = "population")
     X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
         renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", 
             X_MimicConfiguration = X_MimicConfiguration))
+    X_MimicEvent <- make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeofCareSequence", 
+        outcome_var_1L_chr = "K10", start_mdl_1L_chr = "EpisodeStart_mdl", 
+        use_trigger_1L_chr = "Z", validate_schedule_1L_chr = "WaitInDays")
     X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
-        renew(X_MimicConfiguration@x_MimicPopulation, invalid_fn = function(x) (is.na(x) | 
-            is.nan(x) | is.null(x) | x == -Inf | x == Inf | x < 
-            0), schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, 
-            "models_ls")$EpisodeStart_mdl, iterations_int = manufacture(X_MimicConfiguration, 
-            batch_1L_int = 1, what_1L_chr = "iterations"), treatment_1L_chr = procure(X_MimicConfiguration, 
-            match_value_xx = arm_1L_chr, empty_xx = character(0), 
-            target_1L_chr = "Treatment")), schedule_fn = add_episode_wait_time, 
-            use_1L_chr = c("Y"), validate_chr = "WaitInDays", 
-            what_1L_chr = "StartEpisode", type_1L_chr = "schedule", 
-            X_MimicConfiguration = X_MimicConfiguration))
+        renew(X_MimicConfiguration@x_MimicPopulation, batch_1L_int = batch_1L_int, 
+            env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", 
+            X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent))
+    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
+        renew(X_MimicConfiguration@x_MimicPopulation, batch_1L_int = batch_1L_int, 
+            env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, 
+                tx_prefix_1L_chr = tx_prefix_1L_chr), type_1L_chr = "trigger", 
+            X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent))
     population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
     if (nrow(population_ls$X_Ready4useDyad@ds_tb) > 0) {
-        population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad, 
-            assert_1L_lgl = FALSE, episode_1L_int = 1, inputs_ls = manufacture(X_MimicConfiguration@x_MimicInputs, 
-                what_1L_chr = "inputs_ls"), iterations_int = iterations_int, 
-            k10_var_1L_chr = "K10", sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls, 
-            tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls, 
-            treatment_1L_chr = procure(X_MimicConfiguration, 
-                match_value_xx = arm_1L_chr, empty_xx = character(0), 
-                target_1L_chr = "Treatment"), tx_prefix_1L_chr = tx_prefix_1L_chr, 
-            utilities_chr = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr, 
-            utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
         population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, 
             event_1L_chr = "Represent", schedule_fn = add_episode_wait_time, 
             schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, 
@@ -437,10 +428,12 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
     if (nrow(population_ls$Y_Ready4useDyad@ds_tb) > 0) {
         population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, 
             "ds_tb", population_ls$Y_Ready4useDyad@ds_tb %>% 
-                dplyr::mutate(CurrentDate = EndDate)) %>% add_regression_to_mean(sensitivities_ls = sensitivities_ls, 
-            k10_draws_fn = add_project_2_k10_draws, tfmn_ls = tfmn_ls, 
-            tx_prefix_1L_chr = tx_prefix_1L_chr, utilities_chr = utilities_chr, 
-            utility_fns_ls = utility_fns_ls)
+                dplyr::mutate(CurrentDate = EndDate))
+        population_ls$Y_Ready4useDyad <- population_ls$Y_Ready4useDyad %>% 
+            add_regression_to_mean(sensitivities_ls = sensitivities_ls, 
+                k10_draws_fn = add_project_2_k10_draws, tfmn_ls = tfmn_ls, 
+                tx_prefix_1L_chr = tx_prefix_1L_chr, utilities_chr = utilities_chr, 
+                utility_fns_ls = utility_fns_ls)
         population_ls <- update_population_ls(population_ls, 
             type_1L_chr = "join")
     }

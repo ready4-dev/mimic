@@ -1,7 +1,8 @@
 #' MimicPopulation
 #' 
-#' Model dynamic population data container (specifying population subgroups who are due for current event,  who are not due for current event but are still in model or who have exited model).
+#' Model dynamic population data container (specifying population subgroups who are active and eligible for the next model event,  who are temporariliy inactive but are still in the model or who have exited the model).
 #' 
+#' @include C4_MimicActive.R
 #' @slot x_MimicActive  (an instance of the MimicActive class)
 #' @slot y_Ready4useDyad  (an instance of the Ready4useDyad class)
 #' @slot z_Ready4useDyad  (an instance of the Ready4useDyad class)

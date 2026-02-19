@@ -47,13 +47,13 @@
 
 \item{batch_1L_int}{Batch (an integer vector of length one), Default: integer(0)}
 
-\item{env_ls}{Environment (a list), Default: list()}
+\item{env_ls}{Environment list (a list of environments), Default: list()}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form")}
 
-\item{X_MimicConfiguration}{X_MimicConfiguration, Default: MimicConfiguration()}
+\item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
-\item{X_MimicEvent}{X_MimicEvent, Default: X_MimicEvent()}
+\item{X_MimicEvent}{PARAM_DESCRIPTION, Default: MimicEvent()}
 
 \item{...}{Additional arguments}
 
@@ -66,8 +66,6 @@
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
-
-\item{X_MimicSchedule}{X_MimicSchedule, Default: MimicSchedule()}
 }
 \value{
 x (An object of class MimicActive)

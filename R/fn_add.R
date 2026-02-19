@@ -844,9 +844,9 @@ add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizo
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_episode
 #' @export 
+#' @importFrom lubridate days
 #' @importFrom dplyr mutate select across
 #' @importFrom purrr pluck reduce
-#' @importFrom lubridate days
 #' @importFrom tidyselect all_of
 #' @keywords internal
 add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_ls, 
@@ -857,6 +857,10 @@ add_episode <- function (X_Ready4useDyad, assert_1L_lgl, episode_1L_int, inputs_
     treatment_1L_chr = character(0), workers_chr = make_worker_types()) 
 {
     update_1L_int <- episode_1L_int
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "StartEpisode", 
+        step_dtm = lubridate::days(0))
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_episode_start(X_Ready4useDyad)
     if (episode_1L_int > 1) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
@@ -2746,7 +2750,7 @@ add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
-        add_sensitivity_1L_lgl = T, iterations_int = 1:iterations_int, 
+        add_sensitivity_1L_lgl = T, iterations_int = iterations_int, 
         sensitivities_ls = sensitivities_ls, tfmn_ls = 1:length(utilities_chr) %>% 
             purrr::map(~identity) %>% stats::setNames(utilities_chr), 
         tidy_cols_1L_lgl = T, type_1L_chr = "Project", utilities_chr = utilities_chr, 

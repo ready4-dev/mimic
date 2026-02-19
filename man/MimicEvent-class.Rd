@@ -6,7 +6,7 @@
 \alias{MimicEvent}
 \title{MimicEvent}
 \description{
-Model event data.
+Model event scheduling and event logic data.
 }
 \section{Slots}{
 

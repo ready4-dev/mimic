@@ -1,8 +1,8 @@
 #' MimicEvent
 #' 
-#' Model event data.
+#' Model event scheduling and event logic data.
 #' 
-#' @include C4_MimicSchedule.R C4_MimicTrigger.R 
+#' @include C4_MimicSchedule.R C4_MimicTrigger.R
 #' @slot x_MimicSchedule  (an instance of the MimicSchedule class)
 #' @slot y_MimicTrigger  (an instance of the MimicTrigger class)
 #' @slot dissemination_1L_chr Dissemination (a character vector of length one)
@@ -12,13 +12,13 @@
 #' @export MimicEvent
 #' @exportClass MimicEvent
 MimicEvent <- methods::setClass("MimicEvent",
-                                  contains = "Ready4Module",
-                                  slots = c(x_MimicSchedule = "MimicSchedule", y_MimicTrigger = "MimicTrigger",dissemination_1L_chr = "character"),
-                                  prototype =  list(x_MimicSchedule = MimicSchedule(), y_MimicTrigger = MimicTrigger()))
+contains = "Ready4Module",
+slots = c(x_MimicSchedule = "MimicSchedule",y_MimicTrigger = "MimicTrigger",dissemination_1L_chr = "character"),
+prototype =  list(x_MimicSchedule = MimicSchedule(),y_MimicTrigger = MimicTrigger()))
 
 
 methods::setValidity(methods::className("MimicEvent"),
-                     function(object){
-                       msg <- NULL
-                       if (is.null(msg)) TRUE else msg
-                     })
+function(object){
+msg <- NULL
+if (is.null(msg)) TRUE else msg
+})

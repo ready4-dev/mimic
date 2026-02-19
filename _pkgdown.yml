@@ -27,6 +27,8 @@ reference:
   - MimicDerivations
   - MimicArguments
   - MimicSchedule
+  - MimicTrigger
+  - MimicEvent
 - title: "Functions"
 - contents:
   - predict_comparator_pathway
@@ -39,11 +41,14 @@ reference:
   - author-MimicConfiguration
   - author-MimicRepos
   - ingest-MimicRepos
+  - manufacture-MimicArguments
   - manufacture-MimicConfiguration
+  - manufacture-MimicDerivations
   - manufacture-MimicInputs
   - manufacture-MimicPopulation
   - manufacture-MimicRepos
   - procure-MimicConfiguration
   - prognosticate-MimicConfiguration
+  - renew-MimicActive
   - renew-MimicConfiguration
   - renew-MimicPopulation

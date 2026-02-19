@@ -2,6 +2,7 @@
 #' 
 #' Model event scheduling data.
 #' 
+#' @include C4_MimicArguments.R
 #' @slot assert_1L_lgl Assert (a logical vector of length one)
 #' @slot event_1L_chr Event (a character vector of length one)
 #' @slot functions_ls Functions (a list)
