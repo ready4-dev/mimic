@@ -202,12 +202,13 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 inc_clss_ls = list("MimicArguments") %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Trigger",
-                                                                slots_ls = list("assert_1L_lgl", "event_1L_chr", "functions_ls","validate_chr","x_MimicArguments") %>% list(), 
-                                                                pt_ls = list("logical","character","list","character", "MimicArguments" ## UPDATE
+                                                                slots_ls = list("assert_1L_lgl", "event_1L_chr", "functions_ls","use_1L_chr","validate_chr","x_MimicArguments") %>% list(), 
+                                                                pt_ls = list("logical","character","list","character","character", "MimicArguments" ## UPDATE
                                                                 ) %>% list(),
                                                                 vals_ls = list(list(
                                                                   assert_1L_lgl = "FALSE",
                                                                   functions_ls = "list(action_fn = identity, invalid_fn = function(x) (is.na(x) | is.nan(x) | is.null(x) | x==-Inf | x==Inf))", #"NA_character_", # "character(0)"
+                                                                  use_1L_chr = "'Y'",
                                                                   validate_chr = "character(0)")),
                                                                 class_desc_chr = "Model event logic data.",
                                                                 parent_class_chr = "Ready4Module",

@@ -1590,6 +1590,36 @@ make_project_2_days_mdls <- function(X_Ready4useDyad,
                            "_mdl"))
   return(tpm_mdls_ls)
 }
+make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeofCareSequence",
+                                            outcome_var_1L_chr = "K10",
+                                            start_mdl_1L_chr = "EpisodeStart_mdl",
+                                            use_trigger_1L_chr = "Z",
+                                            validate_schedule_1L_chr = "WaitInDays"){
+  X_MimicEvent <- MimicEvent()
+  X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
+  X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
+  X_MimicEvent@x_MimicSchedule@validate_chr <- validate_schedule_1L_chr
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = start_mdl_1L_chr)
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+                                                                                                      args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                                                                      args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))))
+  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@y_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@y_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_episode
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
+                                                                 sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
+                                                                 tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
+                                                                 treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                                                                     args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
+                                                                 utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
+                                                                 utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, k10_var_1L_chr = outcome_var_1L_chr)
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  return(X_MimicEvent)
+}
 make_project_2_initialise_ls <- function(derive_ls = list()){
   initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL) {
     if(is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, list())){

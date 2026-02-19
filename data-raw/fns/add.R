@@ -694,6 +694,32 @@ add_episode <- function(X_Ready4useDyad,
                         treatment_1L_chr = character(0),
                         workers_chr = make_worker_types()){ 
   update_1L_int <- episode_1L_int
+  ## Schedule:
+  ### - end of episode of care
+  # Y_MimicSchedule <- MimicSchedule()
+  # Y_MimicSchedule@event_1L_chr <- "EndEpisode"
+  # Y_MimicSchedule@functions_ls$schedule_fn <- add_episode_duration
+  # # Y_MimicSchedule@step_dtm <- lubridate::days(0)
+  # Y_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+  # Y_MimicSchedule@x_MimicArguments@models_ls = list(episode_end_mdl = "EpisodeEnd_mdl")
+  # Y_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure",
+  #                                                                                        args_env_ls = list(match_value_xx = "arm_1L_chr"),
+  #                                                                                        args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment")))
+  # Y_MimicSchedule@validate_chr <- "EpisodeDurationDays"
+  # ### - change in resource use (e.g. minutes) [at 0s]
+  # Z_MimicSchedule <- MimicSchedule()
+  # Z_MimicSchedule@event_1L_chr <- "UpdateMinutes"
+  # ### - change in clinical outcomes (e.g. K10) [at 0s]
+  # A_MimicSchedule <- MimicSchedule()
+  # A_MimicSchedule@event_1L_chr <- "UpdateK10"
+  # A_MimicSchedule@validate_chr <- "K10"
+  # ### - change in utility [at 0s]
+  # B_MimicSchedule <- MimicSchedule()
+  # B_MimicSchedule@event_1L_chr <- "UpdateUtility"
+  # B_MimicSchedule@validate_chr <- "K10"
+  
+  
+  
   ## Schedule Start of episode of care
   X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "StartEpisode", 
                                        step_dtm = lubridate::days(0))

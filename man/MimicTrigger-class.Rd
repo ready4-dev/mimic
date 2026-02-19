@@ -17,6 +17,8 @@ Model event logic data.
 
 \item{\code{functions_ls}}{Functions (a list)}
 
+\item{\code{use_1L_chr}}{Use (a character vector of length one)}
+
 \item{\code{validate_chr}}{Validate (a character vector)}
 
 \item{\code{x_MimicArguments}}{(an instance of the MimicArguments class)}
