@@ -14,9 +14,9 @@ renew(
   x,
   batch_1L_int = integer(0),
   env_ls = list(),
-  type_1L_chr = c("default", "customise", "schedule"),
+  type_1L_chr = c("trigger", "customise", "schedule"),
   X_MimicConfiguration = MimicConfiguration(),
-  X_MimicSchedule = MimicSchedule(),
+  X_MimicEvent = MimicEvent(),
   ...
 )
 
@@ -26,10 +26,10 @@ renew(
   batch_1L_int = integer(0),
   env_ls = list(),
   population_ls = NULL,
-  type_1L_chr = c("default", "customise", "schedule", "transform"),
+  type_1L_chr = c("trigger", "customise", "schedule", "transform"),
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
-  X_MimicSchedule = MimicSchedule(),
+  X_MimicEvent = MimicEvent(),
   ...
 )
 
@@ -58,7 +58,7 @@ renew(
 
 - env_ls:
 
-  Environment (a list), Default: list()
+  Environment list (a list of environments), Default: list()
 
 - type_1L_chr:
 
@@ -66,11 +66,11 @@ renew(
 
 - X_MimicConfiguration:
 
-  X_MimicConfiguration, Default: MimicConfiguration()
+  PARAM_DESCRIPTION, Default: MimicConfiguration()
 
-- X_MimicSchedule:
+- X_MimicEvent:
 
-  X_MimicSchedule, Default: MimicSchedule()
+  PARAM_DESCRIPTION, Default: MimicEvent()
 
 - ...:
 

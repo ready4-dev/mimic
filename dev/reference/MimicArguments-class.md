@@ -16,6 +16,10 @@ Method argument data.
 
   Models (a list)
 
+- `x_MimicDerivations`:
+
+  (an instance of the MimicDerivations class)
+
 - `dissemination_1L_chr`:
 
   Dissemination (a character vector of length one)

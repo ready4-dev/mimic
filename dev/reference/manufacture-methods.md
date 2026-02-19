@@ -1,10 +1,8 @@
 # Manufacture a new object
 
-manufacture method applied to MimicConfiguration
-
-manufacture method applied to MimicDerivations
-
 manufacture method applied to MimicArguments
+
+manufacture method applied to MimicConfiguration
 
 manufacture method applied to MimicRepos
 
@@ -12,28 +10,11 @@ manufacture method applied to MimicPopulation
 
 manufacture method applied to MimicInputs
 
+manufacture method applied to MimicDerivations
+
 ## Usage
 
 ``` r
-# S4 method for class 'MimicConfiguration'
-manufacture(
-  x,
-  arm_1L_chr = NA_character_,
-  batch_1L_int = integer(0),
-  extras_ls = list(),
-  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
-)
-
-# S4 method for class 'MimicDerivations'
-manufacture(
-  x,
-  env_ls = list(),
-  name_1L_chr = character(0),
-  what_1L_chr = c("args_ls"),
-  X_MimicConfiguration = MimicConfiguration(),
-  ...
-)
-
 # S4 method for class 'MimicArguments'
 manufacture(
   x,
@@ -42,6 +23,15 @@ manufacture(
   what_1L_chr = c("args_ls"),
   X_MimicConfiguration = MimicConfiguration(),
   ...
+)
+
+# S4 method for class 'MimicConfiguration'
+manufacture(
+  x,
+  arm_1L_chr = NA_character_,
+  batch_1L_int = integer(0),
+  extras_ls = list(),
+  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
 )
 
 # S4 method for class 'MimicRepos'
@@ -60,45 +50,52 @@ manufacture(x, what_1L_chr = c("population_ls"), ...)
 
 # S4 method for class 'MimicInputs'
 manufacture(x, what_1L_chr = c("inputs_ls"))
+
+# S4 method for class 'MimicDerivations'
+manufacture(
+  x,
+  env_ls = list(),
+  flatten_1L_lgl = FALSE,
+  name_1L_chr = character(0),
+  what_1L_chr = c("args_ls"),
+  X_MimicConfiguration = MimicConfiguration(),
+  ...
+)
 ```
 
 ## Arguments
 
 - x:
 
-  An object of class MimicInputs
-
-- arm_1L_chr:
-
-  Arm (a character vector of length one), Default: 'NA'
+  An object of class MimicDerivations
 
 - batch_1L_int:
 
   Batch (an integer vector of length one), Default: integer(0)
 
-- extras_ls:
+- env_ls:
 
-  Extras (a list), Default: list()
+  Environment list (a list of environments), Default: list()
 
 - what_1L_chr:
 
-  What (a character vector of length one), Default: c("inputs_ls")
-
-- env_ls:
-
-  Environment (a list), Default: list()
-
-- name_1L_chr:
-
-  Name (a character vector of length one), Default: character(0)
+  What (a character vector of length one), Default: c("args_ls")
 
 - X_MimicConfiguration:
 
-  X_MimicConfiguration, Default: MimicConfiguration()
+  PARAM_DESCRIPTION, Default: MimicConfiguration()
 
 - ...:
 
   Additional arguments
+
+- arm_1L_chr:
+
+  Arm (a character vector of length one), Default: 'NA'
+
+- extras_ls:
+
+  Extras (a list), Default: list()
 
 - prefix_1L_chr:
 
@@ -117,6 +114,14 @@ manufacture(x, what_1L_chr = c("inputs_ls"))
 
   Type (a character vector of length one), Default: c("all", "batch_to",
   "draw_to")
+
+- flatten_1L_lgl:
+
+  Flatten (a logical vector of length one), Default: FALSE
+
+- name_1L_chr:
+
+  Name (a character vector of length one), Default: character(0)
 
 ## Value
 

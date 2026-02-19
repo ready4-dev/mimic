@@ -9,10 +9,12 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicPopulation-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_activity.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_age_to_project_dss.html</loc></url>
@@ -161,6 +163,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_1_results_synthesis.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_arms_extras_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_days_mdls.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_episode_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_initialise_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_k10_change_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_k10_mdls.html</loc></url>

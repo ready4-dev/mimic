@@ -32,6 +32,12 @@
 - [`MimicSchedule-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
   [`MimicSchedule`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
   : MimicSchedule
+- [`MimicTrigger-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.md)
+  [`MimicTrigger`](https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.md)
+  : MimicTrigger
+- [`MimicEvent-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.md)
+  [`MimicEvent`](https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.md)
+  : MimicEvent
 
 ## Functions
 
@@ -53,12 +59,12 @@
   : Author and save files
 - [`ingest(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/ingest-methods.md)
   : Ingest data
-- [`manufacture(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
-  [`manufacture(`*`<MimicDerivations>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
-  [`manufacture(`*`<MimicArguments>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+- [`manufacture(`*`<MimicArguments>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  [`manufacture(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicInputs>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  [`manufacture(`*`<MimicDerivations>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   : Manufacture a new object
 - [`procure(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/procure-methods.md)
   : Procure data from a model module
