@@ -24,7 +24,7 @@
   batch_1L_int = integer(0),
   env_ls = list(),
   population_ls = NULL,
-  type_1L_chr = c("trigger", "customise", "schedule", "transform"),
+  type_1L_chr = c("trigger", "customise", "schedule", "switch", "transform"),
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),
@@ -36,9 +36,11 @@
   arm_1L_chr = character(0),
   batch_1L_int = integer(0),
   draws_tb = NULL,
+  env_ls = list(),
   tx_prefix_1L_chr = character(0),
-  type_1L_chr = c("default", "form"),
+  type_1L_chr = c("event", "form", "schedule", "trigger"),
   what_1L_chr = c("population"),
+  X_MimicEvent = MimicEvent(),
   ...
 )
 }

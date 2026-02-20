@@ -267,7 +267,8 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 }
 update_population_ls <- function(population_ls = NULL,
                                  X_Ready4useDyad = ready4use::Ready4useDyad(),
-                                 type_1L_chr = c("split", "join", "form"),
+                                 # switch_chr = c("X","Y"),
+                                 type_1L_chr = c("split", "join", "form", "switch"),
                                  use_1L_chr = c("Y", "Z")
 ){
   type_1L_chr <- match.arg(type_1L_chr)
@@ -278,23 +279,6 @@ update_population_ls <- function(population_ls = NULL,
                                                       X_Ready4useDyad@ds_tb %>% dplyr::filter(F)),
                           Z_Ready4useDyad  = renewSlot(X_Ready4useDyad, "ds_tb",
                                                        X_Ready4useDyad@ds_tb %>% dplyr::filter(F)))
-  }
-  if(type_1L_chr == "split"){
-    if(use_1L_chr == "Y"){
-      population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
-                                                 dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
-                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
-                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
-    }
-    if(use_1L_chr == "Z"){
-      population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
-                                                 dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
-                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
-                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
-    }
-    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!is.na(CurrentDate)))
   }
   if(type_1L_chr == "join"){
     if(use_1L_chr == "Y"){
@@ -318,6 +302,31 @@ update_population_ls <- function(population_ls = NULL,
       population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb",
                                                  population_ls$Z_Ready4useDyad@ds_tb  %>% dplyr::filter(F))
     }
+  }
+  if(type_1L_chr == "split"){
+    if(use_1L_chr == "Y"){
+      population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
+                                                 dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
+    }
+    if(use_1L_chr == "Z"){
+      population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
+                                                 dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
+    }
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!is.na(CurrentDate)))
+  }
+  if(type_1L_chr == "switch"){
+    names_chr <- names(population_ls)
+    switch_chr = c("X",use_1L_chr)
+    indices_int <- switch_chr[1:2] %>% purrr::map_int(~which(startsWith(names_chr,.x)))
+    new_int <- indices_int[2:1]
+    population_ls <- population_ls %>% setNames(names_chr[1:length(names_chr) %>% purrr::map_int(~ifelse(.x %in% indices_int,new_int[.x],.x))])
+    population_ls <- population_ls[names_chr]
   }
   return(population_ls)
 }

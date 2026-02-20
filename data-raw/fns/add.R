@@ -852,14 +852,15 @@ add_episode_start <- function(X_Ready4useDyad){
   return(X_Ready4useDyad)
 }
 add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, iterations_int = 1:100L, 
-                                   type_1L_chr = c("first", "repeat"), treatment_1L_chr = character(0)) 
+                                   never_1L_int = 366,
+                                   treatment_1L_chr = character(0), type_1L_chr = c("first", "repeat"), 
+                                   vars_chr = c("WaitInDays", "DaysToYearOneRepresentation")) 
 {
   type_1L_chr <- match.arg(type_1L_chr)
-  var_1L_chr <- ifelse(type_1L_chr == "first", "WaitInDays", 
-                       "DaysToYearOneRepresentation")
-  if (!"WaitInDays" %in% names(X_Ready4useDyad@ds_tb)) {
+  var_1L_chr <- ifelse(type_1L_chr == "first", vars_chr[1], vars_chr[2])
+  if (!vars_chr[1] %in% names(X_Ready4useDyad@ds_tb)) {
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(WaitInDays = 0))
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(var_1L_chr) := 0))
   }
   if(!"Intervention" %in% names(X_Ready4useDyad@ds_tb)){
     if(identical(treatment_1L_chr, character(0))){
@@ -872,13 +873,12 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
     
   }
   if (type_1L_chr == "repeat") {
-    if (!"DaysToYearOneRepresentation" %in% names(X_Ready4useDyad@ds_tb)) {
+    if (!vars_chr[2] %in% names(X_Ready4useDyad@ds_tb)) {
       X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysToYearOneRepresentation = 366))
+                                   X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(var_1L_chr) :=  never_1L_int))
     }
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysSinceIndexService = as.numeric(CurrentDate - 
-                                                                                                              StartDate)))
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", # Superfluous?
+                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysSinceIndexService = as.numeric(CurrentDate - StartDate)))
   }
   if (!is.null(episode_start_mdl)) {
     X_Ready4useDyad <- add_simulated_data(episode_start_mdl, 
@@ -889,7 +889,7 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
       X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                    X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
                                                                                 dplyr::case_when(!!rlang::sym(var_1L_chr) == 
-                                                                                                   0 ~ 366, T ~ !!rlang::sym(var_1L_chr)))))
+                                                                                                   0 ~ never_1L_int, T ~ !!rlang::sym(var_1L_chr)))))
     }
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                                  X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
@@ -898,7 +898,7 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
   X_Ready4useDyad <- update_scheduled_date(X_Ready4useDyad, 
                                            variable_1L_chr = var_1L_chr, type_1L_chr = "Day")
   if (type_1L_chr == "repeat") {
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", # Superfluous?
                                  X_Ready4useDyad@ds_tb %>% dplyr::select(-DaysSinceIndexService))
   }
   return(X_Ready4useDyad)
@@ -2963,8 +2963,9 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
                                           rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
     Y_Ready4useDyad <- add_simulated_data(model_mdl = model_mdl, 
                                           var_1L_chr = var_1L_chr, Y_Ready4useDyad = Y_Ready4useDyad, 
-                                          iterations_int = iterations_int, type_1L_chr = "fourth", 
-                                          rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
+                                          iterations_int = iterations_int, 
+                                          rewind_chr = rewind_chr, 
+                                          type_1L_chr = "fourth", what_1L_chr = what_1L_chr)
   }
   if (type_1L_chr == "fourth") {
     Y_Ready4useDyad <- Y_Ready4useDyad %>% update_predictions_ds(var_1L_chr = var_1L_chr, 
@@ -3225,5 +3226,9 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
   if(tidy_cols_1L_lgl){
     X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
   }
+  return(X_Ready4useDyad)
+}
+add_wrap_up_date <- function(X_Ready4useDyad){
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(CurrentDate = EndDate)) 
   return(X_Ready4useDyad)
 }
