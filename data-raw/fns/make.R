@@ -1650,7 +1650,9 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
   X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_episode
   X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
   X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, episode_end_1L_chr = end_mdl_1L_chr, k10_1L_chr = "K10_mdl", k10_relapse_1L_chr = "K10Relapse_mdl", k10_var_1L_chr = outcome_var_1L_chr,
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, episode_end_1L_chr = end_mdl_1L_chr, 
+                                                                                        k10_1L_chr = change_first_mdl, k10_relapse_1L_chr = change_relapse_1L_chr, 
+                                                                                        k10_var_1L_chr = outcome_var_1L_chr,
                                                                                         workers_chr = workers_chr, ## NEED TO BE MOVED
                                                                                         medical_chr = workers_medical_chr)
   X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
@@ -1987,6 +1989,27 @@ make_project_2_outcomes_ls <- function(){
                       iar_dst = c("iar_dst_recommended_level_of_care", 
                                   "iar_dst_practitioner_level_of_care"))
   return(outcomes_ls)
+}
+make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMean", 
+                                              outcome_var_1L_chr = "K10",
+                                              use_schedule_1L_chr = "Y", 
+                                              use_trigger_1L_chr = "Z"){
+  X_MimicEvent <- MimicEvent()
+  ##
+  X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
+  X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
+  X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+  ##
+  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@y_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@y_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_regression_to_mean
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn)
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws,
+                                                                                        k10_var_1L_chr = outcome_var_1L_chr)
+  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  return(X_MimicEvent)
 }
 make_project_2_theme_fn <- function(output_1L_chr = c("Word", "PDF", "HTML")){
   output_1L_chr <- match.arg(output_1L_chr)
@@ -4792,6 +4815,7 @@ make_simulated_draws <- function(model_mdl,
 make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "sensitivity", "transformation"),
                                    # add_chr = character(0),
                                    comparator_fn = identity,
+                                   customise_fn = identity,
                                    extra_draws_fn = NULL,
                                    initialise_ls = make_initialise_ls(),
                                    intervention_fn = identity,
@@ -4802,6 +4826,7 @@ make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "
   type_1L_chr <- match.arg(type_1L_chr)
   extras_ls <- list(...)
     simulation_fns_ls <- list(comparator_fn = comparator_fn,
+                              customise_fn  = customise_fn,
                               extra_draws_fn = extra_draws_fn,
                               initialise_ls = initialise_ls,
                               intervention_fn = intervention_fn,
@@ -4814,7 +4839,7 @@ make_simulation_fns_ls <- function(type_1L_chr = c("all","main", "processing", "
       simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn","intervention_fn", names(extras_ls)))
     }
     if(type_1L_chr=="processing"){
-      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn","initialise_ls","synthesis_fn", names(extras_ls)))
+      simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("customise_fn","extra_draws_fn","initialise_ls","synthesis_fn", names(extras_ls)))
     }
     if(type_1L_chr=="sensitivity"){
       simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls", names(extras_ls)))

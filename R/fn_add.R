@@ -2048,27 +2048,35 @@ add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_
 #' @description add_non_helpseekers() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add non helpseekers. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
+#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: TRUE
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_non_helpseekers
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate NA_Date_
 #' @keywords internal
-add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0)) 
-{
-    if (identical(arms_for_non_helpseeking_chr, character(0))) {
-        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(NonHelpSeeking = FALSE))
+add_non_helpseekers <- function(X_Ready4useDyad,
+                                arms_for_non_helpseeking_chr = character(0),
+                                reset_date_1L_lgl = TRUE){#
+  if(identical(arms_for_non_helpseeking_chr, character(0))){
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(NonHelpSeeking = FALSE)) 
+  }else{
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                 X_Ready4useDyad@ds_tb %>%
+                                   dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>%
+                                   dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking<ParamNonHelpSeekers), 
+                                                                                   T ~ FALSE)) %>%
+                                   dplyr::select(-DrawsForNonHelpseeking))
+    if(reset_date_1L_lgl){
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                   X_Ready4useDyad@ds_tb %>%
+                                     dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
+                                                                                  T ~ CurrentDate)))
     }
-    else {
-        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>% 
-                dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% 
-                  arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking < 
-                  ParamNonHelpSeekers), T ~ FALSE)) %>% dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ 
-                lubridate::NA_Date_, T ~ CurrentDate)) %>% dplyr::select(-DrawsForNonHelpseeking))
-    }
-    return(X_Ready4useDyad)
+  }
+  return(X_Ready4useDyad)
 }
 #' Add non Initial Assessment andeferral
 #' @description add_non_iar() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add non initial assessment andeferral. The function is called for its side effects and does not return a value.

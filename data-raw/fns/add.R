@@ -1682,7 +1682,8 @@ add_non_iar <- function(X_Ready4useDyad,
   return(X_Ready4useDyad)
 }
 add_non_helpseekers <- function(X_Ready4useDyad,
-                                arms_for_non_helpseeking_chr = character(0)){#
+                                arms_for_non_helpseeking_chr = character(0),
+                                reset_date_1L_lgl = TRUE){#
   if(identical(arms_for_non_helpseeking_chr, character(0))){
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
                                  X_Ready4useDyad@ds_tb %>%
@@ -1693,9 +1694,15 @@ add_non_helpseekers <- function(X_Ready4useDyad,
                                    dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>%
                                    dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking<ParamNonHelpSeekers), 
                                                                                    T ~ FALSE)) %>%
-                                   dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
-                                                                                T ~ CurrentDate)) %>%
+                                   # dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
+                                   #                                              T ~ CurrentDate)) %>%
                                    dplyr::select(-DrawsForNonHelpseeking))
+    if(reset_date_1L_lgl){
+      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                   X_Ready4useDyad@ds_tb %>%
+                                     dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
+                                                                                  T ~ CurrentDate)))
+    }
   }
   return(X_Ready4useDyad)
 }
@@ -1779,6 +1786,14 @@ add_project_2_cost_sa_2 <- function(X_Ready4useDyad,
                                X_Ready4useDyad@ds_tb %>% 
                                  dplyr::rowwise() %>% 
                                  dplyr::mutate(!!rlang::sym(paste0("Cost",suffix_1L_chr)) := sum(dplyr::across(c(paste0(disciplines_chr, paste0("Cost",suffix_1L_chr)), "ExternalIARCost", "AmbulanceOffsetCost")))) %>% dplyr::ungroup())
+  return(X_Ready4useDyad)
+}
+add_project_2_customisation <- function(X_Ready4useDyad,
+                                        arms_for_non_helpseeking_chr = character(0),
+                                        arms_for_iar_adjustment_chr = character(0),
+                                        reset_date_1L_lgl = TRUE){
+  X_Ready4useDyad <- add_non_helpseekers(X_Ready4useDyad, arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,  reset_date_1L_lgl =  reset_date_1L_lgl) 
+  X_Ready4useDyad <- add_non_iar(X_Ready4useDyad,  arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr)
   return(X_Ready4useDyad)
 }
 add_project_2_k10_draws <- function(X_Ready4useDyad,
@@ -2676,6 +2691,7 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, 
                                     k10_draws_fn,
                                     add_sensitivity_1L_lgl = FALSE, 
+                                    k10_var_1L_chr = "K10",
                                     sensitivities_ls = make_sensitivities_ls(), tfmn_ls = make_class_tfmns(), 
                                     tx_prefix_1L_chr = "Treatment",
                                     utilities_chr = c("AQoL8D", 
@@ -2692,7 +2708,7 @@ add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int,
                                    #                         var_1L_chr, ...) {renewSlot(X, "ds_tb", 
                                    #                                                     X@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
                                    #                                                                                    !!rlang::sym(k10_var_1L_chr) + sample(-5:-1, nrow(X@ds_tb), replace = T))))},
-                                   k10_mdl = NULL, k10_var_1L_chr = "K10", 
+                                   k10_mdl = NULL, k10_var_1L_chr = k10_var_1L_chr, 
                                    iterations_int = iterations_int, params_tb = inputs_ls$params_tb, 
                                    sensitivities_ls = sensitivities_ls, suffix_1L_chr = "Update", 
                                    tfmn_ls = tfmn_ls, type_1L_chr = "Table", tx_prefix_1L_chr = tx_prefix_1L_chr, 

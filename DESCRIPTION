@@ -101,6 +101,7 @@ Collate:
     'mthd_author.R'
     'mthd_ingest.R'
     'mthd_manufacture.R'
+    'mthd_metamorphose.R'
     'mthd_procure.R'
     'mthd_prognosticate.R'
     'mthd_renew.R'

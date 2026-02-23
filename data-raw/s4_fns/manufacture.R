@@ -5,7 +5,7 @@ manufacture_MimicArguments <- function(x,
                                        X_MimicConfiguration = MimicConfiguration(),
                                        ...){
   what_1L_chr <- match.arg(what_1L_chr)
-  # object_xx <- list()
+  object_xx <- list()
   if(what_1L_chr == "args_ls"){
        object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
     if(!identical(x@derive_ls, list())){
@@ -19,7 +19,7 @@ manufacture_MimicArguments <- function(x,
         append(x@models_ls %>%
                  purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls") %>% purrr::pluck(.x)))
     }
-    if(!identical(batch_1L_int, integer(0))){
+    if(!identical(batch_1L_int, integer(0)) & x@iterations_1L_lgl){
       object_xx <- object_xx %>%
         append(list(iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
     }
@@ -29,7 +29,10 @@ manufacture_MimicArguments <- function(x,
 manufacture_MimicConfiguration <- function(x,
                                            arm_1L_chr = NA_character_,
                                            batch_1L_int = integer(0),
+                                           draws_tb = NULL,
                                            extras_ls = list(),
+                                           tx_prefix_1L_chr = character(0),
+                                           type_1L_chr = c("current", "entry"),
                                            what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")){
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "args_all"){
@@ -61,7 +64,26 @@ manufacture_MimicConfiguration <- function(x,
     } 
   }
   if(what_1L_chr == "population_ls"){
-    object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+    if(type_1L_chr == "current"){
+      object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+    }
+    if(type_1L_chr == "entry"){
+      object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
+                                         default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
+                                         derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
+                                         horizon_dtm = x@horizon_dtm,
+                                         modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr),
+                                         start_dtm = x@start_dtm,  
+                                         tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
+                                         tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, empty_xx = NULL, target_1L_chr = "Treatment duration"),
+                                         arm_1L_chr = arm_1L_chr, 
+                                         default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls),
+                                         draws_tb = draws_tb,
+                                         iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
+                                         tidy_cols_1L_lgl = T,
+                                         tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
+        update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+    }
   }
   return(object_xx)
 }

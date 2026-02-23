@@ -7,7 +7,7 @@
 update_population_ls(
   population_ls = NULL,
   X_Ready4useDyad = ready4use::Ready4useDyad(),
-  type_1L_chr = c("split", "join", "form"),
+  type_1L_chr = c("split", "join", "form", "switch"),
   use_1L_chr = c("Y", "Z")
 )
 }

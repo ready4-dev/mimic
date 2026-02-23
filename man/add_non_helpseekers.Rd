@@ -6,13 +6,16 @@
 \usage{
 add_non_helpseekers(
   X_Ready4useDyad,
-  arms_for_non_helpseeking_chr = character(0)
+  arms_for_non_helpseeking_chr = character(0),
+  reset_date_1L_lgl = TRUE
 )
 }
 \arguments{
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
 \item{arms_for_non_helpseeking_chr}{Arms for non helpseeking (a character vector), Default: character(0)}
+
+\item{reset_date_1L_lgl}{Reset date (a logical vector of length one), Default: TRUE}
 }
 \value{
 X (A dataset and data dictionary pair.)

@@ -24,7 +24,7 @@
   batch_1L_int = integer(0),
   env_ls = list(),
   population_ls = NULL,
-  type_1L_chr = c("trigger", "customise", "schedule", "switch", "transform"),
+  type_1L_chr = c("trigger", "customise", "event", "schedule", "switch", "transform"),
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),
@@ -38,7 +38,7 @@
   draws_tb = NULL,
   env_ls = list(),
   tx_prefix_1L_chr = character(0),
-  type_1L_chr = c("event", "form", "schedule", "trigger"),
+  type_1L_chr = c("event", "form", "schedule", "switchY", "switchZ", "trigger"),
   what_1L_chr = c("population"),
   X_MimicEvent = MimicEvent(),
   ...
@@ -51,7 +51,7 @@
 
 \item{env_ls}{Environment list (a list of environments), Default: list()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form", "schedule", "switchY", "switchZ","trigger")}
 
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 

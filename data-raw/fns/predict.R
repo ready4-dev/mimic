@@ -325,10 +325,48 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # utility_fns_ls <- make_utility_fns_ls(utilities_chr = utilities_chr)
   ###
   ###
+  #### Create events list
+  events_ls <- list(EpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
+                                                                            outcome_var_1L_chr = "K10",
+                                                                            change_first_mdl = "K10_mdl", 
+                                                                            change_relapse_1L_chr = "K10Relapse_mdl",
+                                                                            end_mdl_1L_chr = "EpisodeEnd_mdl",
+                                                                            start_mdl_1L_chr = "EpisodeStart_mdl", #Representation_mdl
+                                                                            type_schedule_1L_chr = c("first"),
+                                                                            use_schedule_1L_chr = "Y", # "Z"
+                                                                            use_trigger_1L_chr = NA_character_,
+                                                                            validate_schedule_1L_chr = "WaitInDays", #"DaysToYearOneRepresentation"
+                                                                            vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"),
+                                                                            workers_chr = make_worker_types(),
+                                                                            workers_medical_chr = make_worker_types("medical")),
+                    RepeatEpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "RepeatEpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
+                                                                                  outcome_var_1L_chr = "K10",
+                                                                                  change_first_mdl = "K10_mdl", 
+                                                                                  change_relapse_1L_chr = "K10Relapse_mdl",
+                                                                                  end_mdl_1L_chr = "EpisodeEnd_mdl",
+                                                                                  start_mdl_1L_chr = "Representation_mdl", #Representation_mdl
+                                                                                  type_schedule_1L_chr = c("repeat"),
+                                                                                  use_schedule_1L_chr = "Z",
+                                                                                  use_trigger_1L_chr = "Z",
+                                                                                  validate_schedule_1L_chr = "DaysToYearOneRepresentation",
+                                                                                  vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"),
+                                                                                  workers_chr = make_worker_types(),
+                                                                                  workers_medical_chr = make_worker_types("medical")),
+                    UpdateUntreatedOutcomes = make_project_2_untreated_sequence(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
+                                                                                action_fn = add_regression_to_mean,
+                                                                                draws_fn = add_project_2_k10_draws,
+                                                                                use_schedule_1L_chr = "Y", # "Z"
+                                                                                use_trigger_1L_chr = "Z"),
+                    RegressionToMean = make_project_2_regression_to_mean(event_nm_1L_chr = "RegressionToMean",
+                                                                         outcome_var_1L_chr = "K10",
+                                                                         use_schedule_1L_chr = "Y", 
+                                                                         use_trigger_1L_chr = "Z"))
   #### Enter model ####
   ###
-  X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
-                                tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "form", what_1L_chr = "population")
+  X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
+                                    tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb,
+  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "form", what_1L_chr = "population")
   ##
   # population_ls <- add_enter_model_event(X_Ready4useDyad = X_MimicConfiguration@x_MimicInputs@y_Ready4useDyad, #inputs_ls$Synthetic_r4,
   #                                        default_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
@@ -348,12 +386,20 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #
   ###
   #### Customise population [conditionally] ####
+  ## Note this will split model population to helpseekers and nonhelpseekers, with distinct model pathways for each
   ###
-  X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation",
-                                    renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
-
-
-  ## Update population (if comparator)
+  X_MimicPopulation <- renew(X_MimicPopulation, 
+                             env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
+                                           arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
+                                           reset_date_1L_lgl = TRUE),
+                             type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration)
+  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation",
+  #                                   renew(X_MimicConfiguration@x_MimicPopulation,
+  #                                         env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"),
+  #                                                       arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
+  #                                                       reset_date_1L_lgl = TRUE),
+  #                                         type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration))
+    ## Update population (if comparator)
   # population_ls$X_Ready4useDyad <- add_non_helpseekers(population_ls$X_Ready4useDyad,
   #                                                      arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"))
   # population_ls$X_Ready4useDyad <- add_non_iar(population_ls$X_Ready4useDyad,
@@ -362,56 +408,50 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # population_ls <- update_population_ls(population_ls)
   ##
   ###
-  #### Create events list
-  events_ls <- list(EpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
-                                                                            outcome_var_1L_chr = "K10",
-                                                                            change_first_mdl = "K10_mdl", 
-                                                                            change_relapse_1L_chr = "K10Relapse_mdl",
-                                                                            end_mdl_1L_chr = "EpisodeEnd_mdl",
-                                                                            start_mdl_1L_chr = "EpisodeStart_mdl", #Representation_mdl
-                                                                            type_schedule_1L_chr = c("first"),
-                                                                            use_schedule_1L_chr = "Y", # "Z"
-                                                                            use_trigger_1L_chr = NA_character_,
-                                                                            validate_schedule_1L_chr = "WaitInDays", #"DaysToYearOneRepresentation"
-                                                                            vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"),
-                                                                            workers_chr = make_worker_types(),
-                                                                            workers_medical_chr = make_worker_types("medical")),
-                    RepeatEpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "RepeatEpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
-                                                                            outcome_var_1L_chr = "K10",
-                                                                            change_first_mdl = "K10_mdl", 
-                                                                            change_relapse_1L_chr = "K10Relapse_mdl",
-                                                                            end_mdl_1L_chr = "EpisodeEnd_mdl",
-                                                                            start_mdl_1L_chr = "Representation_mdl", #Representation_mdl
-                                                                            type_schedule_1L_chr = c("repeat"),
-                                                                            use_schedule_1L_chr = "Z",
-                                                                            use_trigger_1L_chr = "Z",
-                                                                            validate_schedule_1L_chr = "DaysToYearOneRepresentation",
-                                                                            vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"),
-                                                                            workers_chr = make_worker_types(),
-                                                                            workers_medical_chr = make_worker_types("medical")),
-                    UpdateUntreatedOutcomes = make_project_2_untreated_sequence(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
-                                                                                action_fn = add_regression_to_mean,
-                                                                                draws_fn = add_project_2_k10_draws,
-                                                                                use_schedule_1L_chr = "Y", # "Z"
-                                                                                use_trigger_1L_chr = "Z"))
-  ### Schedule and trigger Episode of Care sequence
-  X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
-                                env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
-                                tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
-                                X_MimicEvent = events_ls$EpisodeOfCareSequence)
-  
+  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+                             env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  # X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  #                            env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                            tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  # X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+  #                            env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                            tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "trigger", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  ### Schedule and trigger Episode of Care sequence [For treated subgroup]
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int,
+  #                               env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
+  #                               X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  ### Schedule and trigger Representation (new episode of care) sequence [For treated subgroup]
+  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+                                             env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+                                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
+  ##
+  ## Need to reset events scheduled for after sim horizon to NA
+  ##
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+  #                               env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
+  #                               X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
+  ### Schedule and trigger Regression to Mean event [For untreated subgroup]
+  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+                                             type_1L_chr = "switch", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean, what_1L_chr = "Y")
+  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+                                             env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr),
+                                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+  #                               type_1L_chr = "switchY", what_1L_chr = "population",
+  #                               X_MimicEvent = events_ls$RegressionToMean)
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+  #                               env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
+  #                               X_MimicEvent = events_ls$RegressionToMean)
   #### Schedule Episode of Care sequence ####
   ###
-  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int,
   #       env_ls = list(arm_1L_chr = arm_1L_chr, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1))),
   #       tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "schedule", what_1L_chr = "population",
   #       X_MimicEvent = events_ls$EpisodeOfCareSequence)
-  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
-  #                                   renew(X_MimicConfiguration@x_MimicPopulation,
-  #                                         batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1))), 
-  #                                         type_1L_chr = "schedule", 
-  #                                         X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence))
-  ##
   ##
   # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
   # population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "EpisodeOfCareSequence",                                                      # "StartEpisode",
@@ -432,10 +472,10 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ##
   ###
   #### Trigger Episode of Care event ####
-  X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
-                                env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, tx_prefix_1L_chr = tx_prefix_1L_chr),
-                                tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "trigger", what_1L_chr = "population",
-                                X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+  #                               env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, tx_prefix_1L_chr = tx_prefix_1L_chr),
+  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "trigger", what_1L_chr = "population",
+  #                               X_MimicEvent = events_ls$EpisodeOfCareSequence)
   # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
   #                                   renew(X_MimicConfiguration@x_MimicPopulation,
   #                                         batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, tx_prefix_1L_chr = tx_prefix_1L_chr), type_1L_chr = "trigger", 
@@ -456,12 +496,13 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                                              utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
   # }
     ###
+
     #### Schedule Representation (new episode of care) event ####
     ### 
-  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
-                                    renew(X_MimicConfiguration@x_MimicPopulation,
-                                          batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1))), type_1L_chr = "schedule", 
-                                          X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence))
+  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+  #                                   renew(X_MimicConfiguration@x_MimicPopulation,
+  #                                         batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1))), type_1L_chr = "schedule", 
+  #                                         X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence))
   # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
   #   population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, event_1L_chr = "Represent",
   #                                                      schedule_fn = add_episode_wait_time,
@@ -481,12 +522,12 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   #### Trigger Representation (new episode of care) event ####
   ### 
-  X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
-                                    renew(X_MimicConfiguration@x_MimicPopulation,
-                                          batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, tx_prefix_1L_chr = tx_prefix_1L_chr), type_1L_chr = "trigger", 
-                                          X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence))
+  # X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicPopulation",
+  #                                   renew(X_MimicConfiguration@x_MimicPopulation,
+  #                                         batch_1L_int = batch_1L_int, env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, tx_prefix_1L_chr = tx_prefix_1L_chr), type_1L_chr = "trigger", 
+  #                                         X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence))
   ## Loop representation and then add first and representation as the treated pathway
-  population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
+  population_ls <- manufacture(X_MimicPopulation, what_1L_chr = "population_ls")
   # if(nrow(population_ls$X_Ready4useDyad@ds_tb)>0){
   #   population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad,
   #                                                assert_1L_lgl = FALSE,
