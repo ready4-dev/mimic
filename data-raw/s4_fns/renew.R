@@ -8,6 +8,8 @@ renew_MimicActive <- function(x,
   
   type_1L_chr <- match.arg(type_1L_chr)
   if(type_1L_chr == "trigger"){
+    x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_current_event(x@x_Ready4useDyad)
     args_ls <- manufacture(X_MimicEvent@y_MimicTrigger@x_MimicArguments, batch_1L_int = batch_1L_int, env_ls = env_ls,
                            what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
     x <- renewSlot(x, "x_Ready4useDyad", rlang::exec(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn,
@@ -35,8 +37,6 @@ renew_MimicActive <- function(x,
                  vars_chr = X_MimicEvent@x_MimicSchedule@validate_chr,
                  assert_1L_lgl = X_MimicEvent@x_MimicSchedule@assert_1L_lgl,
                  invalid_fn = X_MimicEvent@x_MimicSchedule@functions_ls$invalid_fn)
-    x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
-    x@x_Ready4useDyad <- update_current_event(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_next_date(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_next_event(x@x_Ready4useDyad)
   }

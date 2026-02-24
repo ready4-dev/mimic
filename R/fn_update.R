@@ -23,12 +23,12 @@ update_arguments_ls <- function (args_ls, function_fn)
 #' @importFrom dplyr mutate case_when
 #' @importFrom lubridate NA_Date_
 #' @keywords internal
-update_current_date <- function (X_Ready4useDyad) 
-{
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor > 
-            EndDate ~ lubridate::NA_Date_, T ~ ScheduledFor)))
-    return(X_Ready4useDyad)
+update_current_date <- function (X_Ready4useDyad) {
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(CurrentDate = ScheduledFor
+                                               # dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_, T ~ ScheduledFor)
+                                 ))
+  return(X_Ready4useDyad)
 }
 #' Update current event
 #' @description update_current_event() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update current event. The function is called for its side effects and does not return a value.
@@ -38,12 +38,12 @@ update_current_date <- function (X_Ready4useDyad)
 #' @export 
 #' @importFrom dplyr mutate case_when
 #' @keywords internal
-update_current_event <- function (X_Ready4useDyad) 
-{
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-        dplyr::mutate(CurrentEvent = dplyr::case_when(is.na(CurrentDate) ~ 
-            NA_character_, T ~ NextEvent)))
-    return(X_Ready4useDyad)
+update_current_event <- function (X_Ready4useDyad) {
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(CurrentEvent = NextEvent
+                                               # dplyr::case_when(is.na(CurrentDate) ~ NA_character_, T ~ NextEvent)
+                                 ))
+  return(X_Ready4useDyad)
 }
 #' Update episodes lookup table
 #' @description update_episodes_lup() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update episodes lookup table. The function returns Episodes lookup table (a tibble).
@@ -410,6 +410,8 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @description update_population_ls() is an Update function that edits an object, while preserving core object attributes. Specifically, this function implements an algorithm to update population list. The function returns Population (a list).
 #' @param population_ls Population (a list), Default: NULL
 #' @param X_Ready4useDyad PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()
+#' @param split_test_fn Split test (a function), Defaults: is.na
+#' @param split_var_1L_chr Split variable (a character vector of length one), Default: "ScheduledFor"
 #' @param type_1L_chr Type (a character vector of length one), Default: c("split", "join", "form")
 #' @param use_1L_chr Use (a character vector of length one), Default: c("Y", "Z")
 #' @return Population (a list)
@@ -420,7 +422,8 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 #' @keywords internal
 update_population_ls <- function(population_ls = NULL,
                                  X_Ready4useDyad = ready4use::Ready4useDyad(),
-                                 # switch_chr = c("X","Y"),
+                                 split_test_fn = is.na,
+                                 split_var_1L_chr = "ScheduledFor",
                                  type_1L_chr = c("split", "join", "form", "switch"),
                                  use_1L_chr = c("Y", "Z")
 ){
@@ -461,17 +464,17 @@ update_population_ls <- function(population_ls = NULL,
       population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #is.na(ScheduledFor) #CurrentDate
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
     if(use_1L_chr == "Z"){
       population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #CurrentDate
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
-    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!is.na(CurrentDate)))
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!split_test_fn(!!rlang::sym(split_var_1L_chr)))) #CurrentDate
   }
   if(type_1L_chr == "switch"){
     names_chr <- names(population_ls)

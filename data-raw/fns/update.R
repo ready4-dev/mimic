@@ -8,14 +8,16 @@ update_arguments_ls <- function(args_ls,
 }
 update_current_date <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-                                 dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,
-                                                                              T ~ ScheduledFor)))
+                                 dplyr::mutate(CurrentDate = ScheduledFor
+                                                 # dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_, T ~ ScheduledFor)
+                                               ))
   return(X_Ready4useDyad)
 }
 update_current_event <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
-                                 dplyr::mutate(CurrentEvent = dplyr::case_when(is.na(CurrentDate) ~ NA_character_,
-                                                                               T ~ NextEvent)))
+                                 dplyr::mutate(CurrentEvent = NextEvent
+                                                 # dplyr::case_when(is.na(CurrentDate) ~ NA_character_, T ~ NextEvent)
+                                               ))
   return(X_Ready4useDyad)
 }
 update_episodes_lup <- function(episodes_lup_tb,
@@ -278,6 +280,8 @@ update_population_classes <- function (X_Ready4useDyad, tfmn_ls = NULL)
 update_population_ls <- function(population_ls = NULL,
                                  X_Ready4useDyad = ready4use::Ready4useDyad(),
                                  # switch_chr = c("X","Y"),
+                                 split_test_fn = is.na,
+                                 split_var_1L_chr = "ScheduledFor",
                                  type_1L_chr = c("split", "join", "form", "switch"),
                                  use_1L_chr = c("Y", "Z")
 ){
@@ -318,17 +322,17 @@ update_population_ls <- function(population_ls = NULL,
       population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #is.na(ScheduledFor) #CurrentDate
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
     if(use_1L_chr == "Z"){
       population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(is.na(CurrentDate))  %>% 
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #CurrentDate
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
-    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!is.na(CurrentDate)))
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!split_test_fn(!!rlang::sym(split_var_1L_chr)))) #CurrentDate
   }
   if(type_1L_chr == "switch"){
     names_chr <- names(population_ls)

@@ -7,6 +7,8 @@
 update_population_ls(
   population_ls = NULL,
   X_Ready4useDyad = ready4use::Ready4useDyad(),
+  split_test_fn = is.na,
+  split_var_1L_chr = "ScheduledFor",
   type_1L_chr = c("split", "join", "form", "switch"),
   use_1L_chr = c("Y", "Z")
 )
@@ -15,6 +17,10 @@ update_population_ls(
 \item{population_ls}{Population (a list), Default: NULL}
 
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
+
+\item{split_test_fn}{Split test (a function), Defaults: is.na}
+
+\item{split_var_1L_chr}{Split variable (a character vector of length one), Default: "ScheduledFor"}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("split", "join", "form")}
 

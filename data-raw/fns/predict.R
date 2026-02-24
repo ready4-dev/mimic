@@ -340,7 +340,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
                                     env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
                                                   arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
-                                                  reset_date_1L_lgl = TRUE), # Will be FALSE when reformed
+                                                  reset_date_1L_lgl = FALSE), # Will be FALSE when reformed
                                     tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
   # X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb,
   #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "form", what_1L_chr = "population")
