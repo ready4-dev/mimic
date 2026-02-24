@@ -108,21 +108,15 @@ write_batch <- function (batch_1L_int,
   #   inputs_ls <- manufacture(X_MimicInputs, what_1L_chr = "inputs_ls")
   # }
   # iterations_int <- X_MimicConfiguration@iterations_ls[[batch_1L_int]] # manufacture method
-  iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
+  
   if(is.null(draws_tb)){
     if(!identical(Y_MimicRepos, MimicRepos())){ 
       draws_tb <- ingest(Y_MimicRepos, batches_int = batch_1L_int, type_1L_chr = "ParamDraws")
     }else{
       draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "draws_tb") 
-      # draws_tb <- make_draws_tb(inputs_ls, 
-      #                           extra_draws_fn = extra_draws_fn,
-      #                           iterations_int = iterations_int, 
-      #                           drop_missing_1L_lgl = drop_missing_1L_lgl, 
-      #                           drop_suffix_1L_chr = drop_suffix_1L_chr, 
-      #                           # scale_1L_int = scale_1L_int,
-      #                           seed_1L_int = seed_1L_int + batch_1L_int)
     }
   }
+  iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
   test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), sort(iterations_int)),
                                          msg = "Iterations in iteration vector and parameter draws table do not match.")
   # if(nrow(arms_tb>0)){

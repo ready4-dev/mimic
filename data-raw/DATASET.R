@@ -54,6 +54,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Algorithms",
+                                                                # Add events_ls or x_MimicEvents (better)
                                                                 slots_ls = list("main_ls", #"comparator_fn", "intervention_fn", 
                                                                                 "processing_ls",#"extra_draws_fn", "synthesis_fn", 
                                                                                 "sensitivities_ls", 
@@ -131,12 +132,12 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "horizon_dtm", 
                                                                   "iterations_ls",  
                                                                   "modifiable_chr" , 
-                                                                  "prior_batches_1L_int",
+                                                                  "prior_batches_1L_int", # DELETE
+                                                                  # Add prefixes_ls
                                                                   "seed_1L_int",
                                                                   "start_dtm",  
                                                                   "x_MimicAlgorithms",
-                                                                  "x_MimicInputs",
-                                                                  "x_MimicPopulation") %>% list(), 
+                                                                  "x_MimicInputs") %>% list(), 
                                                                 pt_ls = list(
                                                                   "tbl_df",
                                                                   "logical",
@@ -148,8 +149,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "integer",
                                                                   "Date",#"POSIXt",      
                                                                   "MimicAlgorithms",
-                                                                  "MimicInputs",
-                                                                  "MimicPopulation"
+                                                                  "MimicInputs"
                                                                   ) %>% list(),
                                                                 vals_ls = list(list(
                                                                   arms_tb = "make_arms_tb()",
@@ -163,7 +163,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   start_dtm = "Sys.Date()")),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicAlgorithms","MimicInputs", "MimicPopulation"
+                                                                inc_clss_ls = list("MimicAlgorithms","MimicInputs"
                                                                                    ) %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Derivations",

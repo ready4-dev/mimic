@@ -6,15 +6,13 @@ update_arguments_ls <- function(args_ls,
   }
   return(args_ls)
 }
-
 update_current_date <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                  dplyr::mutate(CurrentDate = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,
                                                                               T ~ ScheduledFor)))
   return(X_Ready4useDyad)
 }
-update_current_event <- function (X_Ready4useDyad) 
-{
+update_current_event <- function (X_Ready4useDyad) {
   X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                  dplyr::mutate(CurrentEvent = dplyr::case_when(is.na(CurrentDate) ~ NA_character_,
                                                                                T ~ NextEvent)))
@@ -180,7 +178,19 @@ update_mismatched_vars <- function(model_dyad_ls = make_model_dyad_ls,
   }
   return(model_dyad_ls)
 }
-
+update_next_date <- function (X_Ready4useDyad) {
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(ScheduledFor = dplyr::case_when(ScheduledFor>EndDate ~ lubridate::NA_Date_,
+                                                                              T ~ ScheduledFor)))
+  return(X_Ready4useDyad)
+}
+update_next_event <- function (X_Ready4useDyad) 
+{
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+                                 dplyr::mutate(NextEvent = dplyr::case_when(is.na(ScheduledFor) ~ NA_character_,
+                                                                               T ~ NextEvent)))
+  return(X_Ready4useDyad)
+}
 update_order <- function (X_Ready4useDyad,
                           structural_chr = make_structural_vars(data_1L_chr = character(0), uid_1L_chr = "UID"),
                           type_1L_chr = c("rows", "columns")) {
@@ -456,10 +466,21 @@ update_project_2_configuration<- function (X_MimicConfiguration,
   if(!identical(X_MimicConfiguration, MimicConfiguration())){
     # X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "seed_1L_int",
     #                                   X_MimicConfiguration@seed_1L_int + batch_1L_int)
-    if(is.na(X_MimicConfiguration@modifiable_chr[1])){
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "modifiable_chr",
-                                        character(0))
-    }
+    # if(is.na(X_MimicConfiguration@modifiable_chr[1])){
+    #   X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "modifiable_chr",
+    #                                     character(0))
+    # }
+    # if(identical(X_MimicConfiguration@x_MimicAlgorithms@main_ls, list("UPDATE"))){
+    #   X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
+    #                                     renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", list(`Project 2` = predict_project_2_pathway)))
+    # }
+    # if(identical(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
+    #   new_ls <- make_simulation_fns_ls("processing",
+    #                                    initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
+    #   new_ls <- new_ls$initialise_ls
+    #   new_ls <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
+    #   X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicAlgorithms@processing_ls", new_ls)
+    # }
     if(identical(names(X_MimicConfiguration@arms_tb), "Arm")){
       arms_extras_ls <- make_project_2_arms_extras_ls(X_MimicConfiguration@arms_tb$Arm,
                                                       arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
@@ -472,17 +493,6 @@ update_project_2_configuration<- function (X_MimicConfiguration,
                                         "arms_tb",
                                         make_arms_tb(X_MimicConfiguration@arms_tb,
                                                      settings_ls = arms_extras_ls))
-    }
-    if(identical(X_MimicConfiguration@x_MimicAlgorithms@main_ls, list("UPDATE"))){
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicAlgorithms",
-                                        renewSlot(X_MimicConfiguration@x_MimicAlgorithms, "main_ls", list(`Project 2` = predict_project_2_pathway)))
-    }
-    if(identical(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
-      new_ls <- make_simulation_fns_ls("processing",
-                                       initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls))
-      new_ls <- new_ls$initialise_ls
-      new_ls <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
-      X_MimicConfiguration <- renewSlot(X_MimicConfiguration,"x_MimicAlgorithms@processing_ls", new_ls)
     }
   }else{
     iterations_ls <- purrr::map(1:batch_1L_int,

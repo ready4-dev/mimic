@@ -34,8 +34,11 @@ methods::setMethod("renew", "MimicActive", function(x,
                    x@x_Ready4useDyad@ds_tb %>% dplyr::mutate(NextEvent = NA_character_, ScheduledFor = lubridate::NA_Date_))
   }
   if(type_1L_chr == "customise"){
-    x <- renewSlot(x, "x_Ready4useDyad",
-                   rlang::exec(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn, x@x_Ready4useDyad,!!!env_ls)) 
+    if(!is.null(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn)){
+      x <- renewSlot(x, "x_Ready4useDyad",
+                     rlang::exec(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn, x@x_Ready4useDyad,!!!env_ls)
+      ) 
+    }
   }
   if(type_1L_chr == "schedule"){
     x <- renewSlot(x, "x_Ready4useDyad", add_time_to_event(x@x_Ready4useDyad, 
@@ -51,6 +54,8 @@ methods::setMethod("renew", "MimicActive", function(x,
                  invalid_fn = X_MimicEvent@x_MimicSchedule@functions_ls$invalid_fn)
     x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_current_event(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_next_date(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_next_event(x@x_Ready4useDyad)
   }
   return(x)
 })
@@ -132,14 +137,8 @@ methods::setMethod("renew", "MimicPopulation", function(x,
 #' @name renew-MimicConfiguration
 #' @description renew method applied to MimicConfiguration
 #' @param x An object of class MimicConfiguration
-#' @param arm_1L_chr Arm (a character vector of length one), Default: character(0)
-#' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
-#' @param draws_tb Draws (a tibble), Default: NULL
 #' @param env_ls Environment list (a list of environments), Default: list()
-#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: character(0)
-#' @param type_1L_chr Type (a character vector of length one), Default: c("default", "form", "schedule", "switchY", "switchZ","trigger")
 #' @param what_1L_chr What (a character vector of length one), Default: c("population")
-#' @param X_MimicEvent PARAM_DESCRIPTION, Default: MimicEvent()
 #' @param ... Additional arguments
 #' @return x (An object of class MimicConfiguration)
 #' @rdname renew-methods
@@ -147,53 +146,22 @@ methods::setMethod("renew", "MimicPopulation", function(x,
 #' @export 
 #' @importFrom ready4 renew
 methods::setMethod("renew", "MimicConfiguration", function(x,
-                                                           arm_1L_chr = character(0),
-                                                           batch_1L_int = integer(0),
-                                                           draws_tb = NULL,
                                                            env_ls = list(),
-                                                           tx_prefix_1L_chr = character(0),
-                                                           type_1L_chr = c("event","form", "schedule", "switchY", "switchZ","trigger"),
-                                                           what_1L_chr = c("population"),
-                                                           X_MimicEvent = MimicEvent(), 
+                                                           what_1L_chr = c("legacy"),
                                                            ...){
-  type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "population"){
-    if(type_1L_chr == "form"){
-      population_ls <- manufacture(x, arm_1L_chr = arm_1L_chr,
-                                   batch_1L_int = batch_1L_int,
-                                   draws_tb = draws_tb,
-                                   tx_prefix_1L_chr = tx_prefix_1L_chr,
-                                   type_1L_chr = "entry",
-                                   what_1L_chr = c("population_ls"))
-      x <- renewSlot(x,"x_MimicPopulation",
-                     renew(x@x_MimicPopulation, population_ls = population_ls, type_1L_chr = "transform"))
+  if(what_1L_chr == "legacy"){
+    if(is.na(x@modifiable_chr[1])){
+      x <- renewSlot(x, "modifiable_chr", character(0))
     }
-    if(type_1L_chr %in% c("schedule", "trigger")){
-      x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
-                                                  batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                                                  type_1L_chr = type_1L_chr, 
-                                                  X_MimicConfiguration = x, 
-                                                  X_MimicEvent = X_MimicEvent))
+    if(identical(x@x_MimicAlgorithms@main_ls, list("UPDATE"))){
+      x <- renewSlot(x, "x_MimicAlgorithms", renewSlot(x@x_MimicAlgorithms, "main_ls", env_ls$main_ls))
     }
-    if(type_1L_chr %in% c("switchY", "switchZ")){
-      x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
-                                                  batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                                                  type_1L_chr = "switch", 
-                                                  X_MimicConfiguration = x, 
-                                                  X_MimicEvent = X_MimicEvent,
-                                                  what_1L_chr = stringr::str_sub(type_1L_chr,start = -1L)))
-    }
-    if(type_1L_chr == "event"){
-      x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                 type_1L_chr = "schedule", 
-                 X_MimicConfiguration = x, 
-                 X_MimicEvent = X_MimicEvent)
-      x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                 type_1L_chr = "trigger", 
-                 X_MimicConfiguration = x, 
-                 X_MimicEvent = X_MimicEvent)
-      
+    if(identical(x@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
+      new_ls <- make_simulation_fns_ls("processing", initialise_ls = env_ls$initialise_ls)
+      new_ls <- new_ls$initialise_ls
+      new_ls <- x@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
+      x <- renewSlot(x,"x_MimicAlgorithms@processing_ls", new_ls)
     }
   }
   return(x)

@@ -31,18 +31,7 @@
   ...
 )
 
-\S4method{renew}{MimicConfiguration}(
-  x,
-  arm_1L_chr = character(0),
-  batch_1L_int = integer(0),
-  draws_tb = NULL,
-  env_ls = list(),
-  tx_prefix_1L_chr = character(0),
-  type_1L_chr = c("event", "form", "schedule", "switchY", "switchZ", "trigger"),
-  what_1L_chr = c("population"),
-  X_MimicEvent = MimicEvent(),
-  ...
-)
+\S4method{renew}{MimicConfiguration}(x, env_ls = list(), what_1L_chr = c("legacy"), ...)
 }
 \arguments{
 \item{x}{An object of class MimicConfiguration}
@@ -51,7 +40,7 @@
 
 \item{env_ls}{Environment list (a list of environments), Default: list()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("default", "form", "schedule", "switchY", "switchZ","trigger")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("trigger", "customise", "event", "schedule", "switch", "transform")}
 
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
@@ -62,12 +51,6 @@
 \item{population_ls}{Population (a list), Default: NULL}
 
 \item{what_1L_chr}{What (a character vector of length one), Default: c("population")}
-
-\item{arm_1L_chr}{Arm (a character vector of length one), Default: character(0)}
-
-\item{draws_tb}{Draws (a tibble), Default: NULL}
-
-\item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
 }
 \value{
 x (An object of class MimicActive)

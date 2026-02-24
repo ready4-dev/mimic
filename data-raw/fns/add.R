@@ -3058,7 +3058,6 @@ add_time_to_event <- function(X_Ready4useDyad,
   }else{
     X_Ready4useDyad <- rlang::exec(schedule_fn, X_Ready4useDyad, !!!schedule_args_ls)
   }
-
   return(X_Ready4useDyad)
 }
 add_treatment_event <- function (X_Ready4useDyad, tx_models_ls, adjustment_1L_dbl = -2, 

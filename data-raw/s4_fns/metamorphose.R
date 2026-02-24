@@ -2,6 +2,7 @@ metamorphose_MimicConfiguration <- function(x,
                                             arm_1L_chr = NA_character_,
                                             batch_1L_int = integer(0),
                                             draws_tb = NULL,
+                                            env_ls = list(),
                                             tx_prefix_1L_chr = character(0),
                                             Y_Ready4Module = Ready4Module(),
                                             ...){
@@ -13,6 +14,7 @@ metamorphose_MimicConfiguration <- function(x,
                                  type_1L_chr = "entry",
                                  what_1L_chr = c("population_ls"))
     Y_Ready4Module <- renew(Y_Ready4Module, population_ls = population_ls, type_1L_chr = "transform")
+    Y_Ready4Module <- renew(Y_Ready4Module, env_ls = env_ls, type_1L_chr = "customise", X_MimicConfiguration = x)
   }
   return(Y_Ready4Module)
 }

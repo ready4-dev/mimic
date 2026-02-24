@@ -237,7 +237,7 @@ predict_from_pool <- function(pooled_xx,
 predict_project_2_pathway <- function (inputs_ls = NULL, 
                                        add_logic_fn = identity, 
                                        arm_1L_chr, 
-                                       arms_chr,
+                                       arms_chr = character(0),
                                        arms_for_intervention_costs_chr = character(0),
                                        arms_for_offsets_chr = character(0), 
                                        arms_for_non_helpseeking_chr = character(0), 
@@ -260,56 +260,29 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                        X_MimicConfiguration = MimicConfiguration()
 ) 
 {
-  old_algorithm_1L_lgl <- identical(X_MimicConfiguration, MimicConfiguration())
-  if(!old_algorithm_1L_lgl){
-    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
-  }
+  # old_algorithm_1L_lgl <- identical(X_MimicConfiguration, MimicConfiguration())
+  # if(!old_algorithm_1L_lgl){
+  #   iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
+  # }
   ## Revised version of below needs to be made into a renew method option
-  X_MimicConfiguration <- update_project_2_configuration(X_MimicConfiguration = X_MimicConfiguration,
-                                                         batch_1L_int = batch_1L_int,
-                                                         arms_chr = arms_chr,
-                                                         ##
-                                                         # arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
-                                                         # arms_for_offsets_chr = arms_for_offsets_chr,
-                                                         # arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
-                                                         # arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
-                                                         # extra_draws_fn = extra_draws_fn,
-                                                         # horizon_dtm = horizon_dtm,
-                                                         # inputs_ls = inputs_ls,
-                                                         ##
-                                                         iterations_int = iterations_int, 
-                                                         ##
-                                                         # modifiable_chr = modifiable_chr,
-                                                         # seed_1L_int = seed_1L_int,
-                                                         # sensitivities_ls = sensitivities_ls,
-                                                         # start_dtm = start_dtm,
-                                                         # tfmn_ls = tfmn_ls,
-                                                         # tx_duration_dtm = tx_duration_dtm,
-                                                         # treatment_ls = treatment_ls,
-                                                         # utilities_chr = utilities_chr,
-                                                         # utility_fns_ls = utility_fns_ls
-                                                         ##
-                                                         )
-  
-  # Temporary
-  if(!old_algorithm_1L_lgl){
-    drop_missing_1L_lgl <- X_MimicConfiguration@drop_missing_1L_lgl
-    drop_suffix_1L_chr <- X_MimicConfiguration@drop_suffix_1L_chr
-    extra_draws_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
-    horizon_dtm <- X_MimicConfiguration@horizon_dtm
-    initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls) # Note modification -> update X_MimicConfiguration
-    inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls")
-    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
-    iterations_ls <- X_MimicConfiguration@iterations_ls
-    modifiable_chr <- X_MimicConfiguration@modifiable_chr
-    seed_1L_int <- X_MimicConfiguration@seed_1L_int
-    sensitivities_ls <- X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
-    start_dtm <- X_MimicConfiguration@start_dtm
-    synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
-    tfmn_ls <- X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
-    tx_duration_dtm <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, target_1L_chr = "Treatment duration")
-    utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr 
-    utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls 
+  ## Legacy
+  ###
+  ### This initial section is to ensure models developed with legacy versions of this code (prior to S4 classes being added to mimic) still work.
+  X_MimicConfiguration <- renew(X_MimicConfiguration, 
+                                env_ls = list(main_ls = list(`Project 2` = predict_project_2_pathway), 
+                                              initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)),
+                                what_1L_chr = c("legacy"))
+  if(identical(names(X_MimicConfiguration@arms_tb), "Arm")){
+    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
+                                      "arms_tb",
+                                      make_arms_tb(X_MimicConfiguration@arms_tb,
+                                                   settings_ls = X_MimicConfiguration@arms_tb$Arm %>% 
+                                                     make_project_2_arms_extras_ls(arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
+                                                                                   arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
+                                                                                   arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
+                                                                                   arms_for_offsets_chr = arms_for_offsets_chr,
+                                                                                   treatment_ls = treatment_ls,
+                                                                                   tx_duration_dtm = tx_duration_dtm)))
   }
   ## Preliminary
   if (is.null(draws_tb)) {
@@ -363,7 +336,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                                          use_trigger_1L_chr = "Z"))
   #### Enter model ####
   ###
+  ### Now includes conditional starting population customisation (adjusting for non-helpseeking and non-IAR parameters)
   X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
+                                    env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
+                                                  arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
+                                                  reset_date_1L_lgl = TRUE), # Will be FALSE when reformed
                                     tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
   # X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb,
   #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "form", what_1L_chr = "population")
@@ -388,11 +365,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #### Customise population [conditionally] ####
   ## Note this will split model population to helpseekers and nonhelpseekers, with distinct model pathways for each
   ###
-  X_MimicPopulation <- renew(X_MimicPopulation, 
-                             env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
-                                           arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
-                                           reset_date_1L_lgl = TRUE),
-                             type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration)
+  # X_MimicPopulation <- renew(X_MimicPopulation, 
+  #                            env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
+  #                                          arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
+  #                                          reset_date_1L_lgl = TRUE),
+  #                            type_1L_chr = "customise", X_MimicConfiguration = X_MimicConfiguration)
   # X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation",
   #                                   renew(X_MimicConfiguration@x_MimicPopulation,
   #                                         env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"),
@@ -583,6 +560,29 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   #### Trigger Model Exit events (includes model wrap up) ###
   ### 
+  # Temporary
+  # if(!old_algorithm_1L_lgl){
+  drop_missing_1L_lgl <- X_MimicConfiguration@drop_missing_1L_lgl
+  drop_suffix_1L_chr <- X_MimicConfiguration@drop_suffix_1L_chr
+  extra_draws_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
+  horizon_dtm <- X_MimicConfiguration@horizon_dtm
+  initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls) # Note modification -> update X_MimicConfiguration
+  inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls")
+  iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
+  iterations_ls <- X_MimicConfiguration@iterations_ls
+  modifiable_chr <- X_MimicConfiguration@modifiable_chr
+  seed_1L_int <- X_MimicConfiguration@seed_1L_int
+  sensitivities_ls <- X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
+  start_dtm <- X_MimicConfiguration@start_dtm
+  synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
+  tfmn_ls <- X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
+  tx_duration_dtm <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, target_1L_chr = "Treatment duration")
+  utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr 
+  utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls 
+  # }
+  
+  
+  
   population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad,
                                                                arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
                                                                arms_for_offsets_chr = arms_for_offsets_chr,

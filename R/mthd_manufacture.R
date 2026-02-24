@@ -72,8 +72,8 @@ methods::setMethod("manufacture", "MimicConfiguration", manufacture_MimicConfigu
   if(what_1L_chr == "args_all"){
     object_xx <- list(
       arm_1L_chr = arm_1L_chr,
-      arms_chr = x@arms_tb$Arm,
       batch_1L_int = batch_1L_int,
+      draws_tb = draws_tb,
       X_MimicConfiguration = x) %>%
       append(extras_ls) 
   }

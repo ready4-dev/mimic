@@ -17,15 +17,11 @@ renew_MimicActive <- function(x,
                    x@x_Ready4useDyad@ds_tb %>% dplyr::mutate(NextEvent = NA_character_, ScheduledFor = lubridate::NA_Date_))
   }
   if(type_1L_chr == "customise"){
-  x <- renewSlot(x, "x_Ready4useDyad",
-                 rlang::exec(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn, x@x_Ready4useDyad,!!!env_ls)
-                 # add_non_helpseekers(x@x_Ready4useDyad,
-                 #                     arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"))
-                 ) 
-  # x <- renewSlot(x, "x_Ready4useDyad",
-  #                add_non_iar(x@x_Ready4useDyad,
-  #                            arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
-  #                            ))
+    if(!is.null(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn)){
+      x <- renewSlot(x, "x_Ready4useDyad",
+                     rlang::exec(X_MimicConfiguration@x_MimicAlgorithms@processing_ls$customise_fn, x@x_Ready4useDyad,!!!env_ls)
+      ) 
+    }
   }
   if(type_1L_chr == "schedule"){
     x <- renewSlot(x, "x_Ready4useDyad", add_time_to_event(x@x_Ready4useDyad, 
@@ -41,75 +37,76 @@ renew_MimicActive <- function(x,
                  invalid_fn = X_MimicEvent@x_MimicSchedule@functions_ls$invalid_fn)
     x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_current_event(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_next_date(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- update_next_event(x@x_Ready4useDyad)
   }
   return(x)
 }
 renew_MimicConfiguration <- function(x,
-                                     arm_1L_chr = character(0),
-                                     batch_1L_int = integer(0),
-                                     draws_tb = NULL,
+                                     # arm_1L_chr = character(0),
+                                     # batch_1L_int = integer(0),
+                                     # draws_tb = NULL,
                                      env_ls = list(),
                                      # iterations_int = integer(0), # Necessary? draws_tb$Iteration
-                                     tx_prefix_1L_chr = character(0),
-                                     type_1L_chr = c("event","form", "schedule", "switchY", "switchZ","trigger"),
-                                     what_1L_chr = c("population"),
-                                     X_MimicEvent = MimicEvent(), # remove argument once incorporated into MimicConfiguration
+                                     # tx_prefix_1L_chr = character(0),
+                                     # type_1L_chr = c("event","form", "schedule", "switchY", "switchZ","trigger"),
+                                     what_1L_chr = c("legacy"),#,"population"
+                                     # X_MimicEvent = MimicEvent(), # remove argument once incorporated into MimicConfiguration
                                      ...){
-  type_1L_chr <- match.arg(type_1L_chr)
+  # type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "population"){
-    if(type_1L_chr == "form"){
-      population_ls <- manufacture(x, arm_1L_chr = arm_1L_chr,
-                                   batch_1L_int = batch_1L_int,
-                                   draws_tb = draws_tb,
-                                   tx_prefix_1L_chr = tx_prefix_1L_chr,
-                                   type_1L_chr = "entry",
-                                   what_1L_chr = c("population_ls"))
-      # population_ls <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
-      #                                        default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
-      #                                        derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
-      #                                        horizon_dtm = x@horizon_dtm,
-      #                                        modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr),
-      #                                        start_dtm = x@start_dtm,  
-      #                                        tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
-      #                                        tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, empty_xx = NULL, target_1L_chr = "Treatment duration"),
-      #                                        arm_1L_chr = arm_1L_chr, 
-      #                                        default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls),
-      #                                        draws_tb = draws_tb,
-      #                                        iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
-      #                                        tidy_cols_1L_lgl = T,
-      #                                        tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
-      #   update_population_ls(population_ls = NULL,  type_1L_chr = type_1L_chr)
-      x <- renewSlot(x,"x_MimicPopulation",
-                     renew(x@x_MimicPopulation, population_ls = population_ls, type_1L_chr = "transform"))
+  if(what_1L_chr == "legacy"){
+    if(is.na(x@modifiable_chr[1])){
+      x <- renewSlot(x, "modifiable_chr", character(0))
     }
-    if(type_1L_chr %in% c("schedule", "trigger")){
-      x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
-                                                  batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                                                  type_1L_chr = type_1L_chr, 
-                                                  X_MimicConfiguration = x, 
-                                                  X_MimicEvent = X_MimicEvent))
+    if(identical(x@x_MimicAlgorithms@main_ls, list("UPDATE"))){
+      x <- renewSlot(x, "x_MimicAlgorithms", renewSlot(x@x_MimicAlgorithms, "main_ls", env_ls$main_ls))
     }
-    if(type_1L_chr %in% c("switchY", "switchZ")){
-      x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
-                                                  batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                                                  type_1L_chr = "switch", 
-                                                  X_MimicConfiguration = x, 
-                                                  X_MimicEvent = X_MimicEvent,
-                                                  what_1L_chr = stringr::str_sub(type_1L_chr,start = -1L)))
-    }
-    if(type_1L_chr == "event"){
-      x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                 type_1L_chr = "schedule", 
-                 X_MimicConfiguration = x, 
-                 X_MimicEvent = X_MimicEvent)
-      x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
-                 type_1L_chr = "trigger", 
-                 X_MimicConfiguration = x, 
-                 X_MimicEvent = X_MimicEvent)
-
+    if(identical(x@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
+      new_ls <- make_simulation_fns_ls("processing", initialise_ls = env_ls$initialise_ls)
+      new_ls <- new_ls$initialise_ls
+      new_ls <- x@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
+      x <- renewSlot(x,"x_MimicAlgorithms@processing_ls", new_ls)
     }
   }
+  # if(what_1L_chr == "population"){
+  #   if(type_1L_chr == "form"){
+  #     population_ls <- manufacture(x, arm_1L_chr = arm_1L_chr,
+  #                                  batch_1L_int = batch_1L_int,
+  #                                  draws_tb = draws_tb,
+  #                                  tx_prefix_1L_chr = tx_prefix_1L_chr,
+  #                                  type_1L_chr = "entry",
+  #                                  what_1L_chr = c("population_ls"))
+  #     x <- renewSlot(x,"x_MimicPopulation",
+  #                    renew(x@x_MimicPopulation, population_ls = population_ls, type_1L_chr = "transform"))
+  #   }
+  #   if(type_1L_chr %in% c("schedule", "trigger")){
+  #     x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
+  #                                                 batch_1L_int = batch_1L_int, env_ls = env_ls, 
+  #                                                 type_1L_chr = type_1L_chr, 
+  #                                                 X_MimicConfiguration = x, 
+  #                                                 X_MimicEvent = X_MimicEvent))
+  #   }
+  #   if(type_1L_chr %in% c("switchY", "switchZ")){
+  #     x <- renewSlot(x,"x_MimicPopulation", renew(x@x_MimicPopulation,
+  #                                                 batch_1L_int = batch_1L_int, env_ls = env_ls, 
+  #                                                 type_1L_chr = "switch", 
+  #                                                 X_MimicConfiguration = x, 
+  #                                                 X_MimicEvent = X_MimicEvent,
+  #                                                 what_1L_chr = stringr::str_sub(type_1L_chr,start = -1L)))
+  #   }
+  #   if(type_1L_chr == "event"){
+  #     x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
+  #                type_1L_chr = "schedule", 
+  #                X_MimicConfiguration = x, 
+  #                X_MimicEvent = X_MimicEvent)
+  #     x <- renew(x,batch_1L_int = batch_1L_int, env_ls = env_ls, 
+  #                type_1L_chr = "trigger", 
+  #                X_MimicConfiguration = x, 
+  #                X_MimicEvent = X_MimicEvent)
+  # 
+  #   }
+  # }
   return(x)
 }
 renew_MimicPopulation <- function(x,
