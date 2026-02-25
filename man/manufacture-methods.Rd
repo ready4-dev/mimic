@@ -5,6 +5,8 @@
 \alias{manufacture,MimicArguments-method}
 \alias{manufacture-MimicConfiguration}
 \alias{manufacture,MimicConfiguration-method}
+\alias{manufacture-MimicEligible}
+\alias{manufacture,MimicEligible-method}
 \alias{manufacture-MimicRepos}
 \alias{manufacture,MimicRepos-method}
 \alias{manufacture-MimicPopulation}
@@ -33,6 +35,13 @@
   tx_prefix_1L_chr = character(0),
   type_1L_chr = c("current", "entry"),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
+)
+
+\S4method{manufacture}{MimicEligible}(
+  x,
+  type_1L_chr = c("filter", "reset"),
+  what_1L_chr = "args_ls",
+  ...
 )
 
 \S4method{manufacture}{MimicRepos}(
@@ -104,11 +113,15 @@ Object (an output object of multiple potential types)
 Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
+
+Object (an output object of multiple potential types)
 }
 \description{
 manufacture method applied to MimicArguments
 
 manufacture method applied to MimicConfiguration
+
+manufacture method applied to MimicEligible
 
 manufacture method applied to MimicRepos
 

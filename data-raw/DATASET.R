@@ -213,15 +213,26 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 class_desc_chr = "Model event logic data.",
                                                                 parent_class_chr = "Ready4Module",
                                                                 inc_clss_ls = list("MimicArguments") %>% list()),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
+                                                                name_stub_chr = "Eligible",
+                                                                slots_ls = list("condition_1L_chr","functions_ls") %>% list(), 
+                                                                pt_ls = list("character","list") %>% list(),
+                                                                vals_ls = list(list(
+                                                                  condition_1L_chr = "character(0)",
+                                                                  functions_ls = "make_ineligibility_fns_ls()")),
+                                                                class_desc_chr = "Model event eligibility logic data.",
+                                                                parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Event",
-                                                                slots_ls = list("x_MimicSchedule",
-                                                                                "y_MimicTrigger") %>% list(), 
-                                                                pt_ls = list("MimicSchedule", 
+                                                                slots_ls = list("x_MimicEligible",
+                                                                                "x_MimicSchedule",
+                                                                                "x_MimicTrigger") %>% list(), 
+                                                                pt_ls = list("MimicEligible",
+                                                                             "MimicSchedule", 
                                                                              "MimicTrigger") %>% list(),
                                                                 class_desc_chr = "Model event scheduling and event logic data.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicSchedule", "MimicTrigger") %>% list())
+                                                                inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list())
                    
                    
   )

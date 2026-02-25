@@ -334,6 +334,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                                          outcome_var_1L_chr = "K10",
                                                                          use_schedule_1L_chr = "Y", 
                                                                          use_trigger_1L_chr = "Z"))
+  ##
+  events_ls$EpisodeOfCareSequence@x_MimicEligible@condition_1L_chr <- "Episode >1 | NonHelpSeeking"
+  ##
   #### Enter model ####
   ###
   ### Now includes conditional starting population customisation (adjusting for non-helpseeking and non-IAR parameters)
@@ -385,7 +388,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # population_ls <- update_population_ls(population_ls)
   ##
   ###
-  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
+                                             type_1L_chr = "filter", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
                              env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
                              tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
   # X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
@@ -400,7 +405,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
   #                               X_MimicEvent = events_ls$EpisodeOfCareSequence)
   ### Schedule and trigger Representation (new episode of care) sequence [For treated subgroup]
-  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
                                              env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
                                              tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
   ##
@@ -411,9 +416,9 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
   #                               X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
   ### Schedule and trigger Regression to Mean event [For untreated subgroup]
-  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
                                              type_1L_chr = "switch", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean, what_1L_chr = "Y")
-  X_MimicPopulation <- renew_MimicPopulation(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
                                              env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr),
                                              tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
   # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 

@@ -11,9 +11,11 @@ Model event scheduling and event logic data.
 \section{Slots}{
 
 \describe{
+\item{\code{MimicEligible}}{(an instance of the MimicEligible class)}
+
 \item{\code{x_MimicSchedule}}{(an instance of the MimicSchedule class)}
 
-\item{\code{y_MimicTrigger}}{(an instance of the MimicTrigger class)}
+\item{\code{x_MimicTrigger}}{(an instance of the MimicTrigger class)}
 
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}

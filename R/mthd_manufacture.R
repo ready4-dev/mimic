@@ -121,6 +121,37 @@ methods::setMethod("manufacture", "MimicConfiguration", manufacture_MimicConfigu
   }
   return(object_xx)
 })
+
+#' 
+#' Manufacture a new object
+#' @name manufacture-MimicEligible
+#' @description manufacture method applied to MimicEligible
+#' @param x An object of class MimicEligible
+#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset"
+#' @param what_1L_chr What (a character vector of length one), Default: c("args_ls")
+#' @param ... Additional arguments
+#' @return Object (an output object of multiple potential types)
+#' @rdname manufacture-methods
+#' @aliases manufacture,MimicEligible-method
+#' @export 
+#' @importFrom purrr map pluck
+#' @importFrom ready4 manufacture
+methods::setMethod("manufacture", "MimicEligible",function(x,
+         type_1L_chr = c("filter", "reset"),
+         what_1L_chr = "args_ls",
+         ...){
+  type_1L_chr <- match.arg(type_1L_chr)
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "args_ls"){
+    object_xx <- list(condition_1L_chr = x@condition_1L_chr,
+                      post_fn = x@functions_ls$post_fn,
+                      pre_fn = x@functions_ls$pre_fn,
+                      type_1L_chr = type_1L_chr)
+  }
+  return(object_xx)
+})
+
+
 #' 
 #' Manufacture a new object
 #' @name manufacture-MimicRepos

@@ -22,7 +22,7 @@
 #' @exportClass MimicConfiguration
 MimicConfiguration <- methods::setClass("MimicConfiguration",
 contains = "Ready4Module",
-slots = c(arms_tb = "tbl_df",drop_missing_1L_lgl = "logical",drop_suffix_1L_chr = "character",horizon_dtm = "Period",iterations_ls = "list",modifiable_chr = "character",prior_batches_1L_int = "integer",seed_1L_int = "integer",start_dtm = "Date",x_MimicAlgorithms = "MimicAlgorithms",x_MimicInputs = "MimicInputs",x_MimicPopulation = "MimicPopulation",dissemination_1L_chr = "character"),
+slots = c(arms_tb = "tbl_df",drop_missing_1L_lgl = "logical",drop_suffix_1L_chr = "character",horizon_dtm = "Period",iterations_ls = "list",modifiable_chr = "character",prior_batches_1L_int = "integer",seed_1L_int = "integer",start_dtm = "Date",x_MimicAlgorithms = "MimicAlgorithms",x_MimicInputs = "MimicInputs",dissemination_1L_chr = "character"),
 prototype =  list(arms_tb = make_arms_tb(),drop_missing_1L_lgl = FALSE,drop_suffix_1L_chr = character(0),horizon_dtm = lubridate::years(1),iterations_ls = make_batches(5, of_1L_int = 20),modifiable_chr = character(0),prior_batches_1L_int = 0L,seed_1L_int = 2001L,start_dtm = Sys.Date(),x_MimicAlgorithms = MimicAlgorithms(),x_MimicInputs = MimicInputs()))
 
 

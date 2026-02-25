@@ -80,6 +80,7 @@ Collate:
     'C4_MimicArguments.R'
     'C4_MimicInputs.R'
     'C4_MimicConfiguration.R'
+    'C4_MimicEligible.R'
     'C4_MimicTrigger.R'
     'C4_MimicSchedule.R'
     'C4_MimicEvent.R'

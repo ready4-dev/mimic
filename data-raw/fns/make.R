@@ -601,6 +601,12 @@ make_k10_severity_cuts <- function(mild_int = c(10,15), moderate_int = c(16,21),
   severity_cuts_ls <- list(Low = mild_int, Moderate = moderate_int, High = high_int, VeryHigh = very_high_int)
   return(severity_cuts_ls)
 }
+make_ineligibility_fns_ls <- function(post_fn = identity,
+                                      pre_fn = identity){
+  ineligibility_ls <- list(post_fn = identity,
+                           pre_fn = identity)
+  return(ineligibility_ls)
+}
 make_mapping_params_tb <- function(){
   mapping_params_tb <- tibble::tribble(~Parameter, ~Mean, ~SE, ~SD, ~ Source,
                                        "EQ5DBetaAge", -0.01382, 0.00202, NA_real_, "doi:10.1192/bjo.2018.21",
@@ -1644,18 +1650,18 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr, vars_chr = vars_chr)
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(never_1L_int = "never_1L_int")
   ##
-  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
-  X_MimicEvent@y_MimicTrigger@event_1L_chr <- event_nm_1L_chr
-  X_MimicEvent@y_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
-  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_episode
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, episode_end_1L_chr = end_mdl_1L_chr, 
+  X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_episode
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, episode_end_1L_chr = end_mdl_1L_chr, 
                                                                                         k10_1L_chr = change_first_mdl, k10_relapse_1L_chr = change_relapse_1L_chr, 
                                                                                         k10_var_1L_chr = outcome_var_1L_chr,
                                                                                         workers_chr = workers_chr, ## NEED TO BE MOVED
                                                                                         medical_chr = workers_medical_chr)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
 make_project_2_initialise_ls <- function(derive_ls = list()){
@@ -2000,15 +2006,15 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
   X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
   ##
-  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
-  X_MimicEvent@y_MimicTrigger@event_1L_chr <- event_nm_1L_chr
-  X_MimicEvent@y_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
-  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- add_regression_to_mean
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@y_MimicTrigger@functions_ls$action_fn)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws,
+  X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_regression_to_mean
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws,
                                                                                         k10_var_1L_chr = outcome_var_1L_chr)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
 make_project_2_theme_fn <- function(output_1L_chr = c("Word", "PDF", "HTML")){
@@ -2571,14 +2577,14 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
   X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
   ##
-  X_MimicEvent@y_MimicTrigger@assert_1L_lgl <- FALSE
-  X_MimicEvent@y_MimicTrigger@event_1L_chr <- event_nm_1L_chr
-  X_MimicEvent@y_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
-  X_MimicEvent@y_MimicTrigger@functions_ls$action_fn <- action_fn
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn)
-  X_MimicEvent@y_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- action_fn
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
 make_project_activity_ds <- function(raw_data_ls,

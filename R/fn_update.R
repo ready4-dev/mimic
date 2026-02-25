@@ -464,17 +464,17 @@ update_population_ls <- function(population_ls = NULL,
       population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Y_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #is.na(ScheduledFor) #CurrentDate
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)) | !InModel)  %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
     if(use_1L_chr == "Z"){
       population_ls$Z_Ready4useDyad <- renewSlot(population_ls$Z_Ready4useDyad, "ds_tb", 
                                                  dplyr::bind_rows(population_ls$Z_Ready4useDyad@ds_tb %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x))),
-                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)))  %>% #CurrentDate
+                                                                  population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(split_test_fn(!!rlang::sym(split_var_1L_chr)) | !InModel)  %>% 
                                                                     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~as.numeric(.x)))))
     }
-    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!split_test_fn(!!rlang::sym(split_var_1L_chr)))) #CurrentDate
+    population_ls$X_Ready4useDyad <- renewSlot(population_ls$X_Ready4useDyad, "ds_tb", population_ls$X_Ready4useDyad@ds_tb %>% dplyr::filter(!split_test_fn(!!rlang::sym(split_var_1L_chr)))) 
   }
   if(type_1L_chr == "switch"){
     names_chr <- names(population_ls)

@@ -13,7 +13,7 @@
   x,
   batch_1L_int = integer(0),
   env_ls = list(),
-  type_1L_chr = c("trigger", "customise", "schedule"),
+  type_1L_chr = c("trigger", "customise", "filter", "schedule"),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),
   ...
@@ -24,7 +24,8 @@
   batch_1L_int = integer(0),
   env_ls = list(),
   population_ls = NULL,
-  type_1L_chr = c("trigger", "customise", "event", "schedule", "switch", "transform"),
+  type_1L_chr = c("trigger", "customise", "filter", "event", "reset", "schedule",
+    "switch", "transform"),
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),

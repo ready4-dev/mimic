@@ -630,6 +630,7 @@ add_draws_from_pool <- function(draws_tb,
   }
   return(draws_tb)
 }
+
 add_enter_model_event <- function (X_Ready4useDyad, arm_1L_chr, draws_tb, horizon_dtm = lubridate::years(1), 
                                    default_args_ls = list(),
                                    default_fn = NULL,
@@ -903,65 +904,7 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
   }
   return(X_Ready4useDyad)
 }
-add_iar_params <- function(params_tb, 
-                           comparator_int, #= c(1,4)
-                           model_data_ls,
-                           processed_ls,
-                           raw_mds_data_ls,
-                           test_1L_chr, # = "is_mmhc_or_related",
-                           comparator_1L_chr = "Comparator",
-                           comparator_filter_fn = identity,
-                           cost_1L_dbl = 0,
-                           intervention_1L_chr = "Intervention", #"MMHC"
-                           intervention_filter_fn = identity
-                           # types_chr = c(intervention_1L_chr, comparator_1L_chr), # = c("MMHC", "Comparator"),
-                           # what_1L_chr = "InHouseIAR"
-){
-  types_chr <- c(intervention_1L_chr, comparator_1L_chr)
-  filters_ls <- list(intervention_filter_fn,comparator_filter_fn) %>% stats::setNames(c("Intervention", "Comparator"))
-  iar_ls <- 1:length(types_chr) %>% purrr::map(~{
-    filter_fn <- filters_ls[[.x]]
-    model_data_ls$imputed_ls$Z_Ready4useDyad@ds_tb %>% 
-      dplyr::filter(InterventionGroup==types_chr[.x]) %>% filter_fn() %>%
-      dplyr::pull(HasIAR) %>% as.numeric()
-  }) %>% stats::setNames(names(filters_ls))
-  
-  # mean(iar_dbl)
-  # 
-  params_tb <- types_chr %>%
-    purrr::reduce(.init = params_tb,
-                  ~ {
-                    parameters_dbl <- make_iar_params(processed_ls = processed_ls,
-                                                      raw_mds_data_ls = raw_mds_data_ls,
-                                                      test_1L_chr = test_1L_chr,
-                                                      comparator_1L_chr = comparator_1L_chr,
-                                                      comparator_int = comparator_int,
-                                                      intervention_1L_chr = intervention_1L_chr, 
-                                                      type_1L_chr = .y,
-                                                      what_1L_chr = "InHouseIAR")
-                    .x %>% tibble::add_case(Parameter = paste0("InHouseIAR", c("Intervention","Comparator")[types_chr==.y]),
-                                            Mean = parameters_dbl[1],
-                                            SE = parameters_dbl[2],
-                                            Source = "make_iar_params")
-                  }) %>%
-    tibble::add_case(Parameter = "ExternalIARCost", 
-                     Mean = cost_1L_dbl,
-                     SE = 0, 
-                     SD = NA_real_, 
-                     Source = "add_iar_params") 
-  params_tb <- 1:length(iar_ls) %>%
-    purrr::reduce(.init = params_tb,
-                  ~{
-                    .x %>% 
-                      tibble::add_case(Parameter = paste0("HasIAR",names(iar_ls)[.y]),#"Comparator"),
-                                       Mean = mean(iar_ls[[.y]]),
-                                       SE = sd(iar_ls[[.y]])/sqrt(length(iar_ls[[.y]])), 
-                                       SD = NA_real_, 
-                                       Source = "add_iar_params")
-                  }) %>% dplyr::arrange(Parameter)
-  
-  return(params_tb)
-}
+
 add_eq5d_from_draws <- function(X_Ready4useDyad,
                                 correspondences_r3 = ready4show::ready4show_correspondences(),
                                 prefix_1L_chr = "ParamEQ5DBeta",
@@ -1025,6 +968,66 @@ add_eq5d_from_k10 <- function(data_xx,
                                          X_Ready4useDyad = X_Ready4useDyad)
   return(data_xx)
 }
+add_iar_params <- function(params_tb, 
+                           comparator_int, #= c(1,4)
+                           model_data_ls,
+                           processed_ls,
+                           raw_mds_data_ls,
+                           test_1L_chr, # = "is_mmhc_or_related",
+                           comparator_1L_chr = "Comparator",
+                           comparator_filter_fn = identity,
+                           cost_1L_dbl = 0,
+                           intervention_1L_chr = "Intervention", #"MMHC"
+                           intervention_filter_fn = identity
+                           # types_chr = c(intervention_1L_chr, comparator_1L_chr), # = c("MMHC", "Comparator"),
+                           # what_1L_chr = "InHouseIAR"
+){
+  types_chr <- c(intervention_1L_chr, comparator_1L_chr)
+  filters_ls <- list(intervention_filter_fn,comparator_filter_fn) %>% stats::setNames(c("Intervention", "Comparator"))
+  iar_ls <- 1:length(types_chr) %>% purrr::map(~{
+    filter_fn <- filters_ls[[.x]]
+    model_data_ls$imputed_ls$Z_Ready4useDyad@ds_tb %>% 
+      dplyr::filter(InterventionGroup==types_chr[.x]) %>% filter_fn() %>%
+      dplyr::pull(HasIAR) %>% as.numeric()
+  }) %>% stats::setNames(names(filters_ls))
+  
+  # mean(iar_dbl)
+  # 
+  params_tb <- types_chr %>%
+    purrr::reduce(.init = params_tb,
+                  ~ {
+                    parameters_dbl <- make_iar_params(processed_ls = processed_ls,
+                                                      raw_mds_data_ls = raw_mds_data_ls,
+                                                      test_1L_chr = test_1L_chr,
+                                                      comparator_1L_chr = comparator_1L_chr,
+                                                      comparator_int = comparator_int,
+                                                      intervention_1L_chr = intervention_1L_chr, 
+                                                      type_1L_chr = .y,
+                                                      what_1L_chr = "InHouseIAR")
+                    .x %>% tibble::add_case(Parameter = paste0("InHouseIAR", c("Intervention","Comparator")[types_chr==.y]),
+                                            Mean = parameters_dbl[1],
+                                            SE = parameters_dbl[2],
+                                            Source = "make_iar_params")
+                  }) %>%
+    tibble::add_case(Parameter = "ExternalIARCost", 
+                     Mean = cost_1L_dbl,
+                     SE = 0, 
+                     SD = NA_real_, 
+                     Source = "add_iar_params") 
+  params_tb <- 1:length(iar_ls) %>%
+    purrr::reduce(.init = params_tb,
+                  ~{
+                    .x %>% 
+                      tibble::add_case(Parameter = paste0("HasIAR",names(iar_ls)[.y]),#"Comparator"),
+                                       Mean = mean(iar_ls[[.y]]),
+                                       SE = sd(iar_ls[[.y]])/sqrt(length(iar_ls[[.y]])), 
+                                       SD = NA_real_, 
+                                       Source = "add_iar_params")
+                  }) %>% dplyr::arrange(Parameter)
+  
+  return(params_tb)
+}
+
 add_icer <- function(data_tb, 
                      cost_1L_chr = "Cost",
                      effect_1L_chr = "QALYs",
@@ -1111,6 +1114,34 @@ add_imputed_data <-function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready
     Z_Ready4useDyad <- serious::add_cumulatives(Z_Ready4useDyad, metrics_chr = cumulatives_chr %>% stringr::str_remove("Cumulative"), group_by_1L_chr = "UID")
   }
   return(Z_Ready4useDyad)
+}
+add_ineligible <- function(X_Ready4useDyad,
+                           condition_1L_chr = character(0),
+                           post_fn = identity,
+                           pre_fn = identity,
+                           type_1L_chr = c("filter", "reset")){
+  type_1L_chr <- match.arg(type_1L_chr)
+  X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% pre_fn)
+  if(type_1L_chr == "filter"){
+    if(!identical(condition_1L_chr, character(0))){
+      X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",condition_1L_chr,")"))) %>%
+                                      dplyr::mutate(InModel = dplyr::case_when(InModel & TEMPORYINELIGIBILITYTEST ~ NA,
+                                                                               T ~ InModel)) %>%
+                                      dplyr::select(-TEMPORYINELIGIBILITYTEST))
+    }
+  }
+  if(type_1L_chr == "reset"){
+    if(!identical(condition_1L_chr, character(0))){
+      X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb",
+                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",condition_1L_chr,")"))) %>%
+                                      dplyr::mutate(InModel = dplyr::case_when(is.na(InModel) & TEMPORYINELIGIBILITYTEST ~ TRUE,
+                                                                               T ~ InModel)) %>%
+                                      dplyr::select(-TEMPORYINELIGIBILITYTEST))
+    }
+    X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% post_fn)
+  }
+  return(X_Ready4useDyad)
 }
 add_iteration_values_set <- function(X_Ready4useDyad,
                                      value_with_fn,
