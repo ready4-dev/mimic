@@ -1627,7 +1627,9 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
                                             outcome_var_1L_chr = "K10",
                                             change_first_mdl = "K10_mdl", 
                                             change_relapse_1L_chr = "K10Relapse_mdl",
+                                            ineligible_1L_chr = character(0),
                                             end_mdl_1L_chr = "EpisodeEnd_mdl",
+                                            functions_ls = make_ineligibility_fns_ls(),
                                             # never_1L_int = 366,
                                             start_mdl_1L_chr = "EpisodeStart_mdl", #Representation_mdl
                                             type_schedule_1L_chr = c("first", "repeat"),
@@ -1639,6 +1641,9 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
                                             workers_medical_chr = make_worker_types("medical")){
   type_schedule_1L_chr <- match.arg(type_schedule_1L_chr)
   X_MimicEvent <- MimicEvent()
+  ##
+  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
@@ -1997,10 +2002,15 @@ make_project_2_outcomes_ls <- function(){
   return(outcomes_ls)
 }
 make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMean", 
+                                              functions_ls = make_ineligibility_fns_ls(),
+                                              ineligible_1L_chr = character(0),
                                               outcome_var_1L_chr = "K10",
                                               use_schedule_1L_chr = "Y", 
                                               use_trigger_1L_chr = "Z"){
   X_MimicEvent <- MimicEvent()
+  ##
+  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
@@ -2017,33 +2027,7 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
-make_project_2_theme_fn <- function(output_1L_chr = c("Word", "PDF", "HTML")){
-  output_1L_chr <- match.arg(output_1L_chr)
-  if(output_1L_chr=="Word"){
-    plot_fn <- function(plot_plt,
-                        size_main_1L_int = 9,
-                        size_title_1L_int = 10){
-      plot_plt + ggplot2::theme(
-        # text = ggplot2::element_text(family = font_1L_chr),
-        axis.title = ggplot2::element_text(size = size_title_1L_int, family = "Calibri"),
-        axis.text.x.bottom = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"),
-        axis.text.y.left = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"),
-        axis.text = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"))
-    }
-  }else{
-    plot_fn <- function(plot_plt,
-                        size_main_1L_int = 9,
-                        size_title_1L_int = 10){ 
-      plot_plt + ggplot2::theme(
-        # text = ggplot2::element_text(family = font_1L_chr),
-        axis.title = ggplot2::element_text(size = size_title_1L_int),
-        axis.text.x.bottom = ggplot2::element_text(size = size_main_1L_int),
-        axis.text.y.left = ggplot2::element_text(size = size_main_1L_int),
-        axis.text = ggplot2::element_text(size = size_main_1L_int))
-    }
-  }
-  return(plot_fn)
-}
+
 make_project_2_regressions_ls <- function(){
   regressions_ls <- list(EpisodeStart_ls = list(), 
                          EpisodeEnd_ls = list(), 
@@ -2348,6 +2332,33 @@ make_project_2_results <- function (X_Ready4useDyad,
                          size_1L_int = X_Ready4useDyad@ds_tb$UID %>% unique() %>% length())
   return(sim_results_ls)
 }
+make_project_2_theme_fn <- function(output_1L_chr = c("Word", "PDF", "HTML")){
+  output_1L_chr <- match.arg(output_1L_chr)
+  if(output_1L_chr=="Word"){
+    plot_fn <- function(plot_plt,
+                        size_main_1L_int = 9,
+                        size_title_1L_int = 10){
+      plot_plt + ggplot2::theme(
+        # text = ggplot2::element_text(family = font_1L_chr),
+        axis.title = ggplot2::element_text(size = size_title_1L_int, family = "Calibri"),
+        axis.text.x.bottom = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"),
+        axis.text.y.left = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"),
+        axis.text = ggplot2::element_text(size = size_main_1L_int, family = "Calibri"))
+    }
+  }else{
+    plot_fn <- function(plot_plt,
+                        size_main_1L_int = 9,
+                        size_title_1L_int = 10){ 
+      plot_plt + ggplot2::theme(
+        # text = ggplot2::element_text(family = font_1L_chr),
+        axis.title = ggplot2::element_text(size = size_title_1L_int),
+        axis.text.x.bottom = ggplot2::element_text(size = size_main_1L_int),
+        axis.text.y.left = ggplot2::element_text(size = size_main_1L_int),
+        axis.text = ggplot2::element_text(size = size_main_1L_int))
+    }
+  }
+  return(plot_fn)
+}
 make_project_2_tfmn_ls <- function(type_1L_chr = "outcome"){
   tfmn_ls <- 1:6 %>% purrr::map(~as.numeric) %>% 
     stats::setNames(make_project_2_vars(type_1L_chr))
@@ -2569,9 +2580,14 @@ make_project_2_synthetic_pop <- function(model_data_ls,
 make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
                                               action_fn = add_regression_to_mean,
                                               draws_fn = add_project_2_k10_draws,
+                                              ineligible_1L_chr = character(0),
+                                              functions_ls = make_ineligibility_fns_ls(),
                                               use_schedule_1L_chr = "Y", # "Z"
                                               use_trigger_1L_chr = "Z"){
   X_MimicEvent <- MimicEvent()
+  ##
+  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr 
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date

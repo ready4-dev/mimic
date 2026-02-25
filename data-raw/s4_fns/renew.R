@@ -88,16 +88,16 @@ renew_MimicPopulation <- function(x,
     x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
   }
   if(type_1L_chr == "event"){
-    x <- renew(x,
-               batch_1L_int = batch_1L_int, env_ls = env_ls, 
-               type_1L_chr = "schedule", 
-               X_MimicConfiguration = X_MimicConfiguration, 
-               X_MimicEvent = X_MimicEvent)
-    x <- renew(x,
-               batch_1L_int = batch_1L_int, env_ls = env_ls, 
-               type_1L_chr = "trigger", 
-               X_MimicConfiguration = X_MimicConfiguration, 
-               X_MimicEvent = X_MimicEvent)
+    x <- renew(x, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+               type_1L_chr = "filter", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent)
+    x <- renew(x, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+               type_1L_chr = "schedule", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent)
+    x <- renew(x, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+               type_1L_chr = "trigger", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent)
+    x <- renew(x, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+               type_1L_chr = "reset", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent, what_1L_chr = "Y")
+    x <- renew(x, batch_1L_int = batch_1L_int, env_ls = env_ls, 
+               type_1L_chr = "reset", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent, what_1L_chr = "Z")
   }
   if(type_1L_chr %in% c("filter", "schedule", "trigger")){
     if(nrow(x@x_MimicActive@x_Ready4useDyad@ds_tb)>0){
@@ -124,7 +124,7 @@ renew_MimicPopulation <- function(x,
       X_Ready4useDyad <- x@z_Ready4useDyad
     }
     if(nrow(X_Ready4useDyad@ds_tb)>0){
-      X_Ready4useDyad <- add_ineligible(X_Ready4useDyad)
+      # X_Ready4useDyad <- add_ineligible(X_Ready4useDyad)
       args_ls <- manufactureSlot(X_MimicEvent, "x_MimicEligible", type_1L_chr = type_1L_chr)
       population_ls <- manufacture(x, what_1L_chr = "population_ls")
       if(what_1L_chr=="Y"){
@@ -137,6 +137,7 @@ renew_MimicPopulation <- function(x,
                                             split_var_1L_chr = "InModel",
                                             type_1L_chr =  "join",
                                             use_1L_chr = what_1L_chr)
+      x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
     }
   }
   if(type_1L_chr == "switch"){

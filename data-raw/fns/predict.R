@@ -300,10 +300,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   #### Create events list
   events_ls <- list(EpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
-                                                                            outcome_var_1L_chr = "K10",
                                                                             change_first_mdl = "K10_mdl", 
                                                                             change_relapse_1L_chr = "K10Relapse_mdl",
                                                                             end_mdl_1L_chr = "EpisodeEnd_mdl",
+                                                                            ineligible_1L_chr = "Episode >0 | NonHelpSeeking",
+                                                                            outcome_var_1L_chr = "K10",
                                                                             start_mdl_1L_chr = "EpisodeStart_mdl", #Representation_mdl
                                                                             type_schedule_1L_chr = c("first"),
                                                                             use_schedule_1L_chr = "Y", # "Z"
@@ -313,10 +314,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                                             workers_chr = make_worker_types(),
                                                                             workers_medical_chr = make_worker_types("medical")),
                     RepeatEpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "RepeatEpisodeOfCareSequence", #"RepeatEpisodeOfCareSequence"
-                                                                                  outcome_var_1L_chr = "K10",
                                                                                   change_first_mdl = "K10_mdl", 
                                                                                   change_relapse_1L_chr = "K10Relapse_mdl",
                                                                                   end_mdl_1L_chr = "EpisodeEnd_mdl",
+                                                                                  ineligible_1L_chr = "Episode >0 | NonHelpSeeking",
+                                                                                  outcome_var_1L_chr = "K10",
                                                                                   start_mdl_1L_chr = "Representation_mdl", #Representation_mdl
                                                                                   type_schedule_1L_chr = c("repeat"),
                                                                                   use_schedule_1L_chr = "Z",
@@ -328,14 +330,15 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                     UpdateUntreatedOutcomes = make_project_2_untreated_sequence(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
                                                                                 action_fn = add_regression_to_mean,
                                                                                 draws_fn = add_project_2_k10_draws,
+                                                                                ineligible_1L_chr = "!NonHelpSeeking", 
                                                                                 use_schedule_1L_chr = "Y", # "Z"
                                                                                 use_trigger_1L_chr = "Z"),
                     RegressionToMean = make_project_2_regression_to_mean(event_nm_1L_chr = "RegressionToMean",
+                                                                         ineligible_1L_chr = "!NonHelpSeeking", # CurrentEvent != "EnterModel"
                                                                          outcome_var_1L_chr = "K10",
                                                                          use_schedule_1L_chr = "Y", 
                                                                          use_trigger_1L_chr = "Z"))
   ##
-  events_ls$EpisodeOfCareSequence@x_MimicEligible@condition_1L_chr <- "Episode >1 | NonHelpSeeking"
   ##
   #### Enter model ####
   ###
@@ -388,8 +391,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   # population_ls <- update_population_ls(population_ls)
   ##
   ###
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                                             type_1L_chr = "filter", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
+  # X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  #                                            type_1L_chr = "filter", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
                              env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
                              tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$EpisodeOfCareSequence)
@@ -585,9 +588,6 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr 
   utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls 
   # }
-  
-  
-  
   population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad,
                                                                arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
                                                                arms_for_offsets_chr = arms_for_offsets_chr,
