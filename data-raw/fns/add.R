@@ -1714,7 +1714,7 @@ add_non_iar <- function(X_Ready4useDyad,
 }
 add_non_helpseekers <- function(X_Ready4useDyad,
                                 arms_for_non_helpseeking_chr = character(0),
-                                reset_date_1L_lgl = TRUE){#
+                                reset_date_1L_lgl = FALSE){#
   if(identical(arms_for_non_helpseeking_chr, character(0))){
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
                                  X_Ready4useDyad@ds_tb %>%

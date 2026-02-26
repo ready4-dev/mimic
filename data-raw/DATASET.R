@@ -136,7 +136,9 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   # Add prefixes_ls
                                                                   "seed_1L_int",
                                                                   "start_dtm",  
+                                                                  "tx_prefix_1L_chr",
                                                                   "x_MimicAlgorithms",
+                                                                  "x_MimicEventsList",
                                                                   "x_MimicInputs") %>% list(), 
                                                                 pt_ls = list(
                                                                   "tbl_df",
@@ -147,8 +149,10 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "character",
                                                                   "integer", 
                                                                   "integer",
-                                                                  "Date",#"POSIXt",      
+                                                                  "Date",#"POSIXt", 
+                                                                  "character",
                                                                   "MimicAlgorithms",
+                                                                  "MimicEventsList",
                                                                   "MimicInputs"
                                                                   ) %>% list(),
                                                                 vals_ls = list(list(
@@ -160,10 +164,11 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   modifiable_chr = "character(0)", # "NA_character_", 
                                                                   prior_batches_1L_int = "0L",
                                                                   seed_1L_int = "2001L",
-                                                                  start_dtm = "Sys.Date()")),
+                                                                  start_dtm = "Sys.Date()",
+                                                                  tx_prefix_1L_chr = "Treatment")),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicAlgorithms","MimicInputs"
+                                                                inc_clss_ls = list("MimicAlgorithms","EventsList","MimicInputs"
                                                                                    ) %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Derivations",
@@ -232,7 +237,17 @@ y <- ready4class::ready4class_constructor() %>%
                                                                              "MimicTrigger") %>% list(),
                                                                 class_desc_chr = "Model event scheduling and event logic data.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list())
+                                                                inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list()),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
+                                                                name_stub_chr = "EventsList",
+                                                                slots_ls = list("events_ls", "last_1L_chr", "main_chr") %>% list(), 
+                                                                pt_ls = list("list","character","character") %>% list(),
+                                                                vals_ls = list(list(
+                                                                  events_ls = "list()",
+                                                                  last_1L_chr = "WrapUp",
+                                                                  main_chr = "character(0)",)),
+                                                                class_desc_chr = "Data on all events included in model.",
+                                                                parent_class_chr = "Ready4Module"),
                    
                    
   )

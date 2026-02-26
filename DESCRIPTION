@@ -84,6 +84,7 @@ Collate:
     'C4_MimicTrigger.R'
     'C4_MimicSchedule.R'
     'C4_MimicEvent.R'
+    'C4_MimicEventsList.R'
     'C4_MimicPopulation.R'
     'C4_MimicRepos.R'
     'fn_add.R'
