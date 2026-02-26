@@ -127,7 +127,8 @@ methods::setMethod("manufacture", "MimicConfiguration", manufacture_MimicConfigu
 #' @name manufacture-MimicEligible
 #' @description manufacture method applied to MimicEligible
 #' @param x An object of class MimicEligible
-#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset"
+#' @param append_ls Append (a list), Default: list()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset")
 #' @param what_1L_chr What (a character vector of length one), Default: c("args_ls")
 #' @param ... Additional arguments
 #' @return Object (an output object of multiple potential types)
@@ -137,9 +138,10 @@ methods::setMethod("manufacture", "MimicConfiguration", manufacture_MimicConfigu
 #' @importFrom purrr map pluck
 #' @importFrom ready4 manufacture
 methods::setMethod("manufacture", "MimicEligible",function(x,
-         type_1L_chr = c("filter", "reset"),
-         what_1L_chr = "args_ls",
-         ...){
+                                                           append_ls = list(),
+                                                           type_1L_chr = c("filter", "reset"),
+                                                           what_1L_chr = "args_ls",
+                                                           ...){
   type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "args_ls"){
@@ -147,6 +149,9 @@ methods::setMethod("manufacture", "MimicEligible",function(x,
                       post_fn = x@functions_ls$post_fn,
                       pre_fn = x@functions_ls$pre_fn,
                       type_1L_chr = type_1L_chr)
+    if(!is.null(names(append_ls))){
+      object_xx <- object_xx %>% purrr::discard_at(names(append_ls)) %>% append(append_ls)
+    }
   }
   return(object_xx)
 })

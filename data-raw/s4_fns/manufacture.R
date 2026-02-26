@@ -119,6 +119,7 @@ manufacture_MimicDerivations <- function(x,
   return(object_xx)
 }
 manufacture_MimicEligible <- function(x,
+                                      append_ls = list(),
                                       type_1L_chr = c("filter", "reset"),
                                       what_1L_chr = "args_ls",
                                       ...){
@@ -129,6 +130,9 @@ manufacture_MimicEligible <- function(x,
                       post_fn = x@functions_ls$post_fn,
                       pre_fn = x@functions_ls$pre_fn,
                       type_1L_chr = type_1L_chr)
+    if(!is.null(names(append_ls))){
+      object_xx <- object_xx %>% purrr::discard_at(names(append_ls)) %>% append(append_ls)
+    }
   }
   return(object_xx)
 }

@@ -906,7 +906,8 @@ update_scheduled_date <- function (X_Ready4useDyad, increment_1L_int = integer(0
     type_1L_chr <- match.arg(type_1L_chr)
     if (type_1L_chr == "End") {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c("CurrentDate", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(dplyr::across(c(
+              # "CurrentDate", 
                 "ScheduledFor"), ~EndDate)))
     }
     if (type_1L_chr == "Day") {

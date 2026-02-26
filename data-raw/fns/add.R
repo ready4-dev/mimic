@@ -3275,6 +3275,6 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
   return(X_Ready4useDyad)
 }
 add_wrap_up_date <- function(X_Ready4useDyad){
-  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(CurrentDate = EndDate)) 
+  X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(ScheduledFor = EndDate)) 
   return(X_Ready4useDyad)
 }

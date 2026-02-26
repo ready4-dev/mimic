@@ -26,6 +26,7 @@
   population_ls = NULL,
   type_1L_chr = c("trigger", "customise", "filter", "event", "reset", "schedule",
     "switch", "transform"),
+  use_1L_chr = "Y",
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),

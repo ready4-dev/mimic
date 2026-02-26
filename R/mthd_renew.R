@@ -51,6 +51,7 @@ methods::setMethod("renew", "MimicActive", function(x,
                  invalid_fn = X_MimicEvent@x_MimicSchedule@functions_ls$invalid_fn)
     x@x_Ready4useDyad <- update_next_date(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_next_event(x@x_Ready4useDyad)
+    x@x_Ready4useDyad <- add_ineligible(x@x_Ready4useDyad, condition_1L_chr = "is.na(ScheduledFor)") ###
   }
   if(type_1L_chr == "trigger"){
     x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
@@ -88,6 +89,7 @@ methods::setMethod("renew", "MimicPopulation", function(x,
                                                         env_ls = list(),
                                                         population_ls = NULL,
                                                         type_1L_chr = c("trigger", "customise", "filter","event", "reset", "schedule", "switch", "transform"),
+                                                        use_1L_chr = "Y",
                                                         what_1L_chr = character(0),
                                                         X_MimicConfiguration = MimicConfiguration(),
                                                         X_MimicEvent = MimicEvent(),
@@ -117,14 +119,12 @@ methods::setMethod("renew", "MimicPopulation", function(x,
       population_ls <- manufacture(x, what_1L_chr = "population_ls")
       X_MimicActive <- renew(x@x_MimicActive, batch_1L_int = batch_1L_int, env_ls = env_ls, type_1L_chr = type_1L_chr, X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent)
       population_ls$X_Ready4useDyad <- X_MimicActive@x_Ready4useDyad
-      use_1L_chr <- ifelse(type_1L_chr %in% c("filter", "schedule"), # Check if this is correct
-                           X_MimicEvent@x_MimicSchedule@use_1L_chr, 
-                           X_MimicEvent@x_MimicTrigger@use_1L_chr)
-      if(!is.na(use_1L_chr)){
+      if(type_1L_chr %in% c("filter", "schedule")){
         population_ls <- update_population_ls(population_ls, 
-                                              split_var_1L_chr = ifelse(type_1L_chr=="filter","InModel","ScheduledFor"),
-                                              type_1L_chr = ifelse(type_1L_chr %in% c("filter","schedule"), "split", "join"),
-                                              use_1L_chr = use_1L_chr)
+                                              split_var_1L_chr = "InModel", 
+                                              type_1L_chr = "split", 
+                                              use_1L_chr = ifelse(type_1L_chr == "filter", use_1L_chr,
+                                                                  ifelse(is.na(X_MimicEvent@x_MimicSchedule@use_1L_chr), use_1L_chr, X_MimicEvent@x_MimicSchedule@use_1L_chr)))
       }
       x <- renew(x, population_ls = population_ls, type_1L_chr = "transform")
     }
@@ -137,14 +137,13 @@ methods::setMethod("renew", "MimicPopulation", function(x,
       X_Ready4useDyad <- x@z_Ready4useDyad
     }
     if(nrow(X_Ready4useDyad@ds_tb)>0){
-      # X_Ready4useDyad <- add_ineligible(X_Ready4useDyad)
-      args_ls <- manufactureSlot(X_MimicEvent, "x_MimicEligible", type_1L_chr = type_1L_chr)
       population_ls <- manufacture(x, what_1L_chr = "population_ls")
+      args_ls <- manufactureSlot(X_MimicEvent, "x_MimicEligible", append_ls = list(condition_1L_chr = "TRUE"), type_1L_chr = type_1L_chr)
       if(what_1L_chr=="Y"){
         population_ls$Y_Ready4useDyad <- rlang::exec(add_ineligible, X_Ready4useDyad, !!!args_ls)
       }
       if(what_1L_chr=="Z"){
-        population_ls$Z_Ready4useDyad <- X_Ready4useDyad
+        population_ls$Z_Ready4useDyad <- rlang::exec(add_ineligible, X_Ready4useDyad, !!!args_ls)
       }
       population_ls <- update_population_ls(population_ls, 
                                             split_var_1L_chr = "InModel",

@@ -39,6 +39,7 @@
 
 \S4method{manufacture}{MimicEligible}(
   x,
+  append_ls = list(),
   type_1L_chr = c("filter", "reset"),
   what_1L_chr = "args_ls",
   ...
@@ -90,6 +91,8 @@
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
+
+\item{append_ls}{Append (a list), Default: list()}
 
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 

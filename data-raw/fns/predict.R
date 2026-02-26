@@ -317,7 +317,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                                                   change_first_mdl = "K10_mdl", 
                                                                                   change_relapse_1L_chr = "K10Relapse_mdl",
                                                                                   end_mdl_1L_chr = "EpisodeEnd_mdl",
-                                                                                  ineligible_1L_chr = "Episode >0 | NonHelpSeeking",
+                                                                                  ineligible_1L_chr = "Episode ==0 | NonHelpSeeking",
                                                                                   outcome_var_1L_chr = "K10",
                                                                                   start_mdl_1L_chr = "Representation_mdl", #Representation_mdl
                                                                                   type_schedule_1L_chr = c("repeat"),
@@ -348,8 +348,6 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                                                   arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
                                                   reset_date_1L_lgl = FALSE), # Will be FALSE when reformed
                                     tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
-  # X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb,
-  #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "form", what_1L_chr = "population")
   ##
   # population_ls <- add_enter_model_event(X_Ready4useDyad = X_MimicConfiguration@x_MimicInputs@y_Ready4useDyad, #inputs_ls$Synthetic_r4,
   #                                        default_fn = X_MimicConfiguration@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
@@ -409,8 +407,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                               X_MimicEvent = events_ls$EpisodeOfCareSequence)
   ### Schedule and trigger Representation (new episode of care) sequence [For treated subgroup]
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                                             env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
-                                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
+                             env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), tx_prefix_1L_chr = tx_prefix_1L_chr),
+                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
   ##
   ## Need to reset events scheduled for after sim horizon to NA
   ##
@@ -419,11 +417,11 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   #                               tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", what_1L_chr = "population",
   #                               X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
   ### Schedule and trigger Regression to Mean event [For untreated subgroup]
+  # X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
+  #                                            type_1L_chr = "switch", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean, what_1L_chr = "Y")
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                                             type_1L_chr = "switch", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean, what_1L_chr = "Y")
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                                             env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr),
-                                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
+                             env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr),
+                             tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
   # X_MimicConfiguration <- renew(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
   #                               type_1L_chr = "switchY", what_1L_chr = "population",
   #                               X_MimicEvent = events_ls$RegressionToMean)
@@ -536,28 +534,28 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
 
   
   
-  if(nrow(population_ls$Y_Ready4useDyad@ds_tb)>0){
-    ###
-    #### Schedule Regression to mean event (only for sub-group who did not receive any episode of care) ####
-    ### 
-    population_ls$Y_Ready4useDyad <- add_wrap_up_date(population_ls$Y_Ready4useDyad)
-      # renewSlot(population_ls$Y_Ready4useDyad, "ds_tb",
-      #                                          population_ls$Y_Ready4useDyad@ds_tb  %>%
-      #                                            dplyr::mutate(CurrentDate = EndDate)) 
-    ###
-    #### Trigger Regression to mean event (only for sub-group who did not receive any episode of care) ####
-    ### 
-    population_ls$Y_Ready4useDyad <- population_ls$Y_Ready4useDyad %>%
-      add_regression_to_mean(sensitivities_ls = sensitivities_ls,
-                             inputs_ls = inputs_ls,
-                             k10_draws_fn = add_project_2_k10_draws, #
-                             tfmn_ls = tfmn_ls,
-                             tx_prefix_1L_chr = tx_prefix_1L_chr, #
-                             utilities_chr = utilities_chr,
-                             utility_fns_ls = utility_fns_ls)
-    ## Return group who did not receive an episode of care
-    population_ls <- update_population_ls(population_ls, type_1L_chr = "join")
-  }
+  # if(nrow(population_ls$Y_Ready4useDyad@ds_tb)>0){
+  #   ###
+  #   #### Schedule Regression to mean event (only for sub-group who did not receive any episode of care) ####
+  #   ### 
+  #   population_ls$Y_Ready4useDyad <- add_wrap_up_date(population_ls$Y_Ready4useDyad)
+  #     # renewSlot(population_ls$Y_Ready4useDyad, "ds_tb",
+  #     #                                          population_ls$Y_Ready4useDyad@ds_tb  %>%
+  #     #                                            dplyr::mutate(CurrentDate = EndDate)) 
+  #   ###
+  #   #### Trigger Regression to mean event (only for sub-group who did not receive any episode of care) ####
+  #   ### 
+  #   population_ls$Y_Ready4useDyad <- population_ls$Y_Ready4useDyad %>%
+  #     add_regression_to_mean(sensitivities_ls = sensitivities_ls,
+  #                            inputs_ls = inputs_ls,
+  #                            k10_draws_fn = add_project_2_k10_draws, #
+  #                            tfmn_ls = tfmn_ls,
+  #                            tx_prefix_1L_chr = tx_prefix_1L_chr, #
+  #                            utilities_chr = utilities_chr,
+  #                            utility_fns_ls = utility_fns_ls)
+  #   ## Return group who did not receive an episode of care
+  #   population_ls <- update_population_ls(population_ls, type_1L_chr = "join")
+  # }
   ###
   #### Schedule Model Exit events ####
   ### 
