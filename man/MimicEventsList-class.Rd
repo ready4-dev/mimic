@@ -6,16 +6,16 @@
 \alias{MimicEventsList}
 \title{MimicEventsList}
 \description{
-Model event scheduling and event logic data.
+Data on all events included in model.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{events_ls}}{(a list)}
+\item{\code{events_ls}}{Events (a list)}
 
-\item{\code{last_1L_chr}}{(a character vector of length one)}
+\item{\code{last_1L_chr}}{Last (a character vector of length one)}
 
-\item{\code{main_chr}}{(a character vector )}
+\item{\code{main_chr}}{Main (a character vector)}
 
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}

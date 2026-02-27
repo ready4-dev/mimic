@@ -995,8 +995,10 @@ add_episode_start <- function (X_Ready4useDyad)
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param episode_start_mdl Episode start (a model), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
-#' @param type_1L_chr Type (a character vector of length one), Default: c("first", "repeat")
+#' @param never_1L_int Never (an integer vector of length one), Default: 366
 #' @param treatment_1L_chr Treatment (a character vector of length one), Default: character(0)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("first", "repeat")
+#' @param vars_chr Variables (a character vector), Default: c("WaitInDays", "DaysToYearOneRepresentation")
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_episode_wait_time
 #' @export 
@@ -1004,14 +1006,16 @@ add_episode_start <- function (X_Ready4useDyad)
 #' @importFrom rlang sym
 #' @keywords internal
 add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, iterations_int = 1:100L, 
-    type_1L_chr = c("first", "repeat"), treatment_1L_chr = character(0)) 
+    never_1L_int = 366, treatment_1L_chr = character(0), type_1L_chr = c("first", 
+        "repeat"), vars_chr = c("WaitInDays", "DaysToYearOneRepresentation")) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
-    var_1L_chr <- ifelse(type_1L_chr == "first", "WaitInDays", 
-        "DaysToYearOneRepresentation")
-    if (!"WaitInDays" %in% names(X_Ready4useDyad@ds_tb)) {
+    var_1L_chr <- ifelse(type_1L_chr == "first", vars_chr[1], 
+        vars_chr[2])
+    if (!vars_chr[1] %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-            X_Ready4useDyad@ds_tb %>% dplyr::mutate(WaitInDays = 0))
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                0)))
     }
     if (!"Intervention" %in% names(X_Ready4useDyad@ds_tb)) {
         if (identical(treatment_1L_chr, character(0))) {
@@ -1024,9 +1028,10 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
         }
     }
     if (type_1L_chr == "repeat") {
-        if (!"DaysToYearOneRepresentation" %in% names(X_Ready4useDyad@ds_tb)) {
+        if (!vars_chr[2] %in% names(X_Ready4useDyad@ds_tb)) {
             X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysToYearOneRepresentation = 366))
+                X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
+                  never_1L_int)))
         }
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::mutate(DaysSinceIndexService = as.numeric(CurrentDate - 
@@ -1041,7 +1046,7 @@ add_episode_wait_time <- function (X_Ready4useDyad, episode_start_mdl = NULL, it
             X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
                   dplyr::case_when(!!rlang::sym(var_1L_chr) == 
-                    0 ~ 366, T ~ !!rlang::sym(var_1L_chr)))))
+                    0 ~ never_1L_int, T ~ !!rlang::sym(var_1L_chr)))))
         }
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::mutate(`:=`(!!rlang::sym(var_1L_chr), 
@@ -1330,6 +1335,47 @@ add_imputed_data <- function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Read
             group_by_1L_chr = "UID")
     }
     return(Z_Ready4useDyad)
+}
+#' Add ineligible
+#' @description add_ineligible() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add ineligible. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
+#' @param post_fn Post (a function), Default: identity
+#' @param pre_fn Pre (a function), Default: identity
+#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset")
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_ineligible
+#' @export 
+#' @importFrom dplyr mutate case_when select
+#' @keywords internal
+add_ineligible <- function (X_Ready4useDyad, ineligible_1L_chr = character(0), 
+    post_fn = identity, pre_fn = identity, type_1L_chr = c("filter", 
+        "reset")) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        pre_fn)
+    if (type_1L_chr == "filter") {
+        if (!identical(ineligible_1L_chr, character(0))) {
+            X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ", 
+                  ineligible_1L_chr, ")"))) %>% dplyr::mutate(InModel = dplyr::case_when(InModel & 
+                  TEMPORYINELIGIBILITYTEST ~ NA, T ~ InModel)) %>% 
+                  dplyr::select(-TEMPORYINELIGIBILITYTEST))
+        }
+    }
+    if (type_1L_chr == "reset") {
+        if (!identical(ineligible_1L_chr, character(0))) {
+            X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ", 
+                  ineligible_1L_chr, ")"))) %>% dplyr::mutate(InModel = dplyr::case_when(is.na(InModel) & 
+                  TEMPORYINELIGIBILITYTEST ~ TRUE, T ~ InModel)) %>% 
+                  dplyr::select(-TEMPORYINELIGIBILITYTEST))
+        }
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% post_fn)
+    }
+    return(X_Ready4useDyad)
 }
 #' Add iteration values set
 #' @description add_iteration_values_set() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add iteration values set. The function is called for its side effects and does not return a value.
@@ -2048,35 +2094,33 @@ add_model_tests <- function (model_data_ls, regressions_ls, what_1L_chr, colour_
 #' @description add_non_helpseekers() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add non helpseekers. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
-#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: TRUE
+#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: FALSE
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_non_helpseekers
 #' @export 
 #' @importFrom dplyr mutate case_when select
 #' @importFrom lubridate NA_Date_
 #' @keywords internal
-add_non_helpseekers <- function(X_Ready4useDyad,
-                                arms_for_non_helpseeking_chr = character(0),
-                                reset_date_1L_lgl = TRUE){#
-  if(identical(arms_for_non_helpseeking_chr, character(0))){
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                 X_Ready4useDyad@ds_tb %>%
-                                   dplyr::mutate(NonHelpSeeking = FALSE)) 
-  }else{
-    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                 X_Ready4useDyad@ds_tb %>%
-                                   dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>%
-                                   dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking<ParamNonHelpSeekers), 
-                                                                                   T ~ FALSE)) %>%
-                                   dplyr::select(-DrawsForNonHelpseeking))
-    if(reset_date_1L_lgl){
-      X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                   X_Ready4useDyad@ds_tb %>%
-                                     dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ lubridate::NA_Date_,
-                                                                                  T ~ CurrentDate)))
+add_non_helpseekers <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0), 
+    reset_date_1L_lgl = FALSE) 
+{
+    if (identical(arms_for_non_helpseeking_chr, character(0))) {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(NonHelpSeeking = FALSE))
     }
-  }
-  return(X_Ready4useDyad)
+    else {
+        X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+            X_Ready4useDyad@ds_tb %>% dplyr::mutate(DrawsForNonHelpseeking = runif(nrow(.))) %>% 
+                dplyr::mutate(NonHelpSeeking = dplyr::case_when((Arm %in% 
+                  arms_for_non_helpseeking_chr) ~ (DrawsForNonHelpseeking < 
+                  ParamNonHelpSeekers), T ~ FALSE)) %>% dplyr::select(-DrawsForNonHelpseeking))
+        if (reset_date_1L_lgl) {
+            X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
+                X_Ready4useDyad@ds_tb %>% dplyr::mutate(CurrentDate = dplyr::case_when(NonHelpSeeking ~ 
+                  lubridate::NA_Date_, T ~ CurrentDate)))
+        }
+    }
+    return(X_Ready4useDyad)
 }
 #' Add non Initial Assessment andeferral
 #' @description add_non_iar() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add non initial assessment andeferral. The function is called for its side effects and does not return a value.
@@ -2617,6 +2661,24 @@ add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_ch
                   arms_for_intervention_costs_chr = arms_for_intervention_costs_chr)
             })
     }
+    return(X_Ready4useDyad)
+}
+#' Add project 2 customisation
+#' @description add_project_2_customisation() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add project 2 customisation. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
+#' @param arms_for_iar_adjustment_chr Arms for Initial Assessment andeferral adjustment (a character vector), Default: character(0)
+#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: TRUE
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_project_2_customisation
+#' @export 
+#' @keywords internal
+add_project_2_customisation <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0), 
+    arms_for_iar_adjustment_chr = character(0), reset_date_1L_lgl = TRUE) 
+{
+    X_Ready4useDyad <- add_non_helpseekers(X_Ready4useDyad, arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
+        reset_date_1L_lgl = reset_date_1L_lgl)
+    X_Ready4useDyad <- add_non_iar(X_Ready4useDyad, arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr)
     return(X_Ready4useDyad)
 }
 #' Add project 2 K10 draws
@@ -3483,6 +3545,7 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @param iterations_int Iterations (an integer vector)
 #' @param k10_draws_fn K10 draws (a function)
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
+#' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'K10'
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'Treatment'
@@ -3493,13 +3556,13 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @export 
 #' @keywords internal
 add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, k10_draws_fn, 
-    add_sensitivity_1L_lgl = FALSE, sensitivities_ls = make_sensitivities_ls(), 
+    add_sensitivity_1L_lgl = FALSE, k10_var_1L_chr = "K10", sensitivities_ls = make_sensitivities_ls(), 
     tfmn_ls = make_class_tfmns(), tx_prefix_1L_chr = "Treatment", 
     utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), 
     utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
     X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_draws_fn = k10_draws_fn, 
-        k10_mdl = NULL, k10_var_1L_chr = "K10", iterations_int = iterations_int, 
+        k10_mdl = NULL, k10_var_1L_chr = k10_var_1L_chr, iterations_int = iterations_int, 
         params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
         suffix_1L_chr = "Update", tfmn_ls = tfmn_ls, type_1L_chr = "Table", 
         tx_prefix_1L_chr = tx_prefix_1L_chr, update_1L_int = 1)
@@ -3857,8 +3920,8 @@ add_simulated_data <- function (model_mdl, var_1L_chr, Y_Ready4useDyad, iteratio
             rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
         Y_Ready4useDyad <- add_simulated_data(model_mdl = model_mdl, 
             var_1L_chr = var_1L_chr, Y_Ready4useDyad = Y_Ready4useDyad, 
-            iterations_int = iterations_int, type_1L_chr = "fourth", 
-            rewind_chr = rewind_chr, what_1L_chr = what_1L_chr)
+            iterations_int = iterations_int, rewind_chr = rewind_chr, 
+            type_1L_chr = "fourth", what_1L_chr = what_1L_chr)
     }
     if (type_1L_chr == "fourth") {
         Y_Ready4useDyad <- Y_Ready4useDyad %>% update_predictions_ds(var_1L_chr = var_1L_chr, 
@@ -4237,5 +4300,19 @@ add_utility_event <- function (X_Ready4useDyad, add_qalys_1L_lgl = FALSE, add_se
     if (tidy_cols_1L_lgl) {
         X_Ready4useDyad <- update_order(X_Ready4useDyad, type_1L_chr = "columns")
     }
+    return(X_Ready4useDyad)
+}
+#' Add wrap up date
+#' @description add_wrap_up_date() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add wrap up date. The function is called for its side effects and does not return a value.
+#' @param X_Ready4useDyad PARAM_DESCRIPTION
+#' @return X (A dataset and data dictionary pair.)
+#' @rdname add_wrap_up_date
+#' @export 
+#' @importFrom dplyr mutate
+#' @keywords internal
+add_wrap_up_date <- function (X_Ready4useDyad) 
+{
+    X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
+        dplyr::mutate(ScheduledFor = EndDate))
     return(X_Ready4useDyad)
 }

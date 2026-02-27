@@ -2,6 +2,7 @@
 #' 
 #' Data for deriving method arguments.
 #' 
+#' @include 
 #' @slot method_1L_chr Method (a character vector of length one)
 #' @slot args_env_ls Arguments (a list of environments)
 #' @slot args_fixed_ls Arguments fixed (a list)

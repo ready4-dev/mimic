@@ -29,7 +29,11 @@ Configuration details for a simulation run.
 
 \item{\code{start_dtm}}{Start (a date vector)}
 
+\item{\code{tx_prefix_1L_chr}}{Treatment prefix (a character vector of length one)}
+
 \item{\code{x_MimicAlgorithms}}{(an instance of the MimicAlgorithms class)}
+
+\item{\code{x_MimicEventsList}}{(an instance of the MimicEventsList class)}
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}
 

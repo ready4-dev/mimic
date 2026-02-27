@@ -10,6 +10,7 @@ add_regression_to_mean(
   iterations_int,
   k10_draws_fn,
   add_sensitivity_1L_lgl = FALSE,
+  k10_var_1L_chr = "K10",
   sensitivities_ls = make_sensitivities_ls(),
   tfmn_ls = make_class_tfmns(),
   tx_prefix_1L_chr = "Treatment",
@@ -27,6 +28,8 @@ add_regression_to_mean(
 \item{k10_draws_fn}{K10 draws (a function)}
 
 \item{add_sensitivity_1L_lgl}{Add sensitivity (a logical vector of length one), Default: FALSE}
+
+\item{k10_var_1L_chr}{K10 variable (a character vector of length one), Default: 'K10'}
 
 \item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
 

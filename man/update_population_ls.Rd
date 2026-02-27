@@ -18,11 +18,11 @@ update_population_ls(
 
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()}
 
-\item{split_test_fn}{Split test (a function), Defaults: is.na}
+\item{split_test_fn}{Split test (a function), Default: is.na}
 
-\item{split_var_1L_chr}{Split variable (a character vector of length one), Default: "ScheduledFor"}
+\item{split_var_1L_chr}{Split variable (a character vector of length one), Default: 'ScheduledFor'}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("split", "join", "form")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("split", "join", "form", "switch")}
 
 \item{use_1L_chr}{Use (a character vector of length one), Default: c("Y", "Z")}
 }

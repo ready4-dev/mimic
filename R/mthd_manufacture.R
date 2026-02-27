@@ -14,33 +14,64 @@
 #' @export 
 #' @importFrom purrr map pluck
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicArguments", function(x,
-                                                             batch_1L_int = integer(0),
-                                                             env_ls = list(),
-                                                             what_1L_chr = c("args_ls"),
-                                                             X_MimicConfiguration = MimicConfiguration(),
-                                                             ...){
-  what_1L_chr <- match.arg(what_1L_chr)
-  object_xx <- list()
-  if(what_1L_chr == "args_ls"){
-    object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
-    if(!identical(x@derive_ls, list())){
-      object_xx <- object_xx %>%
-        append(x@derive_ls %>% purrr::map(~{
-          manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, X_MimicConfiguration = X_MimicConfiguration) 
-        }))
+methods::setMethod("manufacture", "MimicArguments", function (x, batch_1L_int = integer(0), env_ls = list(), what_1L_chr = c("args_ls"), 
+    X_MimicConfiguration = MimicConfiguration(), ...) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    object_xx <- list()
+    if (what_1L_chr == "args_ls") {
+        object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, 
+            flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), 
+            X_MimicConfiguration = X_MimicConfiguration)
+        if (!identical(x@derive_ls, list())) {
+            object_xx <- object_xx %>% append(x@derive_ls %>% 
+                purrr::map(~{
+                  manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, 
+                    X_MimicConfiguration = X_MimicConfiguration)
+                }))
+        }
+        if (!identical(x@models_ls, list())) {
+            object_xx <- object_xx %>% append(x@models_ls %>% 
+                purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, 
+                  "models_ls") %>% purrr::pluck(.x)))
+        }
+        if (!identical(batch_1L_int, integer(0)) & x@iterations_1L_lgl) {
+            object_xx <- object_xx %>% append(list(iterations_int = manufacture(X_MimicConfiguration, 
+                batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
+        }
     }
-    if(!identical(x@models_ls, list())){
-      object_xx <- object_xx %>%
-        append(x@models_ls %>%
-                 purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls") %>% purrr::pluck(.x)))
+    return(object_xx)
+})
+#' 
+#' Manufacture a new object
+#' @name manufacture-MimicEligible
+#' @description manufacture method applied to MimicEligible
+#' @param x An object of class MimicEligible
+#' @param append_ls Append (a list), Default: list()
+#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset")
+#' @param what_1L_chr What (a character vector of length one), Default: 'args_ls'
+#' @param ... Additional arguments
+#' @return Object (an output object of multiple potential types)
+#' @rdname manufacture-methods
+#' @aliases manufacture,MimicEligible-method
+#' @export 
+#' @importFrom purrr discard_at
+#' @importFrom ready4 manufacture
+methods::setMethod("manufacture", "MimicEligible", function (x, append_ls = list(), type_1L_chr = c("filter", "reset"), 
+    what_1L_chr = "args_ls", ...) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "args_ls") {
+        object_xx <- list(ineligible_1L_chr = x@ineligible_1L_chr, 
+            post_fn = x@functions_ls$post_fn, pre_fn = x@functions_ls$pre_fn, 
+            type_1L_chr = type_1L_chr)
+        if (!is.null(names(append_ls))) {
+            object_xx <- object_xx %>% purrr::discard_at(names(append_ls)) %>% 
+                append(append_ls)
+        }
     }
-    if(!identical(batch_1L_int, integer(0)) & x@iterations_1L_lgl){
-      object_xx <- object_xx %>%
-        append(list(iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
-    }
-  }
-  return(object_xx)
+    return(object_xx)
 })
 #' 
 #' Manufacture a new object
@@ -51,8 +82,8 @@ methods::setMethod("manufacture", "MimicArguments", function(x,
 #' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
 #' @param draws_tb Draws (a tibble), Default: NULL
 #' @param extras_ls Extras (a list), Default: list()
-#' @param type_1L_chr Type (a character vector of length one), Default: c("current", "entry")
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: character(0)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("current", "entry")
 #' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "args_all", "iterations", "population_ls")
 #' @return Object (an output object of multiple potential types)
 #' @rdname manufacture-methods
@@ -60,103 +91,58 @@ methods::setMethod("manufacture", "MimicArguments", function(x,
 #' @export 
 #' @importFrom purrr flatten_int
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicConfiguration", manufacture_MimicConfiguration <- function(x,
-                                                                                                   arm_1L_chr = NA_character_,
-                                                                                                   batch_1L_int = integer(0),
-                                                                                                   draws_tb = NULL,
-                                                                                                   extras_ls = list(),
-                                                                                                   tx_prefix_1L_chr = character(0),
-                                                                                                   type_1L_chr = c("current", "entry"),
-                                                                                                   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")){
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "args_all"){
-    object_xx <- list(
-      arm_1L_chr = arm_1L_chr,
-      batch_1L_int = batch_1L_int,
-      draws_tb = draws_tb,
-      X_MimicConfiguration = x) %>%
-      append(extras_ls) 
-  }
-  if(what_1L_chr == "draws_tb"){
-    iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
-    if(identical(batch_1L_int, integer(0))){
-      batch_1L_int <- 0
+methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr = NA_character_, batch_1L_int = integer(0), 
+    draws_tb = NULL, extras_ls = list(), tx_prefix_1L_chr = character(0), 
+    type_1L_chr = c("current", "entry"), what_1L_chr = c("draws_tb", 
+        "args_all", "iterations", "population_ls")) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "args_all") {
+        object_xx <- list(arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, 
+            draws_tb = draws_tb, X_MimicConfiguration = x) %>% 
+            append(extras_ls)
     }
-    inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
-    object_xx <- make_draws_tb(inputs_ls, 
-                               extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
-                               iterations_int = iterations_int, 
-                               drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
-                               drop_suffix_1L_chr = x@drop_suffix_1L_chr, 
-                               seed_1L_int = x@seed_1L_int + batch_1L_int)
-  }
-  if(what_1L_chr == "iterations"){
-    if(identical(batch_1L_int, integer(0))){
-      object_xx <- x@iterations_ls %>% purrr::flatten_int()
-    }else{
-      object_xx <- x@iterations_ls[[batch_1L_int]]
-    } 
-  }
-  if(what_1L_chr == "population_ls"){
-    if(type_1L_chr == "current"){
-      object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+    if (what_1L_chr == "draws_tb") {
+        iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, 
+            what_1L_chr = "iterations")
+        if (identical(batch_1L_int, integer(0))) {
+            batch_1L_int <- 0
+        }
+        inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
+        object_xx <- make_draws_tb(inputs_ls, extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn, 
+            iterations_int = iterations_int, drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
+            drop_suffix_1L_chr = x@drop_suffix_1L_chr, seed_1L_int = x@seed_1L_int + 
+                batch_1L_int)
     }
-    if(type_1L_chr == "entry"){
-      object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
-                                         default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
-                                         derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
-                                         horizon_dtm = x@horizon_dtm,
-                                         modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr),
-                                         start_dtm = x@start_dtm,  
-                                         tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
-                                         tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, empty_xx = NULL, target_1L_chr = "Treatment duration"),
-                                         arm_1L_chr = arm_1L_chr, 
-                                         default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls),
-                                         draws_tb = draws_tb,
-                                         iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
-                                         tidy_cols_1L_lgl = T,
-                                         tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
-        update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+    if (what_1L_chr == "iterations") {
+        if (identical(batch_1L_int, integer(0))) {
+            object_xx <- x@iterations_ls %>% purrr::flatten_int()
+        }
+        else {
+            object_xx <- x@iterations_ls[[batch_1L_int]]
+        }
     }
-  }
-  return(object_xx)
+    if (what_1L_chr == "population_ls") {
+        if (type_1L_chr == "current") {
+            object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+        }
+        if (type_1L_chr == "entry") {
+            object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
+                default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn, 
+                derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls, 
+                horizon_dtm = x@horizon_dtm, modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr), 
+                start_dtm = x@start_dtm, tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
+                tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, 
+                  empty_xx = NULL, target_1L_chr = "Treatment duration"), 
+                arm_1L_chr = arm_1L_chr, default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls), 
+                draws_tb = draws_tb, iterations_int = manufacture(x, 
+                  batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
+                tidy_cols_1L_lgl = T, tx_prefix_1L_chr = tx_prefix_1L_chr) %>% 
+                update_population_ls(population_ls = NULL, type_1L_chr = "form")
+        }
+    }
+    return(object_xx)
 })
-
-#' 
-#' Manufacture a new object
-#' @name manufacture-MimicEligible
-#' @description manufacture method applied to MimicEligible
-#' @param x An object of class MimicEligible
-#' @param append_ls Append (a list), Default: list()
-#' @param type_1L_chr Type (a character vector of length one), Default: c("filter", "reset")
-#' @param what_1L_chr What (a character vector of length one), Default: c("args_ls")
-#' @param ... Additional arguments
-#' @return Object (an output object of multiple potential types)
-#' @rdname manufacture-methods
-#' @aliases manufacture,MimicEligible-method
-#' @export 
-#' @importFrom purrr map pluck
-#' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicEligible",function(x,
-                                                           append_ls = list(),
-                                                           type_1L_chr = c("filter", "reset"),
-                                                           what_1L_chr = "args_ls",
-                                                           ...){
-  type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "args_ls"){
-    object_xx <- list(condition_1L_chr = x@condition_1L_chr,
-                      post_fn = x@functions_ls$post_fn,
-                      pre_fn = x@functions_ls$pre_fn,
-                      type_1L_chr = type_1L_chr)
-    if(!is.null(names(append_ls))){
-      object_xx <- object_xx %>% purrr::discard_at(names(append_ls)) %>% append(append_ls)
-    }
-  }
-  return(object_xx)
-})
-
-
 #' 
 #' Manufacture a new object
 #' @name manufacture-MimicRepos
@@ -271,32 +257,30 @@ methods::setMethod("manufacture", "MimicInputs", function (x, what_1L_chr = c("i
 #' @rdname manufacture-methods
 #' @aliases manufacture,MimicDerivations-method
 #' @export 
-#' @importFrom purrr map pluck flatten
+#' @importFrom purrr map pluck
 #' @importFrom rlang exec
 #' @importFrom stats setNames
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicDerivations", function(x,
-                                                               env_ls = list(),
-                                                               flatten_1L_lgl = FALSE,
-                                                               name_1L_chr = character(0),
-                                                               what_1L_chr = c("args_ls"),
-                                                               X_MimicConfiguration = MimicConfiguration(),
-                                                               ...){
-  if(what_1L_chr=="args_ls"){
-    object_xx <- x@args_fixed_ls
-    if(!identical(env_ls, list())){
-      object_xx <- x@args_env_ls %>% purrr::map(~ purrr::pluck(env_ls,.x)) %>%
-        append(object_xx)
+methods::setMethod("manufacture", "MimicDerivations", function (x, env_ls = list(), flatten_1L_lgl = FALSE, name_1L_chr = character(0), 
+    what_1L_chr = c("args_ls"), X_MimicConfiguration = MimicConfiguration(), 
+    ...) 
+{
+    if (what_1L_chr == "args_ls") {
+        object_xx <- x@args_fixed_ls
+        if (!identical(env_ls, list())) {
+            object_xx <- x@args_env_ls %>% purrr::map(~purrr::pluck(env_ls, 
+                .x)) %>% append(object_xx)
+        }
+        if (!is.na(x@method_1L_chr[1])) {
+            object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, 
+                !!!object_xx)
+            if (!flatten_1L_lgl) {
+                object_xx <- object_xx %>% list()
+            }
+            if (!identical(name_1L_chr, character(0))) {
+                object_xx <- object_xx %>% stats::setNames(name_1L_chr)
+            }
+        }
     }
-    if(!is.na(x@method_1L_chr[1])){
-      object_xx <- rlang::exec(x@method_1L_chr, X_MimicConfiguration, !!!object_xx)
-      if(!flatten_1L_lgl){
-        object_xx <- object_xx %>% list()
-      }
-      if(!identical(name_1L_chr, character(0))){
-        object_xx <- object_xx %>% stats::setNames(name_1L_chr)
-      }
-    }
-  }
-  return(object_xx)
+    return(object_xx)
 })

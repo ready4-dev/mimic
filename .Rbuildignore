@@ -38,3 +38,4 @@
 ^data-raw/s4_fns/manufacture\.R$
 ^data-raw/s4_fns/procure\.R$
 ^data-raw/s4_fns/renew\.R$
+^data-raw/s4_fns/metamorphose\.R$

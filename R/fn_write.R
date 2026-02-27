@@ -58,8 +58,6 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
             synthesis_fn = synthesis_fn, transformations_ls = tfmn_ls, 
             utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls)
     }
-    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
-        what_1L_chr = "iterations")
     if (is.null(draws_tb)) {
         if (!identical(Y_MimicRepos, MimicRepos())) {
             draws_tb <- ingest(Y_MimicRepos, batches_int = batch_1L_int, 
@@ -70,6 +68,8 @@ write_batch <- function (batch_1L_int, arms_chr = character(0), comparator_fn = 
                 what_1L_chr = "draws_tb")
         }
     }
+    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+        what_1L_chr = "iterations")
     test_1L_lgl <- assertthat::assert_that(identical(sort(draws_tb$Iteration), 
         sort(iterations_int)), msg = "Iterations in iteration vector and parameter draws table do not match.")
     extras_ls <- list(...)

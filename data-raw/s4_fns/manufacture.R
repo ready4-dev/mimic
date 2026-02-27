@@ -126,7 +126,7 @@ manufacture_MimicEligible <- function(x,
   type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "args_ls"){
-    object_xx <- list(condition_1L_chr = x@condition_1L_chr,
+    object_xx <- list(ineligible_1L_chr = x@ineligible_1L_chr,
                       post_fn = x@functions_ls$post_fn,
                       pre_fn = x@functions_ls$pre_fn,
                       type_1L_chr = type_1L_chr)

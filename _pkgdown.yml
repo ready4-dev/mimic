@@ -23,11 +23,13 @@ reference:
   - MimicInputs
   - MimicPopulation
   - MimicRepos
+  - MimicEventsList
   - MimicConfiguration
   - MimicDerivations
   - MimicArguments
   - MimicSchedule
   - MimicTrigger
+  - MimicEligible
   - MimicEvent
 - title: "Functions"
 - contents:
@@ -44,9 +46,11 @@ reference:
   - manufacture-MimicArguments
   - manufacture-MimicConfiguration
   - manufacture-MimicDerivations
+  - manufacture-MimicEligible
   - manufacture-MimicInputs
   - manufacture-MimicPopulation
   - manufacture-MimicRepos
+  - metamorphose-MimicConfiguration
   - procure-MimicConfiguration
   - prognosticate-MimicConfiguration
   - renew-MimicActive

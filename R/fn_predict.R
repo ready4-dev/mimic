@@ -299,7 +299,7 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param inputs_ls Inputs (a list), Default: NULL
 #' @param add_logic_fn Add logic (a function), Default: identity
 #' @param arm_1L_chr Arm (a character vector of length one)
-#' @param arms_chr Arms (a character vector)
+#' @param arms_chr Arms (a character vector), Default: character(0)
 #' @param arms_for_intervention_costs_chr Arms for intervention costs (a character vector), Default: character(0)
 #' @param arms_for_offsets_chr Arms for offsets (a character vector), Default: character(0)
 #' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
@@ -308,7 +308,7 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param draws_tb Draws (a tibble), Default: NULL
 #' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param horizon_dtm Horizon (a date vector), Default: lubridate::years(1)
-#' @param iterations_int Iterations (an integer vector), Default: 1:100L
+#' @param iterations_int Iterations (an integer vector), Default: integer(0)
 #' @param modifiable_chr Modifiable (a character vector), Default: make_project_2_vars("modify")
 #' @param seed_1L_int Seed (an integer vector of length one), Default: 2001
 #' @param sensitivities_ls Sensitivities (a list), Default: make_project_2_sensitivities_ls()
@@ -322,125 +322,107 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @return Population ls$X (A dataset and data dictionary pair.)
 #' @rdname predict_project_2_pathway
 #' @export 
-#' @importFrom lubridate years weeks
-#' @importFrom dplyr mutate
+#' @importFrom lubridate years weeks days
 predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity, arm_1L_chr, 
-    arms_chr, arms_for_intervention_costs_chr = character(0), 
+    arms_chr = character(0), arms_for_intervention_costs_chr = character(0), 
     arms_for_offsets_chr = character(0), arms_for_non_helpseeking_chr = character(0), 
     arms_for_iar_adjustment_chr = character(0), batch_1L_int = integer(0), 
     draws_tb = NULL, extra_draws_fn = NULL, horizon_dtm = lubridate::years(1), 
-    iterations_int = 1:100L, modifiable_chr = make_project_2_vars("modify"), 
+    iterations_int = integer(0), modifiable_chr = make_project_2_vars("modify"), 
     seed_1L_int = 2001L, sensitivities_ls = make_project_2_sensitivities_ls(), 
     start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
     treatment_ls = NULL, utilities_chr = c("AQoL8D", "EQ5D", 
         "EQ5DM2", "SF6D", "SF6DM2"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
     X_MimicConfiguration = MimicConfiguration()) 
 {
-    old_algorithm_1L_lgl <- identical(X_MimicConfiguration, MimicConfiguration())
-    X_MimicConfiguration <- update_project_2_configuration(X_MimicConfiguration = X_MimicConfiguration, 
-        batch_1L_int = batch_1L_int, arms_chr = arms_chr, arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
-        arms_for_offsets_chr = arms_for_offsets_chr, arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
-        arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr, 
-        extra_draws_fn = extra_draws_fn, horizon_dtm = horizon_dtm, 
-        inputs_ls = inputs_ls, iterations_int = iterations_int, 
-        modifiable_chr = modifiable_chr, seed_1L_int = seed_1L_int, 
-        sensitivities_ls = sensitivities_ls, start_dtm = start_dtm, 
-        tfmn_ls = tfmn_ls, tx_duration_dtm = tx_duration_dtm, 
-        treatment_ls = treatment_ls, utilities_chr = utilities_chr, 
-        utility_fns_ls = utility_fns_ls)
-    if (!old_algorithm_1L_lgl) {
-        drop_missing_1L_lgl <- X_MimicConfiguration@drop_missing_1L_lgl
-        drop_suffix_1L_chr <- X_MimicConfiguration@drop_suffix_1L_chr
-        extra_draws_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
-        horizon_dtm <- X_MimicConfiguration@horizon_dtm
-        initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
-        inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, 
-            what_1L_chr = "inputs_ls")
-        iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
-            what_1L_chr = "iterations")
-        iterations_ls <- X_MimicConfiguration@iterations_ls
-        modifiable_chr <- X_MimicConfiguration@modifiable_chr
-        seed_1L_int <- X_MimicConfiguration@seed_1L_int
-        sensitivities_ls <- X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
-        start_dtm <- X_MimicConfiguration@start_dtm
-        synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
-        tfmn_ls <- X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
-        tx_duration_dtm <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, 
-            target_1L_chr = "Treatment duration")
-        utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr
-        utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls
+    X_MimicConfiguration <- renew(X_MimicConfiguration, env_ls = list(main_ls = list(`Project 2` = predict_project_2_pathway), 
+        initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)), 
+        what_1L_chr = c("legacy"))
+    if (identical(names(X_MimicConfiguration@arms_tb), "Arm")) {
+        X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
+            "arms_tb", make_arms_tb(X_MimicConfiguration@arms_tb, 
+                settings_ls = X_MimicConfiguration@arms_tb$Arm %>% 
+                  make_project_2_arms_extras_ls(arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr, 
+                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
+                    arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
+                    arms_for_offsets_chr = arms_for_offsets_chr, 
+                    treatment_ls = treatment_ls, tx_duration_dtm = tx_duration_dtm)))
     }
     if (is.null(draws_tb)) {
         draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
             what_1L_chr = "draws_tb")
     }
     tx_prefix_1L_chr <- "Treatment"
-    X_MimicConfiguration <- renew(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
-        batch_1L_int = batch_1L_int, draws_tb = draws_tb, tx_prefix_1L_chr = tx_prefix_1L_chr, 
-        type_1L_chr = "form", what_1L_chr = "population")
-    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
-        renew(X_MimicConfiguration@x_MimicPopulation, type_1L_chr = "customise", 
-            X_MimicConfiguration = X_MimicConfiguration))
-    X_MimicEvent <- make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeofCareSequence", 
+    events_ls <- list(EpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeOfCareSequence", 
+        change_first_mdl = "K10_mdl", change_relapse_1L_chr = "K10Relapse_mdl", 
+        end_mdl_1L_chr = "EpisodeEnd_mdl", ineligible_1L_chr = "Episode >0 | NonHelpSeeking", 
         outcome_var_1L_chr = "K10", start_mdl_1L_chr = "EpisodeStart_mdl", 
-        use_trigger_1L_chr = "Z", validate_schedule_1L_chr = "WaitInDays")
-    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
-        renew(X_MimicConfiguration@x_MimicPopulation, batch_1L_int = batch_1L_int, 
-            env_ls = list(arm_1L_chr = arm_1L_chr), type_1L_chr = "schedule", 
-            X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent))
-    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, "x_MimicPopulation", 
-        renew(X_MimicConfiguration@x_MimicPopulation, batch_1L_int = batch_1L_int, 
-            env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, 
-                tx_prefix_1L_chr = tx_prefix_1L_chr), type_1L_chr = "trigger", 
-            X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = X_MimicEvent))
-    population_ls <- manufacture(X_MimicConfiguration, what_1L_chr = "population_ls")
-    if (nrow(population_ls$X_Ready4useDyad@ds_tb) > 0) {
-        population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, 
-            event_1L_chr = "Represent", schedule_fn = add_episode_wait_time, 
-            schedule_args_ls = list(episode_start_mdl = procureSlot(X_MimicConfiguration@x_MimicInputs, 
-                "models_ls")$Representation_mdl, iterations_int = iterations_int, 
-                type_1L_chr = "repeat", treatment_1L_chr = procure(X_MimicConfiguration, 
-                  match_value_xx = arm_1L_chr, empty_xx = character(0), 
-                  target_1L_chr = "Treatment")))
-        print_errors(population_ls$X_Ready4useDyad, vars_chr = c("DaysToYearOneRepresentation"), 
-            assert_1L_lgl = FALSE, invalid_fn = function(x) (is.na(x) | 
-                is.nan(x) | is.null(x) | x == -Inf | x == Inf | 
-                x < 0))
-        population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
-        population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
-        population_ls <- update_population_ls(population_ls, 
-            use_1L_chr = "Z")
-    }
-    if (nrow(population_ls$X_Ready4useDyad@ds_tb) > 0) {
-        population_ls$X_Ready4useDyad <- add_episode(population_ls$X_Ready4useDyad, 
-            assert_1L_lgl = FALSE, episode_1L_int = 2, inputs_ls = inputs_ls, 
-            iterations_int = iterations_int, k10_var_1L_chr = "K10", 
-            sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-            treatment_1L_chr = procure(X_MimicConfiguration, 
-                match_value_xx = arm_1L_chr, empty_xx = character(0), 
-                target_1L_chr = "Treatment"), tx_prefix_1L_chr = tx_prefix_1L_chr, 
-            utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls)
-    }
-    if (nrow(population_ls$Z_Ready4useDyad@ds_tb) > 0) {
-        population_ls <- update_population_ls(population_ls, 
-            type_1L_chr = "join", use_1L_chr = "Z")
-    }
-    if (nrow(population_ls$Y_Ready4useDyad@ds_tb) > 0) {
-        population_ls$Y_Ready4useDyad <- renewSlot(population_ls$Y_Ready4useDyad, 
-            "ds_tb", population_ls$Y_Ready4useDyad@ds_tb %>% 
-                dplyr::mutate(CurrentDate = EndDate))
-        population_ls$Y_Ready4useDyad <- population_ls$Y_Ready4useDyad %>% 
-            add_regression_to_mean(sensitivities_ls = sensitivities_ls, 
-                k10_draws_fn = add_project_2_k10_draws, tfmn_ls = tfmn_ls, 
-                tx_prefix_1L_chr = tx_prefix_1L_chr, utilities_chr = utilities_chr, 
-                utility_fns_ls = utility_fns_ls)
-        population_ls <- update_population_ls(population_ls, 
-            type_1L_chr = "join")
-    }
+        type_schedule_1L_chr = c("first"), use_schedule_1L_chr = "Y", 
+        use_trigger_1L_chr = NA_character_, validate_schedule_1L_chr = "WaitInDays", 
+        vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"), 
+        workers_chr = make_worker_types(), workers_medical_chr = make_worker_types("medical")), 
+        RepeatEpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "RepeatEpisodeOfCareSequence", 
+            change_first_mdl = "K10_mdl", change_relapse_1L_chr = "K10Relapse_mdl", 
+            end_mdl_1L_chr = "EpisodeEnd_mdl", ineligible_1L_chr = "Episode ==0 | NonHelpSeeking", 
+            outcome_var_1L_chr = "K10", start_mdl_1L_chr = "Representation_mdl", 
+            type_schedule_1L_chr = c("repeat"), use_schedule_1L_chr = "Z", 
+            use_trigger_1L_chr = "Z", validate_schedule_1L_chr = "DaysToYearOneRepresentation", 
+            vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"), 
+            workers_chr = make_worker_types(), workers_medical_chr = make_worker_types("medical")), 
+        UpdateUntreatedOutcomes = make_project_2_untreated_sequence(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
+            action_fn = add_regression_to_mean, draws_fn = add_project_2_k10_draws, 
+            ineligible_1L_chr = "!NonHelpSeeking", use_schedule_1L_chr = "Y", 
+            use_trigger_1L_chr = "Z"), RegressionToMean = make_project_2_regression_to_mean(event_nm_1L_chr = "RegressionToMean", 
+            ineligible_1L_chr = "!NonHelpSeeking", outcome_var_1L_chr = "K10", 
+            use_schedule_1L_chr = "Y", use_trigger_1L_chr = "Z"))
+    X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
+        batch_1L_int = batch_1L_int, draws_tb = draws_tb, env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, 
+            empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
+            type_1L_chr = "Helpseeking adjustment"), arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, 
+            empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
+            type_1L_chr = "IAR adjustment"), reset_date_1L_lgl = FALSE), 
+        tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, 
+            never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), 
+            tx_prefix_1L_chr = tx_prefix_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, 
+        X_MimicEvent = events_ls$EpisodeOfCareSequence)
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, 
+            never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), 
+            tx_prefix_1L_chr = tx_prefix_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, 
+        X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr), 
+        tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", 
+        X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
+    population_ls <- manufacture(X_MimicPopulation, what_1L_chr = "population_ls")
     population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, 
         event_1L_chr = "WrapUp", schedule_fn = update_scheduled_date)
     population_ls$X_Ready4useDyad <- update_current_date(population_ls$X_Ready4useDyad)
     population_ls$X_Ready4useDyad <- update_current_event(population_ls$X_Ready4useDyad)
+    drop_missing_1L_lgl <- X_MimicConfiguration@drop_missing_1L_lgl
+    drop_suffix_1L_chr <- X_MimicConfiguration@drop_suffix_1L_chr
+    extra_draws_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
+    horizon_dtm <- X_MimicConfiguration@horizon_dtm
+    initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)
+    inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, 
+        what_1L_chr = "inputs_ls")
+    iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+        what_1L_chr = "iterations")
+    iterations_ls <- X_MimicConfiguration@iterations_ls
+    modifiable_chr <- X_MimicConfiguration@modifiable_chr
+    seed_1L_int <- X_MimicConfiguration@seed_1L_int
+    sensitivities_ls <- X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
+    start_dtm <- X_MimicConfiguration@start_dtm
+    synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
+    tfmn_ls <- X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
+    tx_duration_dtm <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, 
+        target_1L_chr = "Treatment duration")
+    utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr
+    utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls
     population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad, 
         arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
         arms_for_offsets_chr = arms_for_offsets_chr, disciplines_chr = make_disciplines(), 

@@ -5,23 +5,53 @@
 \title{Make project 2 episode sequence}
 \usage{
 make_project_2_episode_sequence(
-  event_nm_1L_chr = "EpisodeofCareSequence",
+  event_nm_1L_chr = "EpisodeOfCareSequence",
   outcome_var_1L_chr = "K10",
+  change_first_mdl = "K10_mdl",
+  change_relapse_1L_chr = "K10Relapse_mdl",
+  ineligible_1L_chr = character(0),
+  end_mdl_1L_chr = "EpisodeEnd_mdl",
+  functions_ls = make_ineligibility_fns_ls(),
   start_mdl_1L_chr = "EpisodeStart_mdl",
+  type_schedule_1L_chr = c("first", "repeat"),
+  use_schedule_1L_chr = "Y",
   use_trigger_1L_chr = "Z",
-  validate_schedule_1L_chr = "WaitInDays"
+  validate_schedule_1L_chr = "WaitInDays",
+  vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"),
+  workers_chr = make_worker_types(),
+  workers_medical_chr = make_worker_types("medical")
 )
 }
 \arguments{
-\item{event_nm_1L_chr}{Event name (a character vector of length one), Default: 'EpisodeofCareSequence'}
+\item{event_nm_1L_chr}{Event name (a character vector of length one), Default: 'EpisodeOfCareSequence'}
 
 \item{outcome_var_1L_chr}{Outcome variable (a character vector of length one), Default: 'K10'}
 
+\item{change_first_mdl}{Change first (a model), Default: 'K10_mdl'}
+
+\item{change_relapse_1L_chr}{Change relapse (a character vector of length one), Default: 'K10Relapse_mdl'}
+
+\item{ineligible_1L_chr}{Ineligible (a character vector of length one), Default: character(0)}
+
+\item{end_mdl_1L_chr}{End model (a character vector of length one), Default: 'EpisodeEnd_mdl'}
+
+\item{functions_ls}{Functions (a list), Default: make_ineligibility_fns_ls()}
+
 \item{start_mdl_1L_chr}{Start model (a character vector of length one), Default: 'EpisodeStart_mdl'}
+
+\item{type_schedule_1L_chr}{Type schedule (a character vector of length one), Default: c("first", "repeat")}
+
+\item{use_schedule_1L_chr}{Use schedule (a character vector of length one), Default: 'Y'}
 
 \item{use_trigger_1L_chr}{Use trigger (a character vector of length one), Default: 'Z'}
 
 \item{validate_schedule_1L_chr}{Validate schedule (a character vector of length one), Default: 'WaitInDays'}
+
+\item{vars_chr}{Variables (a character vector), Default: c("WaitInDays", "DaysToYearOneRepresentation")}
+
+\item{workers_chr}{Workers (a character vector), Default: make_worker_types()}
+
+\item{workers_medical_chr}{Workers medical (a character vector), Default: make_worker_types("medical")}
 }
 \value{
 X (Model event scheduling and event logic data.)

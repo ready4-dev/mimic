@@ -8,8 +8,10 @@ add_episode_wait_time(
   X_Ready4useDyad,
   episode_start_mdl = NULL,
   iterations_int = 1:100L,
+  never_1L_int = 366,
+  treatment_1L_chr = character(0),
   type_1L_chr = c("first", "repeat"),
-  treatment_1L_chr = character(0)
+  vars_chr = c("WaitInDays", "DaysToYearOneRepresentation")
 )
 }
 \arguments{
@@ -19,9 +21,13 @@ add_episode_wait_time(
 
 \item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("first", "repeat")}
+\item{never_1L_int}{Never (an integer vector of length one), Default: 366}
 
 \item{treatment_1L_chr}{Treatment (a character vector of length one), Default: character(0)}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("first", "repeat")}
+
+\item{vars_chr}{Variables (a character vector), Default: c("WaitInDays", "DaysToYearOneRepresentation")}
 }
 \value{
 X (A dataset and data dictionary pair.)

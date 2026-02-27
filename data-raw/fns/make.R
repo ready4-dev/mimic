@@ -1642,7 +1642,7 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
   type_schedule_1L_chr <- match.arg(type_schedule_1L_chr)
   X_MimicEvent <- MimicEvent()
   ##
-  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
   X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
@@ -2009,7 +2009,7 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
                                               use_trigger_1L_chr = "Z"){
   X_MimicEvent <- MimicEvent()
   ##
-  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
   X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
@@ -2586,7 +2586,7 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
                                               use_trigger_1L_chr = "Z"){
   X_MimicEvent <- MimicEvent()
   ##
-  X_MimicEvent@x_MimicEligible@condition_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
   X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
   X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr 

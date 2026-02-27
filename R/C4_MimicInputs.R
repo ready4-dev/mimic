@@ -2,6 +2,7 @@
 #' 
 #' Model input data (lookup tables, regression models, population and parameters).
 #' 
+#' @include 
 #' @slot lookups_ls Lookups (a list)
 #' @slot models_ls Models (a list)
 #' @slot x_Ready4useDyad  (an instance of the Ready4useDyad class)

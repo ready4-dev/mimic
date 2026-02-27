@@ -11,7 +11,7 @@ Model event scheduling and event logic data.
 \section{Slots}{
 
 \describe{
-\item{\code{MimicEligible}}{(an instance of the MimicEligible class)}
+\item{\code{x_MimicEligible}}{(an instance of the MimicEligible class)}
 
 \item{\code{x_MimicSchedule}}{(an instance of the MimicSchedule class)}
 

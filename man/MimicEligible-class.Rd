@@ -11,9 +11,9 @@ Model event eligibility logic data.
 \section{Slots}{
 
 \describe{
-\item{\code{condition_1L_chr}}{(a character vector of length one)}
+\item{\code{ineligible_1L_chr}}{Ineligible (a character vector of length one)}
 
-\item{\code{functions_ls}}{(a list)}
+\item{\code{functions_ls}}{Functions (a list)}
 
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}

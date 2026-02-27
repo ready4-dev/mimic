@@ -881,6 +881,19 @@ make_iar_params <- function (processed_ls, raw_mds_data_ls, test_1L_chr, compara
     }
     return(parameters_dbl)
 }
+#' Make ineligibility functions list
+#' @description make_ineligibility_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make ineligibility functions list. The function returns Ineligibility (a list).
+#' @param post_fn Post (a function), Default: identity
+#' @param pre_fn Pre (a function), Default: identity
+#' @return Ineligibility (a list)
+#' @rdname make_ineligibility_fns_ls
+#' @export 
+#' @keywords internal
+make_ineligibility_fns_ls <- function (post_fn = identity, pre_fn = identity) 
+{
+    ineligibility_ls <- list(post_fn = identity, pre_fn = identity)
+    return(ineligibility_ls)
+}
 #' Make initialise list
 #' @description make_initialise_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make initialise list. The function returns Initialise (a list).
 #' @param default_fn Default (a function), Default: identity
@@ -2011,7 +2024,7 @@ make_postcode_lup <- function (url_1L_chr = character(0))
 #' @return Y (A dataset and data dictionary pair.)
 #' @rdname make_predd_observed_ds
 #' @export 
-#' @importFrom dplyr mutate inner_join select across
+#' @importFrom dplyr select mutate inner_join across
 #' @importFrom tidyr any_of all_of
 #' @importFrom tidyselect any_of
 #' @keywords internal
@@ -2020,9 +2033,13 @@ make_predd_observed_ds <- function (X_Ready4useDyad, Y_Ready4useDyad, consolidat
     select_chr = character(0), slim_1L_lgl = FALSE) 
 {
     new_chr <- setdiff(names(Y_Ready4useDyad@ds_tb), names(X_Ready4useDyad@ds_tb))
-    bind_tb <- X_Ready4useDyad@ds_tb %>% dplyr::mutate(Data = old_1L_chr) %>% 
-        dplyr::inner_join(Y_Ready4useDyad@ds_tb %>% dplyr::select(tidyr::any_of(c("UID", 
-            new_chr, join_with_chr)))) %>% dplyr::mutate(dplyr::across(tidyr::all_of(new_chr), 
+    join_tb <- Y_Ready4useDyad@ds_tb %>% dplyr::select(tidyr::any_of(c("UID", 
+        new_chr, join_with_chr)))
+    bind_tb <- X_Ready4useDyad@ds_tb %>% dplyr::mutate(Data = old_1L_chr)
+    if (ncol(join_tb) > 1) {
+        bind_tb <- bind_tb %>% dplyr::inner_join(join_tb)
+    }
+    bind_tb <- bind_tb %>% dplyr::mutate(dplyr::across(tidyr::all_of(new_chr), 
         ~NA_real_))
     if (!identical(consolidate_1L_chr, character(0))) {
         Y_Ready4useDyad <- transform_to_long_results(Y_Ready4useDyad, 
@@ -2249,37 +2266,19 @@ make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), f
             "_mdl"))
     return(tpm_mdls_ls)
 }
-#' Make project 2 episode sequence
-#' @description make_project_2_episode_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 episode sequence. The function is called for its side effects and does not return a value.
-#' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'EpisodeofCareSequence'
-#' @param outcome_var_1L_chr Outcome variable (a character vector of length one), Default: 'K10'
-#' @param start_mdl_1L_chr Start model (a character vector of length one), Default: 'EpisodeStart_mdl'
-#' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
-#' @param validate_schedule_1L_chr Validate schedule (a character vector of length one), Default: 'WaitInDays'
-#' @return X (Model event scheduling and event logic data.)
-#' @rdname make_project_2_episode_sequence
+#' Make project 2 derive list
+#' @description make_project_2_derive_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 derive list. The function returns Derive (a list).
+#' @param function_fn Function (a function), Default: NULL
+#' @param discard_chr Discard (a character vector), Default: character(0)
+#' @param keep_chr Keep (a character vector), Default: character(0)
+#' @return Derive (a list)
+#' @rdname make_project_2_derive_ls
 #' @export 
+#' @importFrom purrr discard_at keep_at
 #' @keywords internal
-make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeofCareSequence", outcome_var_1L_chr = "K10", 
-    start_mdl_1L_chr = "EpisodeStart_mdl", use_trigger_1L_chr = "Z", 
-    validate_schedule_1L_chr = "WaitInDays") 
+make_project_2_derive_ls <- function (function_fn = NULL, discard_chr = character(0), keep_chr = character(0)) 
 {
-    X_MimicEvent <- MimicEvent()
-    X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr
-    X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
-    X_MimicEvent@x_MimicSchedule@validate_chr <- validate_schedule_1L_chr
-    X_MimicEvent@x_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
-    X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = start_mdl_1L_chr)
-    X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- list(treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", 
-        args_env_ls = list(match_value_xx = "arm_1L_chr"), args_fixed_ls = list(empty_xx = character(0), 
-            target_1L_chr = "Treatment", type_1L_chr = "Arm", 
-            what_1L_chr = c("arm"))))
-    X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
-    X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
-    X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
-    X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_episode
-    X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
-    X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", 
+    derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", 
         args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", 
             what_1L_chr = "inputs_ls")), sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", 
         args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")), 
@@ -2293,8 +2292,71 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeofCareSeq
             args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")), 
         utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", 
             args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
+    if (!is.null(function_fn)) {
+        derive_ls <- update_arguments_ls(derive_ls, function_fn = function_fn)
+    }
+    if (!identical(discard_chr, character())) {
+        derive_ls <- derive_ls %>% purrr::discard_at(discard_chr)
+    }
+    if (!identical(keep_chr, character())) {
+        derive_ls <- derive_ls %>% purrr::keep_at(keep_chr)
+    }
+    return(derive_ls)
+}
+#' Make project 2 episode sequence
+#' @description make_project_2_episode_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 episode sequence. The function is called for its side effects and does not return a value.
+#' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'EpisodeOfCareSequence'
+#' @param outcome_var_1L_chr Outcome variable (a character vector of length one), Default: 'K10'
+#' @param change_first_mdl Change first (a model), Default: 'K10_mdl'
+#' @param change_relapse_1L_chr Change relapse (a character vector of length one), Default: 'K10Relapse_mdl'
+#' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
+#' @param end_mdl_1L_chr End model (a character vector of length one), Default: 'EpisodeEnd_mdl'
+#' @param functions_ls Functions (a list), Default: make_ineligibility_fns_ls()
+#' @param start_mdl_1L_chr Start model (a character vector of length one), Default: 'EpisodeStart_mdl'
+#' @param type_schedule_1L_chr Type schedule (a character vector of length one), Default: c("first", "repeat")
+#' @param use_schedule_1L_chr Use schedule (a character vector of length one), Default: 'Y'
+#' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
+#' @param validate_schedule_1L_chr Validate schedule (a character vector of length one), Default: 'WaitInDays'
+#' @param vars_chr Variables (a character vector), Default: c("WaitInDays", "DaysToYearOneRepresentation")
+#' @param workers_chr Workers (a character vector), Default: make_worker_types()
+#' @param workers_medical_chr Workers medical (a character vector), Default: make_worker_types("medical")
+#' @return X (Model event scheduling and event logic data.)
+#' @rdname make_project_2_episode_sequence
+#' @export 
+#' @keywords internal
+make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSequence", outcome_var_1L_chr = "K10", 
+    change_first_mdl = "K10_mdl", change_relapse_1L_chr = "K10Relapse_mdl", 
+    ineligible_1L_chr = character(0), end_mdl_1L_chr = "EpisodeEnd_mdl", 
+    functions_ls = make_ineligibility_fns_ls(), start_mdl_1L_chr = "EpisodeStart_mdl", 
+    type_schedule_1L_chr = c("first", "repeat"), use_schedule_1L_chr = "Y", 
+    use_trigger_1L_chr = "Z", validate_schedule_1L_chr = "WaitInDays", 
+    vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"), 
+    workers_chr = make_worker_types(), workers_medical_chr = make_worker_types("medical")) 
+{
+    type_schedule_1L_chr <- match.arg(type_schedule_1L_chr)
+    X_MimicEvent <- MimicEvent()
+    X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
+    X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
+    X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_episode_wait_time
+    X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+    X_MimicEvent@x_MimicSchedule@validate_chr <- validate_schedule_1L_chr
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@iterations_1L_lgl <- TRUE
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = start_mdl_1L_chr)
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn)
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr, 
+        vars_chr = vars_chr)
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(never_1L_int = "never_1L_int")
+    X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+    X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+    X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_episode
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, 
-        k10_var_1L_chr = outcome_var_1L_chr)
+        episode_end_1L_chr = end_mdl_1L_chr, k10_1L_chr = change_first_mdl, 
+        k10_relapse_1L_chr = change_relapse_1L_chr, k10_var_1L_chr = outcome_var_1L_chr, 
+        workers_chr = workers_chr, medical_chr = workers_medical_chr)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", 
         tx_prefix_1L_chr = "tx_prefix_1L_chr")
     return(X_MimicEvent)
@@ -2664,6 +2726,39 @@ make_project_2_outcomes_ls <- function ()
         11:14)), iar_dst = c("iar_dst_recommended_level_of_care", 
         "iar_dst_practitioner_level_of_care"))
     return(outcomes_ls)
+}
+#' Make project 2 regression to mean
+#' @description make_project_2_regression_to_mean() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 regression to mean. The function is called for its side effects and does not return a value.
+#' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'RegressionToMean'
+#' @param functions_ls Functions (a list), Default: make_ineligibility_fns_ls()
+#' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
+#' @param outcome_var_1L_chr Outcome variable (a character vector of length one), Default: 'K10'
+#' @param use_schedule_1L_chr Use schedule (a character vector of length one), Default: 'Y'
+#' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
+#' @return X (Model event scheduling and event logic data.)
+#' @rdname make_project_2_regression_to_mean
+#' @export 
+#' @keywords internal
+make_project_2_regression_to_mean <- function (event_nm_1L_chr = "RegressionToMean", functions_ls = make_ineligibility_fns_ls(), 
+    ineligible_1L_chr = character(0), outcome_var_1L_chr = "K10", 
+    use_schedule_1L_chr = "Y", use_trigger_1L_chr = "Z") 
+{
+    X_MimicEvent <- MimicEvent()
+    X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
+    X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
+    X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
+    X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+    X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+    X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+    X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_regression_to_mean
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws, 
+        k10_var_1L_chr = outcome_var_1L_chr)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
+    return(X_MimicEvent)
 }
 #' Make project 2 regressions list
 #' @description make_project_2_regressions_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 regressions list. The function returns Regressions (a list).
@@ -3234,6 +3329,42 @@ make_project_2_theme_fn <- function (output_1L_chr = c("Word", "PDF", "HTML"))
         }
     }
     return(plot_fn)
+}
+#' Make project 2 untreated sequence
+#' @description make_project_2_untreated_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 untreated sequence. The function is called for its side effects and does not return a value.
+#' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'UpdateUntreatedOutcomes'
+#' @param action_fn Action (a function), Default: add_regression_to_mean
+#' @param draws_fn Draws (a function), Default: add_project_2_k10_draws
+#' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
+#' @param functions_ls Functions (a list), Default: make_ineligibility_fns_ls()
+#' @param use_schedule_1L_chr Use schedule (a character vector of length one), Default: 'Y'
+#' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
+#' @return X (Model event scheduling and event logic data.)
+#' @rdname make_project_2_untreated_sequence
+#' @export 
+#' @keywords internal
+make_project_2_untreated_sequence <- function (event_nm_1L_chr = "UpdateUntreatedOutcomes", action_fn = add_regression_to_mean, 
+    draws_fn = add_project_2_k10_draws, ineligible_1L_chr = character(0), 
+    functions_ls = make_ineligibility_fns_ls(), use_schedule_1L_chr = "Y", 
+    use_trigger_1L_chr = "Z") 
+{
+    X_MimicEvent <- MimicEvent()
+    X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
+    X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
+    X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
+    X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+    X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+    X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+    X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- action_fn
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, 
+        k10_draws_fn = draws_fn)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", 
+        tx_prefix_1L_chr = "tx_prefix_1L_chr")
+    return(X_MimicEvent)
 }
 #' Make project 2 variables
 #' @description make_project_2_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 variables. The function returns Variables (a character vector).
@@ -5934,6 +6065,7 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 #' @description make_simulation_fns_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulation functions list. The function returns Simulation functions (a list).
 #' @param type_1L_chr Type (a character vector of length one), Default: c("all", "main", "processing", "sensitivity", "transformation")
 #' @param comparator_fn Comparator (a function), Default: identity
+#' @param customise_fn Customise (a function), Default: identity
 #' @param extra_draws_fn Extra draws (a function), Default: NULL
 #' @param initialise_ls Initialise (a list), Default: make_initialise_ls()
 #' @param intervention_fn Intervention (a function), Default: identity
@@ -5947,25 +6079,27 @@ make_simulated_draws <- function (model_mdl, new_data_tb, sample_fn = rnorm, ite
 #' @importFrom purrr keep_at
 #' @keywords internal
 make_simulation_fns_ls <- function (type_1L_chr = c("all", "main", "processing", "sensitivity", 
-    "transformation"), comparator_fn = identity, extra_draws_fn = NULL, 
-    initialise_ls = make_initialise_ls(), intervention_fn = identity, 
-    sensitivities_ls = make_sensitivities_ls(), synthesis_fn = make_project_results_synthesis, 
-    transformation_ls = make_class_tfmns(), ...) 
+    "transformation"), comparator_fn = identity, customise_fn = identity, 
+    extra_draws_fn = NULL, initialise_ls = make_initialise_ls(), 
+    intervention_fn = identity, sensitivities_ls = make_sensitivities_ls(), 
+    synthesis_fn = make_project_results_synthesis, transformation_ls = make_class_tfmns(), 
+    ...) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     extras_ls <- list(...)
     simulation_fns_ls <- list(comparator_fn = comparator_fn, 
-        extra_draws_fn = extra_draws_fn, initialise_ls = initialise_ls, 
-        intervention_fn = intervention_fn, synthesis_fn = synthesis_fn, 
-        sensitivities_ls = sensitivities_ls, transformation_ls = transformation_ls) %>% 
-        append(extras_ls)
+        customise_fn = customise_fn, extra_draws_fn = extra_draws_fn, 
+        initialise_ls = initialise_ls, intervention_fn = intervention_fn, 
+        synthesis_fn = synthesis_fn, sensitivities_ls = sensitivities_ls, 
+        transformation_ls = transformation_ls) %>% append(extras_ls)
     if (type_1L_chr == "main") {
         simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("comparator_fn", 
             "intervention_fn", names(extras_ls)))
     }
     if (type_1L_chr == "processing") {
-        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("extra_draws_fn", 
-            "initialise_ls", "synthesis_fn", names(extras_ls)))
+        simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("customise_fn", 
+            "extra_draws_fn", "initialise_ls", "synthesis_fn", 
+            names(extras_ls)))
     }
     if (type_1L_chr == "sensitivity") {
         simulation_fns_ls <- simulation_fns_ls %>% purrr::keep_at(c("sensitivities_ls", 

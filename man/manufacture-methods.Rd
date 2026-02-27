@@ -3,10 +3,10 @@
 \name{manufacture-MimicArguments}
 \alias{manufacture-MimicArguments}
 \alias{manufacture,MimicArguments-method}
-\alias{manufacture-MimicConfiguration}
-\alias{manufacture,MimicConfiguration-method}
 \alias{manufacture-MimicEligible}
 \alias{manufacture,MimicEligible-method}
+\alias{manufacture-MimicConfiguration}
+\alias{manufacture,MimicConfiguration-method}
 \alias{manufacture-MimicRepos}
 \alias{manufacture,MimicRepos-method}
 \alias{manufacture-MimicPopulation}
@@ -26,6 +26,14 @@
   ...
 )
 
+\S4method{manufacture}{MimicEligible}(
+  x,
+  append_ls = list(),
+  type_1L_chr = c("filter", "reset"),
+  what_1L_chr = "args_ls",
+  ...
+)
+
 \S4method{manufacture}{MimicConfiguration}(
   x,
   arm_1L_chr = NA_character_,
@@ -35,14 +43,6 @@
   tx_prefix_1L_chr = character(0),
   type_1L_chr = c("current", "entry"),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
-)
-
-\S4method{manufacture}{MimicEligible}(
-  x,
-  append_ls = list(),
-  type_1L_chr = c("filter", "reset"),
-  what_1L_chr = "args_ls",
-  ...
 )
 
 \S4method{manufacture}{MimicRepos}(
@@ -82,6 +82,10 @@
 
 \item{...}{Additional arguments}
 
+\item{append_ls}{Append (a list), Default: list()}
+
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
+
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: 'NA'}
 
 \item{draws_tb}{Draws (a tibble), Default: NULL}
@@ -89,10 +93,6 @@
 \item{extras_ls}{Extras (a list), Default: list()}
 
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
-
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
-
-\item{append_ls}{Append (a list), Default: list()}
 
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 
@@ -122,9 +122,9 @@ Object (an output object of multiple potential types)
 \description{
 manufacture method applied to MimicArguments
 
-manufacture method applied to MimicConfiguration
-
 manufacture method applied to MimicEligible
+
+manufacture method applied to MimicConfiguration
 
 manufacture method applied to MimicRepos
 

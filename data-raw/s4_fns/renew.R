@@ -34,7 +34,7 @@ renew_MimicActive <- function(x,
                  invalid_fn = X_MimicEvent@x_MimicSchedule@functions_ls$invalid_fn)
     x@x_Ready4useDyad <- update_next_date(x@x_Ready4useDyad)
     x@x_Ready4useDyad <- update_next_event(x@x_Ready4useDyad)
-    x@x_Ready4useDyad <- add_ineligible(x@x_Ready4useDyad, condition_1L_chr = "is.na(ScheduledFor)") ###
+    x@x_Ready4useDyad <- add_ineligible(x@x_Ready4useDyad, ineligible_1L_chr = "is.na(ScheduledFor)") ###
   }
   if(type_1L_chr == "trigger"){
     x@x_Ready4useDyad <- update_current_date(x@x_Ready4useDyad)
@@ -129,7 +129,7 @@ renew_MimicPopulation <- function(x,
     }
     if(nrow(X_Ready4useDyad@ds_tb)>0){
       population_ls <- manufacture(x, what_1L_chr = "population_ls")
-      args_ls <- manufactureSlot(X_MimicEvent, "x_MimicEligible", append_ls = list(condition_1L_chr = "TRUE"), type_1L_chr = type_1L_chr)
+      args_ls <- manufactureSlot(X_MimicEvent, "x_MimicEligible", append_ls = list(ineligible_1L_chr = "TRUE"), type_1L_chr = type_1L_chr)
       if(what_1L_chr=="Y"){
         population_ls$Y_Ready4useDyad <- rlang::exec(add_ineligible, X_Ready4useDyad, !!!args_ls)
       }

@@ -123,6 +123,16 @@ y <- ready4class::ready4class_constructor() %>%
                                                                                     reports_dir_1L_chr = "'Reports'")),
                                                                 class_desc_chr= "Local and remote repositories for model input and output data.",
                                                                 parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
+                                                                name_stub_chr = "EventsList",
+                                                                slots_ls = list("events_ls", "last_1L_chr", "main_chr") %>% list(), 
+                                                                pt_ls = list("list", "character", "character") %>% list(),
+                                                                vals_ls = list(list(
+                                                                  events_ls = "list()",
+                                                                  last_1L_chr = "'WrapUp'",
+                                                                  main_chr = "character(0)")),
+                                                                class_desc_chr = "Data on all events included in model.",
+                                                                parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Configuration",
                                                                 slots_ls = list(
@@ -131,7 +141,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "drop_suffix_1L_chr",
                                                                   "horizon_dtm", 
                                                                   "iterations_ls",  
-                                                                  "modifiable_chr" , 
+                                                                  "modifiable_chr", 
                                                                   "prior_batches_1L_int", # DELETE
                                                                   # Add prefixes_ls
                                                                   "seed_1L_int",
@@ -165,10 +175,10 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   prior_batches_1L_int = "0L",
                                                                   seed_1L_int = "2001L",
                                                                   start_dtm = "Sys.Date()",
-                                                                  tx_prefix_1L_chr = "Treatment")),
+                                                                  tx_prefix_1L_chr = "'Treatment'")),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicAlgorithms","EventsList","MimicInputs"
+                                                                inc_clss_ls = list("MimicAlgorithms","MimicEventsList","MimicInputs"
                                                                                    ) %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Derivations",
@@ -220,10 +230,10 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 inc_clss_ls = list("MimicArguments") %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Eligible",
-                                                                slots_ls = list("condition_1L_chr","functions_ls") %>% list(), 
+                                                                slots_ls = list("ineligible_1L_chr","functions_ls") %>% list(), 
                                                                 pt_ls = list("character","list") %>% list(),
                                                                 vals_ls = list(list(
-                                                                  condition_1L_chr = "character(0)",
+                                                                  ineligible_1L_chr = "character(0)",
                                                                   functions_ls = "make_ineligibility_fns_ls()")),
                                                                 class_desc_chr = "Model event eligibility logic data.",
                                                                 parent_class_chr = "Ready4Module"),
@@ -237,17 +247,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                              "MimicTrigger") %>% list(),
                                                                 class_desc_chr = "Model event scheduling and event logic data.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list()),
-                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
-                                                                name_stub_chr = "EventsList",
-                                                                slots_ls = list("events_ls", "last_1L_chr", "main_chr") %>% list(), 
-                                                                pt_ls = list("list","character","character") %>% list(),
-                                                                vals_ls = list(list(
-                                                                  events_ls = "list()",
-                                                                  last_1L_chr = "WrapUp",
-                                                                  main_chr = "character(0)",)),
-                                                                class_desc_chr = "Data on all events included in model.",
-                                                                parent_class_chr = "Ready4Module"),
+                                                                inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list())
                    
                    
   )

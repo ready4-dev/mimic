@@ -8,7 +8,7 @@ predict_project_2_pathway(
   inputs_ls = NULL,
   add_logic_fn = identity,
   arm_1L_chr,
-  arms_chr,
+  arms_chr = character(0),
   arms_for_intervention_costs_chr = character(0),
   arms_for_offsets_chr = character(0),
   arms_for_non_helpseeking_chr = character(0),
@@ -17,7 +17,7 @@ predict_project_2_pathway(
   draws_tb = NULL,
   extra_draws_fn = NULL,
   horizon_dtm = lubridate::years(1),
-  iterations_int = 1:100L,
+  iterations_int = integer(0),
   modifiable_chr = make_project_2_vars("modify"),
   seed_1L_int = 2001L,
   sensitivities_ls = make_project_2_sensitivities_ls(),
@@ -37,7 +37,7 @@ predict_project_2_pathway(
 
 \item{arm_1L_chr}{Arm (a character vector of length one)}
 
-\item{arms_chr}{Arms (a character vector)}
+\item{arms_chr}{Arms (a character vector), Default: character(0)}
 
 \item{arms_for_intervention_costs_chr}{Arms for intervention costs (a character vector), Default: character(0)}
 
@@ -55,7 +55,7 @@ predict_project_2_pathway(
 
 \item{horizon_dtm}{Horizon (a date vector), Default: lubridate::years(1)}
 
-\item{iterations_int}{Iterations (an integer vector), Default: 1:100L}
+\item{iterations_int}{Iterations (an integer vector), Default: integer(0)}
 
 \item{modifiable_chr}{Modifiable (a character vector), Default: make_project_2_vars("modify")}
 

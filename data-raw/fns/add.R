@@ -1116,25 +1116,25 @@ add_imputed_data <-function (X_Ready4useDyad, Y_Ready4useDyad = ready4use::Ready
   return(Z_Ready4useDyad)
 }
 add_ineligible <- function(X_Ready4useDyad,
-                           condition_1L_chr = character(0),
+                           ineligible_1L_chr = character(0),
                            post_fn = identity,
                            pre_fn = identity,
                            type_1L_chr = c("filter", "reset")){
   type_1L_chr <- match.arg(type_1L_chr)
   X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% pre_fn)
   if(type_1L_chr == "filter"){
-    if(!identical(condition_1L_chr, character(0))){
+    if(!identical(ineligible_1L_chr, character(0))){
       X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",condition_1L_chr,")"))) %>%
+                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",ineligible_1L_chr,")"))) %>%
                                       dplyr::mutate(InModel = dplyr::case_when(InModel & TEMPORYINELIGIBILITYTEST ~ NA,
                                                                                T ~ InModel)) %>%
                                       dplyr::select(-TEMPORYINELIGIBILITYTEST))
     }
   }
   if(type_1L_chr == "reset"){
-    if(!identical(condition_1L_chr, character(0))){
+    if(!identical(ineligible_1L_chr, character(0))){
       X_Ready4useDyad  <- renewSlot(X_Ready4useDyad, "ds_tb",
-                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",condition_1L_chr,")"))) %>%
+                                    eval(parse(text = paste0("X_Ready4useDyad@ds_tb %>% dplyr::mutate(TEMPORYINELIGIBILITYTEST = ",ineligible_1L_chr,")"))) %>%
                                       dplyr::mutate(InModel = dplyr::case_when(is.na(InModel) & TEMPORYINELIGIBILITYTEST ~ TRUE,
                                                                                T ~ InModel)) %>%
                                       dplyr::select(-TEMPORYINELIGIBILITYTEST))

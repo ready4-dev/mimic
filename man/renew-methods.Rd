@@ -42,7 +42,8 @@
 
 \item{env_ls}{Environment list (a list of environments), Default: list()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("trigger", "customise", "event", "schedule", "switch", "transform")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("trigger", "customise", "filter", "event", "reset", "schedule",
+"switch", "transform")}
 
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
@@ -52,7 +53,9 @@
 
 \item{population_ls}{Population (a list), Default: NULL}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("population")}
+\item{use_1L_chr}{Use (a character vector of length one), Default: 'Y'}
+
+\item{what_1L_chr}{What (a character vector of length one), Default: c("legacy")}
 }
 \value{
 x (An object of class MimicActive)

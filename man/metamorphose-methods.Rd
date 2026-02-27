@@ -3,7 +3,7 @@
 \name{metamorphose-MimicConfiguration}
 \alias{metamorphose-MimicConfiguration}
 \alias{metamorphose,MimicConfiguration-method}
-\title{Metamorphose to a new Ready4Module}
+\title{Metamorphose a model module to a model module of a different (non-inheriting) class}
 \usage{
 \S4method{metamorphose}{MimicConfiguration}(
   x,
@@ -29,12 +29,12 @@
 
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
 
-\item{...}{Additional arguments}
+\item{Y_Ready4Module}{PARAM_DESCRIPTION, Default: Ready4Module()}
 
-\item{X_Ready4Module}{PARAM_DESCRIPTION, Default: Ready4Module()}
+\item{...}{Additional arguments}
 }
 \value{
-Object (an output object of multiple potential types)
+Y_Ready4Module (An object)
 }
 \description{
 metamorphose method applied to MimicConfiguration
