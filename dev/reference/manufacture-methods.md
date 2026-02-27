@@ -43,7 +43,6 @@ manufacture(
   batch_1L_int = integer(0),
   draws_tb = NULL,
   extras_ls = list(),
-  tx_prefix_1L_chr = character(0),
   type_1L_chr = c("current", "entry"),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
 )
@@ -123,11 +122,6 @@ manufacture(
 - extras_ls:
 
   Extras (a list), Default: list()
-
-- tx_prefix_1L_chr:
-
-  Treatment prefix (a character vector of length one), Default:
-  character(0)
 
 - prefix_1L_chr:
 

@@ -49,9 +49,9 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <span>  <span class="va">x</span>,</span>
 <span>  batch_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  env_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  event_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"trigger"</span>, <span class="st">"customise"</span>, <span class="st">"filter"</span>, <span class="st">"schedule"</span><span class="op">)</span>,</span>
 <span>  X_MimicConfiguration <span class="op">=</span> <span class="fu"><a href="MimicConfiguration-class.html">MimicConfiguration</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  X_MimicEvent <span class="op">=</span> <span class="fu"><a href="MimicEvent-class.html">MimicEvent</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -60,13 +60,13 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <span>  <span class="va">x</span>,</span>
 <span>  batch_1L_int <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  env_ls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  event_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  population_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"trigger"</span>, <span class="st">"customise"</span>, <span class="st">"filter"</span>, <span class="st">"event"</span>, <span class="st">"reset"</span>, <span class="st">"schedule"</span>,</span>
 <span>    <span class="st">"switch"</span>, <span class="st">"transform"</span><span class="op">)</span>,</span>
 <span>  use_1L_chr <span class="op">=</span> <span class="st">"Y"</span>,</span>
 <span>  what_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  X_MimicConfiguration <span class="op">=</span> <span class="fu"><a href="MimicConfiguration-class.html">MimicConfiguration</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  X_MimicEvent <span class="op">=</span> <span class="fu"><a href="MimicEvent-class.html">MimicEvent</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -90,6 +90,10 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 <dd><p>Environment list (a list of environments), Default: list()</p></dd>
 
 
+<dt id="arg-event-l-chr">event_1L_chr<a class="anchor" aria-label="anchor" href="#arg-event-l-chr"></a></dt>
+<dd><p>Event (a character vector of length one), Default: character(0)</p></dd>
+
+
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
 <dd><p>Type (a character vector of length one), Default: c("trigger", "customise", "filter", "event", "reset", "schedule",
 "switch", "transform")</p></dd>
@@ -97,10 +101,6 @@ renew method applied to MimicConfiguration"><meta property="og:image" content="h
 
 <dt id="arg-x-mimicconfiguration">X_MimicConfiguration<a class="anchor" aria-label="anchor" href="#arg-x-mimicconfiguration"></a></dt>
 <dd><p>PARAM_DESCRIPTION, Default: MimicConfiguration()</p></dd>
-
-
-<dt id="arg-x-mimicevent">X_MimicEvent<a class="anchor" aria-label="anchor" href="#arg-x-mimicevent"></a></dt>
-<dd><p>PARAM_DESCRIPTION, Default: MimicEvent()</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
