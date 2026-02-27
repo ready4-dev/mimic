@@ -1,0 +1,40 @@
+# Add project 2 customisation
+
+add_project_2_customisation() is an Add function that updates an object
+by adding new values to new or empty fields. Specifically, this function
+implements an algorithm to add project 2 customisation. The function is
+called for its side effects and does not return a value.
+
+## Usage
+
+``` r
+add_project_2_customisation(
+  X_Ready4useDyad,
+  arms_for_non_helpseeking_chr = character(0),
+  arms_for_iar_adjustment_chr = character(0),
+  reset_date_1L_lgl = TRUE
+)
+```
+
+## Arguments
+
+- X_Ready4useDyad:
+
+  PARAM_DESCRIPTION
+
+- arms_for_non_helpseeking_chr:
+
+  Arms for non helpseeking (a character vector), Default: character(0)
+
+- arms_for_iar_adjustment_chr:
+
+  Arms for Initial Assessment andeferral adjustment (a character
+  vector), Default: character(0)
+
+- reset_date_1L_lgl:
+
+  Reset date (a logical vector of length one), Default: TRUE
+
+## Value
+
+X (A dataset and data dictionary pair.)

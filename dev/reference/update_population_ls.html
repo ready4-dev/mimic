@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9011</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9012</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">update_population_ls</span><span class="op">(</span></span>
 <span>  population_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  X_Ready4useDyad <span class="op">=</span> <span class="fu">ready4use</span><span class="fu">::</span><span class="fu"><a href="https://ready4-dev.github.io/ready4use/reference/Ready4useDyad-class.html" class="external-link">Ready4useDyad</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"split"</span>, <span class="st">"join"</span>, <span class="st">"form"</span><span class="op">)</span>,</span>
+<span>  split_test_fn <span class="op">=</span> <span class="va">is.na</span>,</span>
+<span>  split_var_1L_chr <span class="op">=</span> <span class="st">"ScheduledFor"</span>,</span>
+<span>  type_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"split"</span>, <span class="st">"join"</span>, <span class="st">"form"</span>, <span class="st">"switch"</span><span class="op">)</span>,</span>
 <span>  use_1L_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Y"</span>, <span class="st">"Z"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -58,8 +60,16 @@
 <dd><p>PARAM_DESCRIPTION, Default: ready4use::Ready4useDyad()</p></dd>
 
 
+<dt id="arg-split-test-fn">split_test_fn<a class="anchor" aria-label="anchor" href="#arg-split-test-fn"></a></dt>
+<dd><p>Split test (a function), Default: is.na</p></dd>
+
+
+<dt id="arg-split-var-l-chr">split_var_1L_chr<a class="anchor" aria-label="anchor" href="#arg-split-var-l-chr"></a></dt>
+<dd><p>Split variable (a character vector of length one), Default: 'ScheduledFor'</p></dd>
+
+
 <dt id="arg-type-l-chr">type_1L_chr<a class="anchor" aria-label="anchor" href="#arg-type-l-chr"></a></dt>
-<dd><p>Type (a character vector of length one), Default: c("split", "join", "form")</p></dd>
+<dd><p>Type (a character vector of length one), Default: c("split", "join", "form", "switch")</p></dd>
 
 
 <dt id="arg-use-l-chr">use_1L_chr<a class="anchor" aria-label="anchor" href="#arg-use-l-chr"></a></dt>

@@ -4,11 +4,15 @@ Model event scheduling and event logic data.
 
 ## Slots
 
+- `x_MimicEligible`:
+
+  (an instance of the MimicEligible class)
+
 - `x_MimicSchedule`:
 
   (an instance of the MimicSchedule class)
 
-- `y_MimicTrigger`:
+- `x_MimicTrigger`:
 
   (an instance of the MimicTrigger class)
 

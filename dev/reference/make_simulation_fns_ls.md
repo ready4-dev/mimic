@@ -10,6 +10,7 @@ functions list. The function returns Simulation functions (a list).
 make_simulation_fns_ls(
   type_1L_chr = c("all", "main", "processing", "sensitivity", "transformation"),
   comparator_fn = identity,
+  customise_fn = identity,
   extra_draws_fn = NULL,
   initialise_ls = make_initialise_ls(),
   intervention_fn = identity,
@@ -30,6 +31,10 @@ make_simulation_fns_ls(
 - comparator_fn:
 
   Comparator (a function), Default: identity
+
+- customise_fn:
+
+  Customise (a function), Default: identity
 
 - extra_draws_fn:
 

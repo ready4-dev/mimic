@@ -40,17 +40,21 @@ Configuration details for a simulation run.
 
   Start (a date vector)
 
+- `tx_prefix_1L_chr`:
+
+  Treatment prefix (a character vector of length one)
+
 - `x_MimicAlgorithms`:
 
   (an instance of the MimicAlgorithms class)
 
+- `x_MimicEventsList`:
+
+  (an instance of the MimicEventsList class)
+
 - `x_MimicInputs`:
 
   (an instance of the MimicInputs class)
-
-- `x_MimicPopulation`:
-
-  (an instance of the MimicPopulation class)
 
 - `dissemination_1L_chr`:
 

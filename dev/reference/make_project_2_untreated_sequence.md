@@ -1,0 +1,55 @@
+# Make project 2 untreated sequence
+
+make_project_2_untreated_sequence() is a Make function that creates a
+new R object. Specifically, this function implements an algorithm to
+make project 2 untreated sequence. The function is called for its side
+effects and does not return a value.
+
+## Usage
+
+``` r
+make_project_2_untreated_sequence(
+  event_nm_1L_chr = "UpdateUntreatedOutcomes",
+  action_fn = add_regression_to_mean,
+  draws_fn = add_project_2_k10_draws,
+  ineligible_1L_chr = character(0),
+  functions_ls = make_ineligibility_fns_ls(),
+  use_schedule_1L_chr = "Y",
+  use_trigger_1L_chr = "Z"
+)
+```
+
+## Arguments
+
+- event_nm_1L_chr:
+
+  Event name (a character vector of length one), Default:
+  'UpdateUntreatedOutcomes'
+
+- action_fn:
+
+  Action (a function), Default: add_regression_to_mean
+
+- draws_fn:
+
+  Draws (a function), Default: add_project_2_k10_draws
+
+- ineligible_1L_chr:
+
+  Ineligible (a character vector of length one), Default: character(0)
+
+- functions_ls:
+
+  Functions (a list), Default: make_ineligibility_fns_ls()
+
+- use_schedule_1L_chr:
+
+  Use schedule (a character vector of length one), Default: 'Y'
+
+- use_trigger_1L_chr:
+
+  Use trigger (a character vector of length one), Default: 'Z'
+
+## Value
+
+X (Model event scheduling and event logic data.)

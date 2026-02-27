@@ -14,7 +14,7 @@ renew(
   x,
   batch_1L_int = integer(0),
   env_ls = list(),
-  type_1L_chr = c("trigger", "customise", "schedule"),
+  type_1L_chr = c("trigger", "customise", "filter", "schedule"),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),
   ...
@@ -26,7 +26,9 @@ renew(
   batch_1L_int = integer(0),
   env_ls = list(),
   population_ls = NULL,
-  type_1L_chr = c("trigger", "customise", "schedule", "switch", "transform"),
+  type_1L_chr = c("trigger", "customise", "filter", "event", "reset", "schedule",
+    "switch", "transform"),
+  use_1L_chr = "Y",
   what_1L_chr = character(0),
   X_MimicConfiguration = MimicConfiguration(),
   X_MimicEvent = MimicEvent(),
@@ -34,18 +36,7 @@ renew(
 )
 
 # S4 method for class 'MimicConfiguration'
-renew(
-  x,
-  arm_1L_chr = character(0),
-  batch_1L_int = integer(0),
-  draws_tb = NULL,
-  env_ls = list(),
-  tx_prefix_1L_chr = character(0),
-  type_1L_chr = c("event", "form", "schedule", "trigger"),
-  what_1L_chr = c("population"),
-  X_MimicEvent = MimicEvent(),
-  ...
-)
+renew(x, env_ls = list(), what_1L_chr = c("legacy"), ...)
 ```
 
 ## Arguments
@@ -64,7 +55,9 @@ renew(
 
 - type_1L_chr:
 
-  Type (a character vector of length one), Default: c("default", "form")
+  Type (a character vector of length one), Default: c("trigger",
+  "customise", "filter", "event", "reset", "schedule", "switch",
+  "transform")
 
 - X_MimicConfiguration:
 
@@ -82,22 +75,13 @@ renew(
 
   Population (a list), Default: NULL
 
+- use_1L_chr:
+
+  Use (a character vector of length one), Default: 'Y'
+
 - what_1L_chr:
 
-  What (a character vector of length one), Default: c("population")
-
-- arm_1L_chr:
-
-  Arm (a character vector of length one), Default: character(0)
-
-- draws_tb:
-
-  Draws (a tibble), Default: NULL
-
-- tx_prefix_1L_chr:
-
-  Treatment prefix (a character vector of length one), Default:
-  character(0)
+  What (a character vector of length one), Default: c("legacy")
 
 ## Value
 

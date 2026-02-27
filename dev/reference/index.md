@@ -20,6 +20,9 @@
 - [`MimicRepos-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   [`MimicRepos`](https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.md)
   : MimicRepos
+- [`MimicEventsList-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicEventsList-class.md)
+  [`MimicEventsList`](https://ready4-dev.github.io/mimic/dev/reference/MimicEventsList-class.md)
+  : MimicEventsList
 - [`MimicConfiguration-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
   [`MimicConfiguration`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
   : MimicConfiguration
@@ -35,6 +38,9 @@
 - [`MimicTrigger-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.md)
   [`MimicTrigger`](https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.md)
   : MimicTrigger
+- [`MimicEligible-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicEligible-class.md)
+  [`MimicEligible`](https://ready4-dev.github.io/mimic/dev/reference/MimicEligible-class.md)
+  : MimicEligible
 - [`MimicEvent-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.md)
   [`MimicEvent`](https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.md)
   : MimicEvent
@@ -60,12 +66,16 @@
 - [`ingest(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/ingest-methods.md)
   : Ingest data
 - [`manufacture(`*`<MimicArguments>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  [`manufacture(`*`<MimicEligible>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicInputs>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicDerivations>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   : Manufacture a new object
+- [`metamorphose(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/metamorphose-methods.md)
+  : Metamorphose a model module to a model module of a different
+  (non-inheriting) class
 - [`procure(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/procure-methods.md)
   : Procure data from a model module
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)

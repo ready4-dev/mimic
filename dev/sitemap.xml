@@ -9,7 +9,9 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicEligible-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicEvent-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicEventsList-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicInputs-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicPopulation-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicRepos-class.html</loc></url>
@@ -39,6 +41,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_iar_params.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_icer.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_imputed_data.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_ineligible.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_iteration_values_set.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_joiners_outcomes_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_k10_event.html</loc></url>
@@ -61,6 +64,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_cost_sa_1.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_cost_sa_2.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_costs.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_customisation.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_k10_draws.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_model_data.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_project_2_model_wrap_up.html</loc></url>
@@ -87,6 +91,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_treatment_status.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_unset_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_utility_event.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_wrap_up_date.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/author-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/calculate_aqol8d_from_k10.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/calculate_eq5d_from_k10.html</loc></url>
@@ -131,6 +136,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_episodes_lup.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_experts_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_iar_params.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_ineligibility_fns_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_initialise_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_interactions_summary.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_joiners_series.html</loc></url>
@@ -163,6 +169,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_1_results_synthesis.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_arms_extras_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_days_mdls.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_derive_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_episode_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_initialise_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_k10_change_mdls.html</loc></url>
@@ -171,6 +178,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_labels.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_minutes_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_outcomes_ls.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_regression_to_mean.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_regressions_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_report.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_results.html</loc></url>
@@ -181,6 +189,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_synthetic_pop.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_tfmn_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_theme_fn.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_untreated_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_activity_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_aqol6d_mdls.html</loc></url>
@@ -238,6 +247,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_weeks_suffix.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_worker_types.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/metamorphose-methods.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/mimic-package.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/nseequals.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/pipe.html</loc></url>
@@ -276,6 +286,8 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_mds_modelling_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_minute_var_nms.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_mismatched_vars.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_next_date.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_next_event.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_order.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_partial_results.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/update_population_classes.html</loc></url>
