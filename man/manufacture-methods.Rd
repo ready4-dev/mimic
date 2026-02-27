@@ -40,7 +40,6 @@
   batch_1L_int = integer(0),
   draws_tb = NULL,
   extras_ls = list(),
-  tx_prefix_1L_chr = character(0),
   type_1L_chr = c("current", "entry"),
   what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
 )
@@ -91,8 +90,6 @@
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
 \item{extras_ls}{Extras (a list), Default: list()}
-
-\item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
 
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 

@@ -1609,6 +1609,7 @@ make_project_2_derive_ls <- function(function_fn = NULL,
        tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
        treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
                                            args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
+       tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")),
        utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
        utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
   if(!is.null(function_fn)){
@@ -1666,7 +1667,7 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
                                                                                         k10_var_1L_chr = outcome_var_1L_chr,
                                                                                         workers_chr = workers_chr, ## NEED TO BE MOVED
                                                                                         medical_chr = workers_medical_chr)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int")
   return(X_MimicEvent)
 }
 make_project_2_initialise_ls <- function(derive_ls = list()){
@@ -2024,7 +2025,7 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws,
                                                                                         k10_var_1L_chr = outcome_var_1L_chr)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  # X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
 
@@ -2600,7 +2601,7 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", tx_prefix_1L_chr = "tx_prefix_1L_chr")
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int") #, tx_prefix_1L_chr = "tx_prefix_1L_chr"
   return(X_MimicEvent)
 }
 make_project_activity_ds <- function(raw_data_ls,
@@ -4821,6 +4822,12 @@ make_sensitivities_ls <- function(timestamp_1L_chr = "_YR1"){
                                                add_projected_decay,
                                                add_projected_growth) %>% stats::setNames(paste0(prefix_1L_chr,c("","_S1","_S2"))))
   return(sensitivities_ls)
+}
+make_sim_env_ls <- function(sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration"){
+  sim_env_ls <- sim_env_ls %>%
+    purrr::discard_at(c("discard")) %>% append(append_ls) 
+  sim_env_ls[names(sim_env_ls) %>% sort()]
+  return(sim_env_ls)
 }
 make_simulated_draws <- function(model_mdl,
                                  new_data_tb,

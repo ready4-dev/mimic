@@ -3,7 +3,7 @@ procure_MimicConfiguration <- function(x,
                                        match_value_xx = NULL,
                                        target_1L_chr = character(0),
                                        type_1L_chr = "Arm",
-                                       what_1L_chr = c("arm")){
+                                       what_1L_chr = c("arm", "event")){
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "arm"){
     object_xx <- x@arms_tb
@@ -19,7 +19,19 @@ procure_MimicConfiguration <- function(x,
         }
       }
     }
- 
+  }
+  if(what_1L_chr == "event"){
+    object_xx <- x@x_MimicEventsList@events_ls
+    if(type_1L_chr == "main"){
+      object_xx <- object_xx %>% purrr::keep_at(x@x_MimicEventsList@main_chr)
+    }
+    if(!identical(object_xx, list()) & !identical(target_1L_chr, character(0))){
+      if(target_1L_chr %in% names(object_xx)){
+        object_xx <- object_xx %>% purrr::pluck(target_1L_chr)
+      }else{
+        object_xx <- empty_xx
+      }
+    }
   }
   return(object_xx)
 }

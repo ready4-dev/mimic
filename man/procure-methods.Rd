@@ -11,7 +11,7 @@
   match_value_xx = NULL,
   target_1L_chr = character(0),
   type_1L_chr = "Arm",
-  what_1L_chr = c("arm")
+  what_1L_chr = c("arm", "event")
 )
 }
 \arguments{

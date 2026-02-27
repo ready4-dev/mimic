@@ -31,7 +31,7 @@ manufacture_MimicConfiguration <- function(x,
                                            batch_1L_int = integer(0),
                                            draws_tb = NULL,
                                            extras_ls = list(),
-                                           tx_prefix_1L_chr = character(0),
+                                           # tx_prefix_1L_chr = character(0),
                                            type_1L_chr = c("current", "entry"),
                                            what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")){
   what_1L_chr <- match.arg(what_1L_chr)
@@ -82,7 +82,7 @@ manufacture_MimicConfiguration <- function(x,
                                          draws_tb = draws_tb,
                                          iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
                                          tidy_cols_1L_lgl = T,
-                                         tx_prefix_1L_chr = tx_prefix_1L_chr) %>%
+                                         tx_prefix_1L_chr = x@tx_prefix_1L_chr) %>%
         update_population_ls(population_ls = NULL,  type_1L_chr = "form")
     }
   }

@@ -82,7 +82,6 @@ methods::setMethod("manufacture", "MimicEligible", function (x, append_ls = list
 #' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
 #' @param draws_tb Draws (a tibble), Default: NULL
 #' @param extras_ls Extras (a list), Default: list()
-#' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: character(0)
 #' @param type_1L_chr Type (a character vector of length one), Default: c("current", "entry")
 #' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "args_all", "iterations", "population_ls")
 #' @return Object (an output object of multiple potential types)
@@ -91,57 +90,67 @@ methods::setMethod("manufacture", "MimicEligible", function (x, append_ls = list
 #' @export 
 #' @importFrom purrr flatten_int
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr = NA_character_, batch_1L_int = integer(0), 
-    draws_tb = NULL, extras_ls = list(), tx_prefix_1L_chr = character(0), 
-    type_1L_chr = c("current", "entry"), what_1L_chr = c("draws_tb", 
-        "args_all", "iterations", "population_ls")) 
-{
-    what_1L_chr <- match.arg(what_1L_chr)
-    if (what_1L_chr == "args_all") {
-        object_xx <- list(arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, 
-            draws_tb = draws_tb, X_MimicConfiguration = x) %>% 
-            append(extras_ls)
+methods::setMethod("manufacture", "MimicConfiguration", function(x,
+                                                                 arm_1L_chr = NA_character_,
+                                                                 batch_1L_int = integer(0),
+                                                                 draws_tb = NULL,
+                                                                 extras_ls = list(),
+                                                                 # tx_prefix_1L_chr = character(0),
+                                                                 type_1L_chr = c("current", "entry"),
+                                                                 what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")){
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "args_all"){
+    object_xx <- list(
+      arm_1L_chr = arm_1L_chr,
+      # arms_chr = x@arms_tb$Arm,
+      batch_1L_int = batch_1L_int,
+      draws_tb = draws_tb,
+      X_MimicConfiguration = x) %>%
+      append(extras_ls) 
+  }
+  if(what_1L_chr == "draws_tb"){
+    iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
+    if(identical(batch_1L_int, integer(0))){
+      batch_1L_int <- 0
     }
-    if (what_1L_chr == "draws_tb") {
-        iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, 
-            what_1L_chr = "iterations")
-        if (identical(batch_1L_int, integer(0))) {
-            batch_1L_int <- 0
-        }
-        inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
-        object_xx <- make_draws_tb(inputs_ls, extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn, 
-            iterations_int = iterations_int, drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
-            drop_suffix_1L_chr = x@drop_suffix_1L_chr, seed_1L_int = x@seed_1L_int + 
-                batch_1L_int)
+    inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
+    object_xx <- make_draws_tb(inputs_ls, 
+                               extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
+                               iterations_int = iterations_int, 
+                               drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
+                               drop_suffix_1L_chr = x@drop_suffix_1L_chr, 
+                               seed_1L_int = x@seed_1L_int + batch_1L_int)
+  }
+  if(what_1L_chr == "iterations"){
+    if(identical(batch_1L_int, integer(0))){
+      object_xx <- x@iterations_ls %>% purrr::flatten_int()
+    }else{
+      object_xx <- x@iterations_ls[[batch_1L_int]]
+    } 
+  }
+  if(what_1L_chr == "population_ls"){
+    if(type_1L_chr == "current"){
+      object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
     }
-    if (what_1L_chr == "iterations") {
-        if (identical(batch_1L_int, integer(0))) {
-            object_xx <- x@iterations_ls %>% purrr::flatten_int()
-        }
-        else {
-            object_xx <- x@iterations_ls[[batch_1L_int]]
-        }
+    if(type_1L_chr == "entry"){
+      object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
+                                         default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
+                                         derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
+                                         horizon_dtm = x@horizon_dtm,
+                                         modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr),
+                                         start_dtm = x@start_dtm,  
+                                         tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
+                                         tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, empty_xx = NULL, target_1L_chr = "Treatment duration"),
+                                         arm_1L_chr = arm_1L_chr, 
+                                         default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls),
+                                         draws_tb = draws_tb,
+                                         iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
+                                         tidy_cols_1L_lgl = T,
+                                         tx_prefix_1L_chr = x@tx_prefix_1L_chr) %>%
+        update_population_ls(population_ls = NULL,  type_1L_chr = "form")
     }
-    if (what_1L_chr == "population_ls") {
-        if (type_1L_chr == "current") {
-            object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
-        }
-        if (type_1L_chr == "entry") {
-            object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
-                default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn, 
-                derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls, 
-                horizon_dtm = x@horizon_dtm, modifiable_chr = x@x_MimicAlgorithms@processing_ls$initialise_ls$update_fn(x@modifiable_chr), 
-                start_dtm = x@start_dtm, tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
-                tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, 
-                  empty_xx = NULL, target_1L_chr = "Treatment duration"), 
-                arm_1L_chr = arm_1L_chr, default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls), 
-                draws_tb = draws_tb, iterations_int = manufacture(x, 
-                  batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
-                tidy_cols_1L_lgl = T, tx_prefix_1L_chr = tx_prefix_1L_chr) %>% 
-                update_population_ls(population_ls = NULL, type_1L_chr = "form")
-        }
-    }
-    return(object_xx)
+  }
+  return(object_xx)
 })
 #' 
 #' Manufacture a new object

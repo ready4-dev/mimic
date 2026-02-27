@@ -11,7 +11,6 @@
   batch_1L_int = integer(0),
   draws_tb = NULL,
   env_ls = list(),
-  tx_prefix_1L_chr = character(0),
   Y_Ready4Module = Ready4Module(),
   ...
 )
@@ -26,8 +25,6 @@
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
 \item{env_ls}{Environment list (a list of environments), Default: list()}
-
-\item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: character(0)}
 
 \item{Y_Ready4Module}{PARAM_DESCRIPTION, Default: Ready4Module()}
 

@@ -1822,7 +1822,7 @@ add_project_2_cost_sa_2 <- function(X_Ready4useDyad,
 add_project_2_customisation <- function(X_Ready4useDyad,
                                         arms_for_non_helpseeking_chr = character(0),
                                         arms_for_iar_adjustment_chr = character(0),
-                                        reset_date_1L_lgl = TRUE){
+                                        reset_date_1L_lgl = FALSE){
   X_Ready4useDyad <- add_non_helpseekers(X_Ready4useDyad, arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,  reset_date_1L_lgl =  reset_date_1L_lgl) 
   X_Ready4useDyad <- add_non_iar(X_Ready4useDyad,  arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr)
   return(X_Ready4useDyad)
