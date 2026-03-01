@@ -2,7 +2,6 @@
 #' 
 #' Utility algorithms and supporting data (instrument names, modules, mapping functions and transformation functions).
 #' 
-#' @include 
 #' @slot names_chr Names (a character vector)
 #' @slot data_ls Data (a list)
 #' @slot mapping_ls Mapping (a list)

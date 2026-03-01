@@ -2,7 +2,6 @@
 #' 
 #' Local and remote repositories for model input and output data.
 #' 
-#' @include 
 #' @slot batch_to_1L_chr Batch to (a character vector of length one)
 #' @slot draw_to_1L_chr Draw to (a character vector of length one)
 #' @slot divider_1L_chr Divider (a character vector of length one)

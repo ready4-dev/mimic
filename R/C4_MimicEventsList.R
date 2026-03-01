@@ -2,7 +2,6 @@
 #' 
 #' Data on all events included in model.
 #' 
-#' @include 
 #' @slot events_ls Events (a list)
 #' @slot last_1L_chr Last (a character vector of length one)
 #' @slot main_chr Main (a character vector)
