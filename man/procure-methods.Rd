@@ -25,7 +25,7 @@
 
 \item{type_1L_chr}{Type (a character vector of length one), Default: 'Arm'}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("arm")}
+\item{what_1L_chr}{What (a character vector of length one), Default: c("arm", "event")}
 }
 \value{
 Object (an output object of multiple potential types)

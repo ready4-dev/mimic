@@ -10,10 +10,12 @@ add_regression_to_mean(
   iterations_int,
   k10_draws_fn,
   add_sensitivity_1L_lgl = FALSE,
+  defaults_ls = NULL,
   k10_var_1L_chr = "K10",
   sensitivities_ls = make_sensitivities_ls(),
   tfmn_ls = make_class_tfmns(),
   tx_prefix_1L_chr = "Treatment",
+  update_1L_int = 1,
   utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
   utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)
 )
@@ -29,6 +31,8 @@ add_regression_to_mean(
 
 \item{add_sensitivity_1L_lgl}{Add sensitivity (a logical vector of length one), Default: FALSE}
 
+\item{defaults_ls}{Defaults (a list), Default: NULL}
+
 \item{k10_var_1L_chr}{K10 variable (a character vector of length one), Default: 'K10'}
 
 \item{sensitivities_ls}{Sensitivities (a list), Default: make_sensitivities_ls()}
@@ -36,6 +40,8 @@ add_regression_to_mean(
 \item{tfmn_ls}{Transformation (a list), Default: make_class_tfmns()}
 
 \item{tx_prefix_1L_chr}{Treatment prefix (a character vector of length one), Default: 'Treatment'}
+
+\item{update_1L_int}{Update (an integer vector of length one), Default: 1}
 
 \item{utilities_chr}{Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")}
 

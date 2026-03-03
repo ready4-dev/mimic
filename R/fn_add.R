@@ -2251,6 +2251,7 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @param inputs_ls Inputs (a list)
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
 #' @param adjustment_1L_dbl Adjustment (a double vector of length one), Default: -2
+#' @param defaults_ls Defaults (a list), Default: NULL
 #' @param iterations_int Iterations (an integer vector), Default: 1:100L
 #' @param k10_draws_fn K10 draws (a function), Default: add_project_1_k10_draws
 #' @param k10_method_1L_chr K10 method (a character vector of length one), Default: c("Model", "Table")
@@ -2272,24 +2273,25 @@ add_outcome_time_vars <- function (Y_Ready4useDyad, outcome_1L_chr, add_adjustme
 #' @importFrom purrr reduce map_lgl pluck
 #' @keywords internal
 add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensitivity_1L_lgl = FALSE, 
-    adjustment_1L_dbl = -2, iterations_int = 1:100L, k10_draws_fn = add_project_1_k10_draws, 
-    k10_method_1L_chr = c("Model", "Table"), k10_var_1L_chr = "k10", 
-    sensitivities_ls = make_sensitivities_ls(), suffix_1L_chr = character(0), 
-    tfmn_ls = make_class_tfmns(T), tx_prefix_1L_chr = "treatment", 
-    type_1L_chr = c("Model", "Project"), update_1L_int = integer(0), 
-    utilities_chr = c("CHU9D", "AQoL6D"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
+    adjustment_1L_dbl = -2, defaults_ls = NULL, iterations_int = 1:100L, 
+    k10_draws_fn = add_project_1_k10_draws, k10_method_1L_chr = c("Model", 
+        "Table"), k10_var_1L_chr = "k10", sensitivities_ls = make_sensitivities_ls(), 
+    suffix_1L_chr = character(0), tfmn_ls = make_class_tfmns(T), 
+    tx_prefix_1L_chr = "treatment", type_1L_chr = c("Model", 
+        "Project"), update_1L_int = integer(0), utilities_chr = c("CHU9D", 
+        "AQoL6D"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
     type_1L_chr <- match.arg(type_1L_chr)
     k10_method_1L_chr <- match.arg(k10_method_1L_chr)
-    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
-        step_dtm = lubridate::weeks(0))
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = paste0("Update", 
+        k10_var_1L_chr), step_dtm = lubridate::weeks(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, adjustment_1L_dbl = adjustment_1L_dbl, 
-        k10_draws_fn = k10_draws_fn, k10_mdl = inputs_ls$models_ls$K10_mdl, 
-        iterations_int = iterations_int, params_tb = inputs_ls$params_tb, 
-        sensitivities_ls = sensitivities_ls, suffix_1L_chr = suffix_1L_chr, 
-        tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == 
+        defaults_ls = defaults_ls, k10_draws_fn = k10_draws_fn, 
+        k10_mdl = inputs_ls$models_ls$K10_mdl, iterations_int = iterations_int, 
+        params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
+        suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, type_1L_chr = ifelse(type_1L_chr == 
             "Project", "Project", k10_method_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
         update_1L_int = update_1L_int)
     X_Ready4useDyad <- update_k10_event_schedule(X_Ready4useDyad, 
@@ -2313,15 +2315,16 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
                 "_part"))) == 1))
         if (nrow(Z_Ready4useDyad@ds_tb) > 0) {
             Z_Ready4useDyad <- add_time_to_event(Z_Ready4useDyad, 
-                event_1L_chr = "UpdateK10", schedule_fn = add_outcome_change_schedule)
+                event_1L_chr = paste0("Update", k10_var_1L_chr), 
+                schedule_fn = add_outcome_change_schedule)
             Z_Ready4useDyad <- update_current_date(Z_Ready4useDyad)
             Z_Ready4useDyad <- update_current_event(Z_Ready4useDyad)
             Z_Ready4useDyad <- add_k10_event(Z_Ready4useDyad, 
-                adjustment_1L_dbl = adjustment_1L_dbl, k10_draws_fn = k10_draws_fn, 
-                params_tb = inputs_ls$params_tb, iterations_int = iterations_int, 
-                suffix_1L_chr = suffix_1L_chr, tfmn_ls = tfmn_ls, 
-                type_1L_chr = k10_method_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr, 
-                update_1L_int = update_1L_int)
+                adjustment_1L_dbl = adjustment_1L_dbl, defaults_ls = defaults_ls, 
+                k10_draws_fn = k10_draws_fn, params_tb = inputs_ls$params_tb, 
+                iterations_int = iterations_int, suffix_1L_chr = suffix_1L_chr, 
+                tfmn_ls = tfmn_ls, type_1L_chr = k10_method_1L_chr, 
+                tx_prefix_1L_chr = tx_prefix_1L_chr, update_1L_int = update_1L_int)
             Z_Ready4useDyad <- add_time_to_event(Z_Ready4useDyad, 
                 event_1L_chr = "UpdateUtility", step_dtm = lubridate::weeks(0))
             Z_Ready4useDyad <- update_current_date(Z_Ready4useDyad)
@@ -2363,6 +2366,7 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
 #' @description add_outcomes_update() is an Add function that updates an object by adding new values to new or empty fields. Specifically, this function implements an algorithm to add outcomes update. The function is called for its side effects and does not return a value.
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param assert_1L_lgl Assert (a logical vector of length one)
+#' @param defaults_ls Defaults (a list), Default: NULL
 #' @param k10_mdl K10 (a model)
 #' @param k10_var_1L_chr K10 variable (a character vector of length one)
 #' @param iterations_int Iterations (an integer vector)
@@ -2379,17 +2383,17 @@ add_outcomes_event_sequence <- function (X_Ready4useDyad, inputs_ls, add_sensiti
 #' @export 
 #' @importFrom lubridate days weeks
 #' @keywords internal
-add_outcomes_update <- function (X_Ready4useDyad, assert_1L_lgl, k10_mdl, k10_var_1L_chr, 
-    iterations_int, params_tb, sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
-    update_1L_int, utilities_chr, utility_fns_ls, types_chr = c("Model", 
-        "Function")) 
+add_outcomes_update <- function (X_Ready4useDyad, assert_1L_lgl, defaults_ls = NULL, 
+    k10_mdl, k10_var_1L_chr, iterations_int, params_tb, sensitivities_ls, 
+    tfmn_ls, tx_prefix_1L_chr, update_1L_int, utilities_chr, 
+    utility_fns_ls, types_chr = c("Model", "Function")) 
 {
-    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
-        step_dtm = lubridate::days(0))
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = paste0("Update", 
+        k10_var_1L_chr), step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
-    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_mdl = k10_mdl, 
-        k10_var_1L_chr = k10_var_1L_chr, iterations_int = iterations_int, 
+    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, defaults_ls = defaults_ls, 
+        k10_mdl = k10_mdl, k10_var_1L_chr = k10_var_1L_chr, iterations_int = iterations_int, 
         params_tb = params_tb, sensitivities_ls = sensitivities_ls, 
         tfmn_ls = tfmn_ls, type_1L_chr = types_chr[1], tx_prefix_1L_chr = tx_prefix_1L_chr, 
         update_1L_int = update_1L_int)
@@ -2668,13 +2672,13 @@ add_project_2_costs <- function (X_Ready4useDyad, arms_for_intervention_costs_ch
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector), Default: character(0)
 #' @param arms_for_iar_adjustment_chr Arms for Initial Assessment andeferral adjustment (a character vector), Default: character(0)
-#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: TRUE
+#' @param reset_date_1L_lgl Reset date (a logical vector of length one), Default: FALSE
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_project_2_customisation
 #' @export 
 #' @keywords internal
 add_project_2_customisation <- function (X_Ready4useDyad, arms_for_non_helpseeking_chr = character(0), 
-    arms_for_iar_adjustment_chr = character(0), reset_date_1L_lgl = TRUE) 
+    arms_for_iar_adjustment_chr = character(0), reset_date_1L_lgl = FALSE) 
 {
     X_Ready4useDyad <- add_non_helpseekers(X_Ready4useDyad, arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
         reset_date_1L_lgl = reset_date_1L_lgl)
@@ -2782,12 +2786,15 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_c
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
 #' @param arms_for_intervention_costs_chr Arms for intervention costs (a character vector)
 #' @param arms_for_offsets_chr Arms for offsets (a character vector), Default: character(0)
+#' @param defaults_ls Defaults (a list), Default: NULL
 #' @param disciplines_chr Disciplines (a character vector)
 #' @param inputs_ls Inputs (a list)
 #' @param iterations_int Iterations (an integer vector)
+#' @param outcome_1L_chr Outcome (a character vector of length one), Default: 'K10'
 #' @param sensitivities_ls Sensitivities (a list)
 #' @param tfmn_ls Transformation (a list)
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one)
+#' @param update_1L_int Update (an integer vector of length one), Default: 2
 #' @param utilities_chr Utilities (a character vector)
 #' @param utility_fns_ls Utility functions (a list)
 #' @return X (A dataset and data dictionary pair.)
@@ -2799,22 +2806,23 @@ add_project_2_model_data <- function (model_data_ls, sample_ls, filter_true_1L_c
 #' @importFrom stats setNames
 #' @keywords internal
 add_project_2_model_wrap_up <- function (X_Ready4useDyad, arms_for_intervention_costs_chr, arms_for_offsets_chr = character(0), 
-    disciplines_chr, inputs_ls, iterations_int, sensitivities_ls, 
-    tfmn_ls, tx_prefix_1L_chr, utilities_chr, utility_fns_ls) 
+    defaults_ls = NULL, disciplines_chr, inputs_ls, iterations_int, 
+    outcome_1L_chr = "K10", sensitivities_ls, tfmn_ls, tx_prefix_1L_chr, 
+    update_1L_int = 2, utilities_chr, utility_fns_ls) 
 {
     if (!"Intervention" %in% names(X_Ready4useDyad@ds_tb)) {
         X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
             X_Ready4useDyad@ds_tb %>% dplyr::mutate(Intervention = Arm))
     }
-    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateK10", 
-        step_dtm = lubridate::days(0))
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = paste0("Update", 
+        outcome_1L_chr), step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
     X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
-    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_mdl = NULL, 
-        k10_var_1L_chr = "K10", iterations_int = iterations_int, 
+    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, defaults_ls = defaults_ls, 
+        k10_mdl = NULL, k10_var_1L_chr = outcome_1L_chr, iterations_int = iterations_int, 
         params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
         tfmn_ls = tfmn_ls, type_1L_chr = "Project", tx_prefix_1L_chr = tx_prefix_1L_chr, 
-        update_1L_int = 2)
+        update_1L_int = update_1L_int)
     X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility", 
         step_dtm = lubridate::days(0))
     X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
@@ -3545,32 +3553,45 @@ add_qalys_sensitivities <- function (X_Ready4useDyad, end_var_1L_chr = character
 #' @param iterations_int Iterations (an integer vector)
 #' @param k10_draws_fn K10 draws (a function)
 #' @param add_sensitivity_1L_lgl Add sensitivity (a logical vector of length one), Default: FALSE
+#' @param defaults_ls Defaults (a list), Default: NULL
 #' @param k10_var_1L_chr K10 variable (a character vector of length one), Default: 'K10'
 #' @param sensitivities_ls Sensitivities (a list), Default: make_sensitivities_ls()
 #' @param tfmn_ls Transformation (a list), Default: make_class_tfmns()
 #' @param tx_prefix_1L_chr Treatment prefix (a character vector of length one), Default: 'Treatment'
+#' @param update_1L_int Update (an integer vector of length one), Default: 1
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
 #' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @return X (A dataset and data dictionary pair.)
 #' @rdname add_regression_to_mean
 #' @export 
+#' @importFrom lubridate days weeks
 #' @keywords internal
 add_regression_to_mean <- function (X_Ready4useDyad, inputs_ls, iterations_int, k10_draws_fn, 
-    add_sensitivity_1L_lgl = FALSE, k10_var_1L_chr = "K10", sensitivities_ls = make_sensitivities_ls(), 
-    tfmn_ls = make_class_tfmns(), tx_prefix_1L_chr = "Treatment", 
-    utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), 
-    utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
+    add_sensitivity_1L_lgl = FALSE, defaults_ls = NULL, k10_var_1L_chr = "K10", 
+    sensitivities_ls = make_sensitivities_ls(), tfmn_ls = make_class_tfmns(), 
+    tx_prefix_1L_chr = "Treatment", update_1L_int = 1, utilities_chr = c("AQoL8D", 
+        "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr)) 
 {
-    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, k10_draws_fn = k10_draws_fn, 
-        k10_mdl = NULL, k10_var_1L_chr = k10_var_1L_chr, iterations_int = iterations_int, 
-        params_tb = inputs_ls$params_tb, sensitivities_ls = sensitivities_ls, 
-        suffix_1L_chr = "Update", tfmn_ls = tfmn_ls, type_1L_chr = "Table", 
-        tx_prefix_1L_chr = tx_prefix_1L_chr, update_1L_int = 1)
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateOutcome", 
+        step_dtm = lubridate::days(0))
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
+    X_Ready4useDyad <- add_k10_event(X_Ready4useDyad, defaults_ls = defaults_ls, 
+        k10_draws_fn = k10_draws_fn, k10_mdl = NULL, k10_var_1L_chr = k10_var_1L_chr, 
+        iterations_int = iterations_int, params_tb = inputs_ls$params_tb, 
+        sensitivities_ls = sensitivities_ls, suffix_1L_chr = "Update", 
+        tfmn_ls = tfmn_ls, type_1L_chr = "Table", tx_prefix_1L_chr = tx_prefix_1L_chr, 
+        update_1L_int = update_1L_int)
+    X_Ready4useDyad <- add_time_to_event(X_Ready4useDyad, event_1L_chr = "UpdateUtility", 
+        step_dtm = lubridate::weeks(0))
+    X_Ready4useDyad <- update_current_date(X_Ready4useDyad)
+    X_Ready4useDyad <- update_current_event(X_Ready4useDyad)
     X_Ready4useDyad <- add_utility_event(X_Ready4useDyad, add_qalys_1L_lgl = T, 
         add_sensitivity_1L_lgl = add_sensitivity_1L_lgl, iterations_int = 1:iterations_int, 
         sensitivities_ls = sensitivities_ls, tidy_cols_1L_lgl = T, 
-        type_1L_chr = "Function", update_1L_int = 1, utilities_chr = utilities_chr, 
-        utility_fns_ls = utility_fns_ls, what_1L_chr = "new")
+        type_1L_chr = "Function", update_1L_int = update_1L_int, 
+        utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls, 
+        what_1L_chr = "new")
     return(X_Ready4useDyad)
 }
 #' Add regressions

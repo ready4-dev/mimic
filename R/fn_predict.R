@@ -352,52 +352,26 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
         draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
             what_1L_chr = "draws_tb")
     }
-    tx_prefix_1L_chr <- "Treatment"
-    events_ls <- list(EpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "EpisodeOfCareSequence", 
-        change_first_mdl = "K10_mdl", change_relapse_1L_chr = "K10Relapse_mdl", 
-        end_mdl_1L_chr = "EpisodeEnd_mdl", ineligible_1L_chr = "Episode >0 | NonHelpSeeking", 
-        outcome_var_1L_chr = "K10", start_mdl_1L_chr = "EpisodeStart_mdl", 
-        type_schedule_1L_chr = c("first"), use_schedule_1L_chr = "Y", 
-        use_trigger_1L_chr = NA_character_, validate_schedule_1L_chr = "WaitInDays", 
-        vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"), 
-        workers_chr = make_worker_types(), workers_medical_chr = make_worker_types("medical")), 
-        RepeatEpisodeOfCareSequence = make_project_2_episode_sequence(event_nm_1L_chr = "RepeatEpisodeOfCareSequence", 
-            change_first_mdl = "K10_mdl", change_relapse_1L_chr = "K10Relapse_mdl", 
-            end_mdl_1L_chr = "EpisodeEnd_mdl", ineligible_1L_chr = "Episode ==0 | NonHelpSeeking", 
-            outcome_var_1L_chr = "K10", start_mdl_1L_chr = "Representation_mdl", 
-            type_schedule_1L_chr = c("repeat"), use_schedule_1L_chr = "Z", 
-            use_trigger_1L_chr = "Z", validate_schedule_1L_chr = "DaysToYearOneRepresentation", 
-            vars_chr = c("WaitInDays", "DaysToYearOneRepresentation"), 
-            workers_chr = make_worker_types(), workers_medical_chr = make_worker_types("medical")), 
-        UpdateUntreatedOutcomes = make_project_2_untreated_sequence(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
-            action_fn = add_regression_to_mean, draws_fn = add_project_2_k10_draws, 
-            ineligible_1L_chr = "!NonHelpSeeking", use_schedule_1L_chr = "Y", 
-            use_trigger_1L_chr = "Z"), RegressionToMean = make_project_2_regression_to_mean(event_nm_1L_chr = "RegressionToMean", 
-            ineligible_1L_chr = "!NonHelpSeeking", outcome_var_1L_chr = "K10", 
-            use_schedule_1L_chr = "Y", use_trigger_1L_chr = "Z"))
+    append_ls <- list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, 
+        empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
+        type_1L_chr = "Helpseeking adjustment"), arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, 
+        empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
+        type_1L_chr = "IAR adjustment"), never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)))
     X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
-        batch_1L_int = batch_1L_int, draws_tb = draws_tb, env_ls = list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, 
-            empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
-            type_1L_chr = "Helpseeking adjustment"), arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, 
-            empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", 
-            type_1L_chr = "IAR adjustment"), reset_date_1L_lgl = FALSE), 
-        tx_prefix_1L_chr = tx_prefix_1L_chr, Y_Ready4Module = MimicPopulation())
+        batch_1L_int = batch_1L_int, draws_tb = draws_tb, env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr), 
+            append_ls = append_ls), Y_Ready4Module = MimicPopulation())
     X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
-        env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 1, 
-            never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), 
-            tx_prefix_1L_chr = tx_prefix_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
-        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, 
-        X_MimicEvent = events_ls$EpisodeOfCareSequence)
+        env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr, 
+            episode_1L_int = 1), append_ls = append_ls), event_1L_chr = "EpisodeOfCareSequence", 
+        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
     X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
-        env_ls = list(arm_1L_chr = arm_1L_chr, episode_1L_int = 2, 
-            never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)), 
-            tx_prefix_1L_chr = tx_prefix_1L_chr), tx_prefix_1L_chr = tx_prefix_1L_chr, 
-        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration, 
-        X_MimicEvent = events_ls$RepeatEpisodeOfCareSequence)
+        env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr, 
+            episode_1L_int = 2), append_ls = append_ls), event_1L_chr = "RepeatEpisodeOfCareSequence", 
+        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
     X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
-        env_ls = list(arm_1L_chr = arm_1L_chr, tx_prefix_1L_chr = tx_prefix_1L_chr), 
-        tx_prefix_1L_chr = tx_prefix_1L_chr, type_1L_chr = "event", 
-        X_MimicConfiguration = X_MimicConfiguration, X_MimicEvent = events_ls$RegressionToMean)
+        env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr), 
+            append_ls = append_ls), event_1L_chr = "UpdateUntreatedOutcomes", 
+        type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
     population_ls <- manufacture(X_MimicPopulation, what_1L_chr = "population_ls")
     population_ls$X_Ready4useDyad <- add_time_to_event(population_ls$X_Ready4useDyad, 
         event_1L_chr = "WrapUp", schedule_fn = update_scheduled_date)
@@ -428,8 +402,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity
         arms_for_offsets_chr = arms_for_offsets_chr, disciplines_chr = make_disciplines(), 
         inputs_ls = inputs_ls, iterations_int = iterations_int, 
         sensitivities_ls = sensitivities_ls, tfmn_ls = tfmn_ls, 
-        tx_prefix_1L_chr = tx_prefix_1L_chr, utilities_chr = utilities_chr, 
-        utility_fns_ls = utility_fns_ls)
+        tx_prefix_1L_chr = X_MimicConfiguration@tx_prefix_1L_chr, 
+        utilities_chr = utilities_chr, utility_fns_ls = utility_fns_ls)
     return(population_ls$X_Ready4useDyad)
 }
 #' Predict with sim

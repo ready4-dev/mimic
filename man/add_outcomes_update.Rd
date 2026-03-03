@@ -7,6 +7,7 @@
 add_outcomes_update(
   X_Ready4useDyad,
   assert_1L_lgl,
+  defaults_ls = NULL,
   k10_mdl,
   k10_var_1L_chr,
   iterations_int,
@@ -24,6 +25,8 @@ add_outcomes_update(
 \item{X_Ready4useDyad}{PARAM_DESCRIPTION}
 
 \item{assert_1L_lgl}{Assert (a logical vector of length one)}
+
+\item{defaults_ls}{Defaults (a list), Default: NULL}
 
 \item{k10_mdl}{K10 (a model)}
 

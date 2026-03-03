@@ -8,7 +8,7 @@ add_project_2_customisation(
   X_Ready4useDyad,
   arms_for_non_helpseeking_chr = character(0),
   arms_for_iar_adjustment_chr = character(0),
-  reset_date_1L_lgl = TRUE
+  reset_date_1L_lgl = FALSE
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ add_project_2_customisation(
 
 \item{arms_for_iar_adjustment_chr}{Arms for Initial Assessment andeferral adjustment (a character vector), Default: character(0)}
 
-\item{reset_date_1L_lgl}{Reset date (a logical vector of length one), Default: TRUE}
+\item{reset_date_1L_lgl}{Reset date (a logical vector of length one), Default: FALSE}
 }
 \value{
 X (A dataset and data dictionary pair.)

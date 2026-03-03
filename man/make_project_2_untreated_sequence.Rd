@@ -10,6 +10,7 @@ make_project_2_untreated_sequence(
   draws_fn = add_project_2_k10_draws,
   ineligible_1L_chr = character(0),
   functions_ls = make_ineligibility_fns_ls(),
+  outcome_var_1L_chr = "K10",
   use_schedule_1L_chr = "Y",
   use_trigger_1L_chr = "Z"
 )
@@ -24,6 +25,8 @@ make_project_2_untreated_sequence(
 \item{ineligible_1L_chr}{Ineligible (a character vector of length one), Default: character(0)}
 
 \item{functions_ls}{Functions (a list), Default: make_ineligibility_fns_ls()}
+
+\item{outcome_var_1L_chr}{Outcome variable (a character vector of length one), Default: 'K10'}
 
 \item{use_schedule_1L_chr}{Use schedule (a character vector of length one), Default: 'Y'}
 

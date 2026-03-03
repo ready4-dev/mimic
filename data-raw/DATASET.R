@@ -250,7 +250,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 inc_clss_ls = list("MimicEligible","MimicSchedule", "MimicTrigger") %>% list())
                    
                    
-  )
+  ) # Add MimicVariables class constructor here when ready.
 z <- ready4pack::make_pt_ready4pack_manifest(x,
                                              constructor_r3 = y) %>%
   ready4pack::ready4pack_manifest()

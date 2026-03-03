@@ -2288,6 +2288,8 @@ make_project_2_derive_ls <- function (function_fn = NULL, discard_chr = characte
             args_env_ls = list(match_value_xx = "arm_1L_chr"), 
             args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", 
                 type_1L_chr = "Arm", what_1L_chr = c("arm"))), 
+        tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")), 
         utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", 
             args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")), 
         utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", 
@@ -2357,8 +2359,7 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSeq
         episode_end_1L_chr = end_mdl_1L_chr, k10_1L_chr = change_first_mdl, 
         k10_relapse_1L_chr = change_relapse_1L_chr, k10_var_1L_chr = outcome_var_1L_chr, 
         workers_chr = workers_chr, medical_chr = workers_medical_chr)
-    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", 
-        tx_prefix_1L_chr = "tx_prefix_1L_chr")
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int")
     return(X_MimicEvent)
 }
 #' Make project 2 initialise list
@@ -2757,7 +2758,6 @@ make_project_2_regression_to_mean <- function (event_nm_1L_chr = "RegressionToMe
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws, 
         k10_var_1L_chr = outcome_var_1L_chr)
-    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
     return(X_MimicEvent)
 }
 #' Make project 2 regressions list
@@ -3337,6 +3337,7 @@ make_project_2_theme_fn <- function (output_1L_chr = c("Word", "PDF", "HTML"))
 #' @param draws_fn Draws (a function), Default: add_project_2_k10_draws
 #' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
 #' @param functions_ls Functions (a list), Default: make_ineligibility_fns_ls()
+#' @param outcome_var_1L_chr Outcome variable (a character vector of length one), Default: 'K10'
 #' @param use_schedule_1L_chr Use schedule (a character vector of length one), Default: 'Y'
 #' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
 #' @return X (Model event scheduling and event logic data.)
@@ -3345,8 +3346,8 @@ make_project_2_theme_fn <- function (output_1L_chr = c("Word", "PDF", "HTML"))
 #' @keywords internal
 make_project_2_untreated_sequence <- function (event_nm_1L_chr = "UpdateUntreatedOutcomes", action_fn = add_regression_to_mean, 
     draws_fn = add_project_2_k10_draws, ineligible_1L_chr = character(0), 
-    functions_ls = make_ineligibility_fns_ls(), use_schedule_1L_chr = "Y", 
-    use_trigger_1L_chr = "Z") 
+    functions_ls = make_ineligibility_fns_ls(), outcome_var_1L_chr = "K10", 
+    use_schedule_1L_chr = "Y", use_trigger_1L_chr = "Z") 
 {
     X_MimicEvent <- MimicEvent()
     X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
@@ -3361,9 +3362,7 @@ make_project_2_untreated_sequence <- function (event_nm_1L_chr = "UpdateUntreate
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, 
-        k10_draws_fn = draws_fn)
-    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int", 
-        tx_prefix_1L_chr = "tx_prefix_1L_chr")
+        k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
     return(X_MimicEvent)
 }
 #' Make project 2 variables
@@ -6039,6 +6038,23 @@ make_sensitivities_ls <- function (timestamp_1L_chr = "_YR1")
         add_projected_decay, add_projected_growth) %>% stats::setNames(paste0(prefix_1L_chr, 
         c("", "_S1", "_S2"))))
     return(sensitivities_ls)
+}
+#' Make sim environment list
+#' @description make_sim_env_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make sim environment list. The function returns Sim (a list of environments).
+#' @param sim_env_ls Sim (a list of environments)
+#' @param append_ls Append (a list), Default: list()
+#' @param discard_chr Discard (a character vector), Default: 'X_MimicConfiguration'
+#' @return Sim (a list of environments)
+#' @rdname make_sim_env_ls
+#' @export 
+#' @importFrom purrr discard_at
+#' @keywords internal
+make_sim_env_ls <- function (sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration") 
+{
+    sim_env_ls <- sim_env_ls %>% purrr::discard_at(c("discard")) %>% 
+        append(append_ls)
+    sim_env_ls[names(sim_env_ls) %>% sort()]
+    return(sim_env_ls)
 }
 #' Make simulated draws
 #' @description make_simulated_draws() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulated draws. The function returns Simulations (a data.frame).

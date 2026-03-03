@@ -15,14 +15,13 @@
 #' @export 
 #' @importFrom ready4 metamorphose
 methods::setMethod("metamorphose", "MimicConfiguration", function (x, arm_1L_chr = NA_character_, batch_1L_int = integer(0), 
-    draws_tb = NULL, env_ls = list(),  
-    Y_Ready4Module = Ready4Module(), ...) 
+    draws_tb = NULL, env_ls = list(), Y_Ready4Module = Ready4Module(), 
+    ...) 
 {
     if (inherits(Y_Ready4Module, "MimicPopulation")) {
         population_ls <- manufacture(x, arm_1L_chr = arm_1L_chr, 
             batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
-            type_1L_chr = "entry", 
-            what_1L_chr = c("population_ls"))
+            type_1L_chr = "entry", what_1L_chr = c("population_ls"))
         Y_Ready4Module <- renew(Y_Ready4Module, population_ls = population_ls, 
             type_1L_chr = "transform")
         Y_Ready4Module <- renew(Y_Ready4Module, env_ls = env_ls, 
