@@ -364,7 +364,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
                              env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr),# mget(ls(), envir = environment()), 
                                                       append_ls = append_ls),
                              # env_ls = list(arm_1L_chr = arm_1L_chr),
-                             event_1L_chr = "RegressionToMean", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
+                             event_1L_chr = "UpdateUntreatedOutcomes", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
   ## ~0.5% in comparator arm are scheduled EoC after 1 year horizon
   # Suggest adding logic to wrap-up sequence to trigger RTM if Episode ==0 and !NonHelpSeeking and CurrentDate == EndDate
   ##

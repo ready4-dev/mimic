@@ -13,7 +13,7 @@ x <- ready4fun::make_pkg_desc_ls(pkg_title_1L_chr = "Implement Microsimulations 
                                               "https://github.com/ready4-dev/mimic",
                                               "https://ready4-dev.github.io/mimic/")) %>%
   ready4fun::make_manifest(addl_pkgs_ls = ready4fun::make_addl_pkgs_ls(suggests_chr = c("knitr","knitrBootstrap","rmarkdown"),
-                                                                       #imports_chr = c(),
+                                                                       imports_chr = c("twopartm"), # Check that all packages used in the main manual are named here.
                                                                        depends_chr = c("ready4")
   ),
   build_ignore_ls = ready4fun::make_build_ignore_ls(file_nms_chr = c("initial_setup.R")),

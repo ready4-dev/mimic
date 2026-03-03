@@ -2583,6 +2583,7 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
                                               draws_fn = add_project_2_k10_draws,
                                               ineligible_1L_chr = character(0),
                                               functions_ls = make_ineligibility_fns_ls(),
+                                              outcome_var_1L_chr = "K10",
                                               use_schedule_1L_chr = "Y", # "Z"
                                               use_trigger_1L_chr = "Z"){
   X_MimicEvent <- MimicEvent()
@@ -2600,8 +2601,8 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
   X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- action_fn
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int") #, tx_prefix_1L_chr = "tx_prefix_1L_chr"
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
+  # X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int") #, tx_prefix_1L_chr = "tx_prefix_1L_chr"
   return(X_MimicEvent)
 }
 make_project_activity_ds <- function(raw_data_ls,
