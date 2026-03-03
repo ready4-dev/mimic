@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mimic</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9012</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.3.1.9013</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,12 +42,15 @@
 <span>  <span class="va">X_Ready4useDyad</span>,</span>
 <span>  <span class="va">arms_for_intervention_costs_chr</span>,</span>
 <span>  arms_for_offsets_chr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  defaults_ls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">disciplines_chr</span>,</span>
 <span>  <span class="va">inputs_ls</span>,</span>
 <span>  <span class="va">iterations_int</span>,</span>
+<span>  outcome_1L_chr <span class="op">=</span> <span class="st">"K10"</span>,</span>
 <span>  <span class="va">sensitivities_ls</span>,</span>
 <span>  <span class="va">tfmn_ls</span>,</span>
 <span>  <span class="va">tx_prefix_1L_chr</span>,</span>
+<span>  update_1L_int <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  <span class="va">utilities_chr</span>,</span>
 <span>  <span class="va">utility_fns_ls</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -69,6 +72,10 @@
 <dd><p>Arms for offsets (a character vector), Default: character(0)</p></dd>
 
 
+<dt id="arg-defaults-ls">defaults_ls<a class="anchor" aria-label="anchor" href="#arg-defaults-ls"></a></dt>
+<dd><p>Defaults (a list), Default: NULL</p></dd>
+
+
 <dt id="arg-disciplines-chr">disciplines_chr<a class="anchor" aria-label="anchor" href="#arg-disciplines-chr"></a></dt>
 <dd><p>Disciplines (a character vector)</p></dd>
 
@@ -81,6 +88,10 @@
 <dd><p>Iterations (an integer vector)</p></dd>
 
 
+<dt id="arg-outcome-l-chr">outcome_1L_chr<a class="anchor" aria-label="anchor" href="#arg-outcome-l-chr"></a></dt>
+<dd><p>Outcome (a character vector of length one), Default: 'K10'</p></dd>
+
+
 <dt id="arg-sensitivities-ls">sensitivities_ls<a class="anchor" aria-label="anchor" href="#arg-sensitivities-ls"></a></dt>
 <dd><p>Sensitivities (a list)</p></dd>
 
@@ -91,6 +102,10 @@
 
 <dt id="arg-tx-prefix-l-chr">tx_prefix_1L_chr<a class="anchor" aria-label="anchor" href="#arg-tx-prefix-l-chr"></a></dt>
 <dd><p>Treatment prefix (a character vector of length one)</p></dd>
+
+
+<dt id="arg-update-l-int">update_1L_int<a class="anchor" aria-label="anchor" href="#arg-update-l-int"></a></dt>
+<dd><p>Update (an integer vector of length one), Default: 2</p></dd>
 
 
 <dt id="arg-utilities-chr">utilities_chr<a class="anchor" aria-label="anchor" href="#arg-utilities-chr"></a></dt>

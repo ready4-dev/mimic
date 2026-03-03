@@ -13,6 +13,7 @@ add_outcomes_event_sequence(
   inputs_ls,
   add_sensitivity_1L_lgl = FALSE,
   adjustment_1L_dbl = -2,
+  defaults_ls = NULL,
   iterations_int = 1:100L,
   k10_draws_fn = add_project_1_k10_draws,
   k10_method_1L_chr = c("Model", "Table"),
@@ -45,6 +46,10 @@ add_outcomes_event_sequence(
 - adjustment_1L_dbl:
 
   Adjustment (a double vector of length one), Default: -2
+
+- defaults_ls:
+
+  Defaults (a list), Default: NULL
 
 - iterations_int:
 

@@ -12,12 +12,15 @@ add_project_2_model_wrap_up(
   X_Ready4useDyad,
   arms_for_intervention_costs_chr,
   arms_for_offsets_chr = character(0),
+  defaults_ls = NULL,
   disciplines_chr,
   inputs_ls,
   iterations_int,
+  outcome_1L_chr = "K10",
   sensitivities_ls,
   tfmn_ls,
   tx_prefix_1L_chr,
+  update_1L_int = 2,
   utilities_chr,
   utility_fns_ls
 )
@@ -37,6 +40,10 @@ add_project_2_model_wrap_up(
 
   Arms for offsets (a character vector), Default: character(0)
 
+- defaults_ls:
+
+  Defaults (a list), Default: NULL
+
 - disciplines_chr:
 
   Disciplines (a character vector)
@@ -49,6 +56,10 @@ add_project_2_model_wrap_up(
 
   Iterations (an integer vector)
 
+- outcome_1L_chr:
+
+  Outcome (a character vector of length one), Default: 'K10'
+
 - sensitivities_ls:
 
   Sensitivities (a list)
@@ -60,6 +71,10 @@ add_project_2_model_wrap_up(
 - tx_prefix_1L_chr:
 
   Treatment prefix (a character vector of length one)
+
+- update_1L_int:
+
+  Update (an integer vector of length one), Default: 2
 
 - utilities_chr:
 

@@ -41,7 +41,7 @@ procure(
 
 - what_1L_chr:
 
-  What (a character vector of length one), Default: c("arm")
+  What (a character vector of length one), Default: c("arm", "event")
 
 ## Value
 
