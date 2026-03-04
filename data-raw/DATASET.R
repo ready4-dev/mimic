@@ -53,6 +53,15 @@ y <- ready4class::ready4class_constructor() %>%
                                                                 class_desc_chr = "Utility algorithms and supporting data (instrument names, modules, mapping functions and transformation functions).",
                                                                 parent_class_chr = "Ready4Module"),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
+                                                                name_stub_chr = "Variables",
+                                                                slots_ls = list("outcomes_tb", "resources_tb") %>% list(), 
+                                                                pt_ls = list("tbl_df", "tbl_df") %>% list(),
+                                                                vals_ls = list(list(
+                                                                  outcomes_tb = "make_outcomes_tb()",
+                                                                  resources_tb = "make_resources_tb()")),
+                                                                class_desc_chr = "Model outcome and resource use variables metadata.",
+                                                                parent_class_chr = "Ready4Module"),
+                   ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE,
                                                                 name_stub_chr = "Algorithms",
                                                                 # Add events_ls or x_MimicEvents (better)
                                                                 slots_ls = list("main_ls", #"comparator_fn", "intervention_fn", 
@@ -149,7 +158,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "tx_prefix_1L_chr",
                                                                   "x_MimicAlgorithms",
                                                                   "x_MimicEventsList",
-                                                                  "x_MimicInputs") %>% list(), 
+                                                                  "x_MimicInputs",
+                                                                  "x_MimicVariables") %>% list(), 
                                                                 pt_ls = list(
                                                                   "tbl_df",
                                                                   "logical",
@@ -163,7 +173,8 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "character",
                                                                   "MimicAlgorithms",
                                                                   "MimicEventsList",
-                                                                  "MimicInputs"
+                                                                  "MimicInputs", 
+                                                                  "MimicVariables"
                                                                   ) %>% list(),
                                                                 vals_ls = list(list(
                                                                   arms_tb = "make_arms_tb()",

@@ -79,6 +79,7 @@ Collate:
     'C4_MimicAlgorithms.R'
     'C4_MimicDerivations.R'
     'C4_MimicArguments.R'
+    'C4_MimicVariables.R'
     'C4_MimicInputs.R'
     'C4_MimicEventsList.R'
     'C4_MimicConfiguration.R'

@@ -345,6 +345,8 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ### Now includes conditional starting population customisation (adjusting for non-helpseeking and non-IAR parameters)
   append_ls <- list(arms_for_non_helpseeking_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment"), 
                     arms_for_iar_adjustment_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment"),
+                    arms_for_intervention_costs_chr =  procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Intervention costs"),
+                    arms_for_offsets_chr = procure(X_MimicConfiguration, empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Cost offsets"),
                     never_1L_int = ceiling(X_MimicConfiguration@horizon_dtm/lubridate::days(1)))
   X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
                                     env_ls = make_sim_env_ls(list(arm_1L_chr = arm_1L_chr),# mget(ls(), envir = environment()), 
@@ -580,37 +582,17 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ###
   #### Trigger Model Exit events (includes model wrap up) ###
   ### 
-  # Temporary
-  # if(!old_algorithm_1L_lgl){
-  drop_missing_1L_lgl <- X_MimicConfiguration@drop_missing_1L_lgl
-  drop_suffix_1L_chr <- X_MimicConfiguration@drop_suffix_1L_chr
-  extra_draws_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$extra_draws_fn
-  horizon_dtm <- X_MimicConfiguration@horizon_dtm
-  initialise_ls <- make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls) # Note modification -> update X_MimicConfiguration
-  inputs_ls <- manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls")
-  iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
-  iterations_ls <- X_MimicConfiguration@iterations_ls
-  modifiable_chr <- X_MimicConfiguration@modifiable_chr
-  seed_1L_int <- X_MimicConfiguration@seed_1L_int
-  sensitivities_ls <- X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls
-  start_dtm <- X_MimicConfiguration@start_dtm
-  synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
-  tfmn_ls <- X_MimicConfiguration@x_MimicAlgorithms@transformations_ls
-  tx_duration_dtm <- procure(X_MimicConfiguration, match_value_xx = arm_1L_chr, target_1L_chr = "Treatment duration")
-  utilities_chr <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr 
-  utility_fns_ls <- X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls 
-  # }
   population_ls$X_Ready4useDyad <- add_project_2_model_wrap_up(population_ls$X_Ready4useDyad,
-                                                               arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
-                                                               arms_for_offsets_chr = arms_for_offsets_chr,
+                                                               arms_for_intervention_costs_chr = append_ls$arms_for_intervention_costs_chr,
+                                                               arms_for_offsets_chr = append_ls$arms_for_offsets_chr,
                                                                disciplines_chr = make_disciplines(),  
-                                                               inputs_ls = inputs_ls,
-                                                               iterations_int = iterations_int,
-                                                               sensitivities_ls = sensitivities_ls,
-                                                               tfmn_ls = tfmn_ls,
+                                                               inputs_ls = manufacture(X_MimicConfiguration@x_MimicInputs, what_1L_chr = "inputs_ls"),
+                                                               iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"),
+                                                               sensitivities_ls = X_MimicConfiguration@x_MimicAlgorithms@sensitivities_ls,
+                                                               tfmn_ls = X_MimicConfiguration@x_MimicAlgorithms@transformations_ls,
                                                                tx_prefix_1L_chr = X_MimicConfiguration@tx_prefix_1L_chr,
-                                                               utilities_chr = utilities_chr,
-                                                               utility_fns_ls = utility_fns_ls)  ##
+                                                               utilities_chr = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@names_chr,
+                                                               utility_fns_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)  ##
   
   return(population_ls$X_Ready4useDyad)
 }

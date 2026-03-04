@@ -283,3 +283,65 @@ methods::setMethod("manufacture", "MimicDerivations", function (x, env_ls = list
     }
     return(object_xx)
 })
+#' 
+#' Manufacture a new object
+#' @name manufacture-MimicVariables
+#' @description manufacture method applied to MimicVariables
+#' @param x An object of class MimicVariables
+#' @param include_chr Include (a character vector of length one), Default: character(0)
+#' @param target_1L_chr Target (a character vector of length one), Default: character(0)
+#' @param total_1L_chr Total (a character vector of length one), Default: character(0)
+#' @param type_1L_chr Type (a character vector of length one), Default: c("measure","concept")
+#' @param what_1L_chr What (a character vector of length one), Default: c("both", "outcomes", "resources")
+#' @param ... Additional arguments
+#' @return Object (an output object of multiple potential types)
+#' @rdname manufacture-methods
+#' @aliases manufacture,MimicVariables-method
+#' @export 
+#' @importFrom stringr str_remove str_sub
+#' @importFrom ready4 manufacture
+methods::setMethod("manufacture", "MimicVariables", function(x,
+                                                             include_chr = character(0),#c("Modelled", "Total"),
+                                                             target_1L_chr = character(0),
+                                                             total_1L_lgl = FALSE,
+                                                             type_1L_chr = c("measure","concept"),
+                                                             what_1L_chr = c("both", "outcomes", "resources"),
+                                                             ...){
+  type_1L_chr <- match.arg(type_1L_chr)
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "outcomes"){
+    object_xx <- x@outcomes_tb
+  }
+  if(what_1L_chr == "resources"){
+    object_xx <- x@resources_tb 
+  }
+  if(what_1L_chr %in% c("outcomes", "resources")){
+    if(!identical(target_1L_chr, character(0))){
+      object_xx <- object_xx %>% dplyr::filter(Category == target_1L_chr)
+    }
+    if(!identical(include_chr, character(0))){
+      object_xx <- object_xx %>% dplyr::filter(Derivation %in% include_chr)
+    }
+    if(what_1L_chr == "outcomes"){
+      object_xx <- object_xx %>% dplyr::pull(Outcome)
+    }
+    if(what_1L_chr == "resources"){
+      if(type_1L_chr == "concept"){
+        object_xx <- object_xx %>%
+          dplyr::mutate(Measure = "")
+      }
+      object_xx <- object_xx %>% 
+        dplyr::mutate(ResourceUse = paste0(Resource, Measure)) %>%
+        dplyr::group_by(Category) %>% 
+        dplyr::reframe(ResourceUse = ResourceUse, Totals = purrr::map2_chr(Total, Measure, ~ifelse(is.na(.x) | (!total_1L_lgl), NA_character_, paste0(.x,.y)))) %>%  
+        dplyr::select(-Category) %>% purrr::flatten_chr() %>% purrr::discard(is.na) %>% unique()
+    }
+  }
+  if(what_1L_chr == "both"){
+    object_xx <- c(character(0),
+                   manufacture(x, include_chr =  include_chr, target_1L_chr = intersect(target_1L_chr, x@outcomes_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"),
+                   manufacture(x,  include_chr =  include_chr, target_1L_chr = intersect(target_1L_chr, x@resources_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "resources")
+    )
+  }
+  return(object_xx)
+})

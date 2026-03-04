@@ -64,6 +64,12 @@ manufacture_MimicConfiguration <- function(x,
       object_xx <- x@iterations_ls[[batch_1L_int]]
     } 
   }
+  if(what_1L_chr == "modifiable"){
+    object_xx <- c(character(0),
+                   manufacture(x@x_MimicVariables, what_1L_chr = "outcomes", include_chr = "Modelled"),
+                   x@x_MimicAlgorithms@x_MimicUtility@names_chr,
+                   manufacture(x@x_MimicVariables, what_1L_chr = "resources", include_chr = "Modelled", total_1L_lgl = T))
+  }
   if(what_1L_chr == "population_ls"){
     if(type_1L_chr == "current"){
       object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
@@ -212,6 +218,51 @@ manufacture_MimicRepos <- function(x,
     if(return_1L_chr == c("batches")){
       object_xx <- stringr::str_remove(object_xx, pattern = prefix_1L_chr) %>% stringr::str_sub(end=-5) %>% as.integer() %>% sort()
     }
+  }
+  return(object_xx)
+}
+manufacture_MimicVariables <- function(x,
+                                       include_chr = character(0),#c("Modelled", "Total"),
+                                       target_1L_chr = character(0),
+                                       total_1L_lgl = FALSE,
+                                       type_1L_chr = c("measure","concept"),
+                                       what_1L_chr = c("both", "outcomes", "resources"),
+                                       ...){
+  type_1L_chr <- match.arg(type_1L_chr)
+  what_1L_chr <- match.arg(what_1L_chr)
+  if(what_1L_chr == "outcomes"){
+    object_xx <- x@outcomes_tb
+    }
+  if(what_1L_chr == "resources"){
+    object_xx <- x@resources_tb 
+    }
+  if(what_1L_chr %in% c("outcomes", "resources")){
+    if(!identical(target_1L_chr, character(0))){
+      object_xx <- object_xx %>% dplyr::filter(Category == target_1L_chr)
+    }
+    if(!identical(include_chr, character(0))){
+      object_xx <- object_xx %>% dplyr::filter(Derivation %in% include_chr)
+    }
+    if(what_1L_chr == "outcomes"){
+      object_xx <- object_xx %>% dplyr::pull(Outcome)
+    }
+    if(what_1L_chr == "resources"){
+      if(type_1L_chr == "concept"){
+        object_xx <- object_xx %>%
+          dplyr::mutate(Measure = "")
+      }
+      object_xx <- object_xx %>% 
+        dplyr::mutate(ResourceUse = paste0(Resource, Measure)) %>%
+        dplyr::group_by(Category) %>% 
+        dplyr::reframe(ResourceUse = ResourceUse, Totals = purrr::map2_chr(Total, Measure, ~ifelse(is.na(.x) | (!total_1L_lgl), NA_character_, paste0(.x,.y)))) %>%  
+        dplyr::select(-Category) %>% purrr::flatten_chr() %>% purrr::discard(is.na) %>% unique()
+    }
+  }
+  if(what_1L_chr == "both"){
+    object_xx <- c(character(0),
+                   manufacture(x, include_chr =  include_chr, target_1L_chr = intersect(target_1L_chr, x@outcomes_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"),
+                   manufacture(x,  include_chr =  include_chr, target_1L_chr = intersect(target_1L_chr, x@resources_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "resources")
+                   )
   }
   return(object_xx)
 }

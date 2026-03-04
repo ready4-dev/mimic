@@ -37,6 +37,8 @@ Configuration details for a simulation run.
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}
 
+\item{\code{x_MimicVariables}}{(an instance of the MimicVariables class)}
+
 \item{\code{dissemination_1L_chr}}{Dissemination (a character vector of length one)}
 }}
 
