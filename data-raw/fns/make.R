@@ -1507,6 +1507,14 @@ make_project_1_results_synthesis <- function (inputs_ls, results_ls, modifiable_
                                             modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
   return(X_Ready4useDyad)
 }
+make_project_2_append_ls <- function(arms_for_iar_adjustment_chr, 
+                                     arms_for_non_helpseeking_chr, 
+                                     never_1L_int){
+  append_ls <- list(arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
+                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
+                    never_1L_int = never_1L_int)
+  return(append_ls)
+}
 make_project_2_arms_extras_ls <- function(arms_chr,
                                           arms_for_iar_adjustment_chr = character(0),
                                           arms_for_intervention_costs_chr = character(0),
@@ -1614,14 +1622,25 @@ make_project_2_days_mdls <- function(X_Ready4useDyad,
 make_project_2_derive_ls <- function(function_fn = NULL,
                                      discard_chr = character(0),
                                      keep_chr = character(0)){
-  derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
-       sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
-       tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
-       treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
+  derive_ls <- list(arms_for_non_helpseeking_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")),
+                    arms_for_iar_adjustment_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment")),
+                    arms_for_intervention_costs_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Intervention costs")),
+                    arms_for_offsets_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Cost offsets")),
+                    disciplines_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(total_1L_lgl = F, target_1L_chr = "Worker",type_1L_chr = "concept",what_1L_chr = "resources")),
+                    inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
+                    # iterations_1L_int = MimicDerivations(method_1L_chr = "manufacture", args_env_ls = list(batch_1L_int = "batch_1L_int"), args_fixed_ls = list(what_1L_chr = "iterations")),
+                    never_1L_int = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(what_1L_chr = "daystonever")),
+                    sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
+                    tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
+                    treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
                                            args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
-       tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")),
-       utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
-       utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
+                    tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")),
+                    utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
+                    utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")),
+                    
+                    workers_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources")), 
+                    medical_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(subset_1L_chr = "Medical", target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources"))
+                    )
   if(!is.null(function_fn)){
     derive_ls <- update_arguments_ls(derive_ls,
                                      function_fn = function_fn)
@@ -1664,7 +1683,7 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@models_ls <- list(episode_start_mdl = start_mdl_1L_chr)
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn)
   X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr, vars_chr = vars_chr)
-  X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(never_1L_int = "never_1L_int")
+  # X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(never_1L_int = "never_1L_int")
   ##
   X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
   X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
@@ -1674,29 +1693,34 @@ make_project_2_episode_sequence <- function(event_nm_1L_chr = "EpisodeOfCareSequ
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, episode_end_1L_chr = end_mdl_1L_chr, 
                                                                                         k10_1L_chr = change_first_mdl, k10_relapse_1L_chr = change_relapse_1L_chr, 
-                                                                                        k10_var_1L_chr = outcome_var_1L_chr,
-                                                                                        workers_chr = workers_chr, ## NEED TO BE MOVED
-                                                                                        medical_chr = workers_medical_chr)
+                                                                                        k10_var_1L_chr = outcome_var_1L_chr
+                                                                                        # ,
+                                                                                        # workers_chr = workers_chr, ## NEED TO BE MOVED
+                                                                                        # medical_chr = workers_medical_chr
+                                                                                        )
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int")
   return(X_MimicEvent)
 }
+
 make_project_2_initialise_ls <- function(derive_ls = list()){
-  initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL) {
+  initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL, X_MimicVariable = MimicVariables()) {
     if(is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, list())){
       costs_chr <- character(0)
     }else{
       costs_chr <- paste0("Cost",c("", paste0("_",sensitivities_ls$costs_ls %>% names())))
     }
     renewSlot(X, "ds_tb", 
-              c("Episode",
-                "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
+              c(manufacture(X_MimicVariable, type_1L_chr = "measure", total_1L_lgl = T, what_1L_chr = "resources"),                # "Episode",
+                # "ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins",
                 costs_chr) %>%
                 purrr::reduce(.init = X@ds_tb,
                               ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0)))
     },
     derive_ls = derive_ls,
-    update_fn = function(modifiable_chr) setdiff(modifiable_chr,
-                                                 c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins")))
+    update_fn = identity
+      # function(modifiable_chr) setdiff(modifiable_chr,
+      #                                            c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins"))
+    )
   return(initialise_ls)
 }
 make_project_2_k10_mdls <-function (X_Ready4useDyad) {
@@ -2030,7 +2054,7 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
   X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
   X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
   ##
-  X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr #"StartEpisode"
+  X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr 
   X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- add_wrap_up_date
   X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
   ##
@@ -2042,7 +2066,6 @@ make_project_2_regression_to_mean <- function(event_nm_1L_chr = "RegressionToMea
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(k10_draws_fn = add_project_2_k10_draws,
                                                                                         k10_var_1L_chr = outcome_var_1L_chr)
-  # X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(tx_prefix_1L_chr = "tx_prefix_1L_chr")
   return(X_MimicEvent)
 }
 
@@ -2155,11 +2178,11 @@ make_project_2_report <- function (model_data_ls = NULL,
   return(data_xx)
 }
 make_project_2_resoures_tb <- function(){
-  resoures_tb <- make_resources_tb(c("Episode",make_disciplines("ordered")), 
+  resoures_tb <- make_resources_tb(c("Episode",make_disciplines()), #"ordered"
                                    categories_chr = c("Episode of care", rep("Worker", 6)), 
                                    derivation_chr = c("Increment", rep("Modelled",6)),
                                    totals_chr = c(NA_character_, rep("Total",6)), 
-                                   subtotals_chr = c(NA_character_,"NonMedical", "Medical","NonMedical","NonMedical","Medical","Medical"),
+                                   subcategories_chr = c(NA_character_,"NonMedical", "Medical","Medical","Medical","NonMedical","NonMedical"),
                                    measures_chr = c("",rep("UseMins",6)))
   return(resoures_tb)
 }
@@ -2508,7 +2531,6 @@ make_project_2_sim_summary <- function (sim_results_ls,
   }
   return(summary_tb)
 }
-
 make_project_2_synthetic_pop <- function(model_data_ls,
                                          size_1L_int = 1000L){
   X_Ready4useDyad <- renewSlot(model_data_ls$imputed_ls$Modelling_r4,
@@ -2605,7 +2627,6 @@ make_project_2_vars <- function(type_1L_chr = c("drop", "clinical","keep", "modi
   }
   return(vars_chr)
 }
-
 make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreatedOutcomes", 
                                               action_fn = add_regression_to_mean,
                                               draws_fn = add_project_2_k10_draws,
@@ -2629,8 +2650,41 @@ make_project_2_untreated_sequence <- function(event_nm_1L_chr = "UpdateUntreated
   X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- action_fn
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
   X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
-  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
-  # X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int") #, tx_prefix_1L_chr = "tx_prefix_1L_chr"
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, defaults_ls = NULL, k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(update_1L_int = "update_1L_int")
+  return(X_MimicEvent)
+}
+make_project_2_wrap_up_sequence <- function(event_nm_1L_chr = "WrapUpSequence", 
+                                            outcome_var_1L_chr = "K10",
+                                            ineligible_1L_chr = character(0),
+                                            functions_ls = make_ineligibility_fns_ls(),
+                                            type_schedule_1L_chr = "End",
+                                            use_schedule_1L_chr = "Y", # "Z"
+                                            use_trigger_1L_chr = "Z",
+                                            validate_schedule_1L_chr = character(0)){
+  
+  
+  X_MimicEvent <- MimicEvent()
+  ##
+  X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
+  X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
+  ##
+  X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr 
+  X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- update_scheduled_date
+  X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+  X_MimicEvent@x_MimicSchedule@validate_chr <- validate_schedule_1L_chr
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn)
+  X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr)
+  ##
+  X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+  X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+  X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+  X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_project_2_model_wrap_up
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(defaults_ls = NULL,
+                                                                                        outcome_1L_chr = outcome_var_1L_chr)
+  X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(update_1L_int = "update_1L_int")
   return(X_MimicEvent)
 }
 make_project_activity_ds <- function(raw_data_ls,
@@ -4701,9 +4755,9 @@ make_resources_tb <- function(resources_chr = character(0),
                               categories_chr = character(0),
                               derivation_chr = character(0), 
                               measures_chr = character(0),
-                              subtotals_chr = character(0),
+                              subcategories_chr = character(0),
                               totals_chr = character(0)){
-  resources_tb <- tibble::tibble(Resource = resources_chr, Category = categories_chr, Subtotal = subtotals_chr, Total = totals_chr, Measure = measures_chr, Derivation = derivation_chr)
+  resources_tb <- tibble::tibble(Resource = resources_chr, Category = categories_chr, Subcategory = subcategories_chr, Total = totals_chr, Measure = measures_chr, Derivation = derivation_chr)
   return(resources_tb)
 }
 make_results_matrix <- function(data_tb,
@@ -4863,7 +4917,7 @@ make_sensitivities_ls <- function(timestamp_1L_chr = "_YR1"){
 }
 make_sim_env_ls <- function(sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration"){
   sim_env_ls <- sim_env_ls %>%
-    purrr::discard_at(c("discard")) %>% append(append_ls) 
+    purrr::discard_at(discard_chr) %>% append(append_ls) 
   sim_env_ls[names(sim_env_ls) %>% sort()]
   return(sim_env_ls)
 }

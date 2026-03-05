@@ -4,12 +4,14 @@
 \alias{update_arguments_ls}
 \title{Update arguments list}
 \usage{
-update_arguments_ls(args_ls, function_fn)
+update_arguments_ls(args_ls, function_fn, allowed_chr = character(0))
 }
 \arguments{
 \item{args_ls}{Arguments (a list)}
 
 \item{function_fn}{Function (a function)}
+
+\item{allowed_chr}{Allowed (a character vector), Default: character(0)}
 }
 \value{
 Arguments (a list)

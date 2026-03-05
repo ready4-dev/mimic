@@ -1,7 +1,11 @@
 update_arguments_ls <- function(args_ls,
-                                function_fn){
-  allowed_chr <- names(formals(function_fn))
+                                function_fn,
+                                allowed_chr = character(0)){
+  
   if(!"..." %in% allowed_chr){
+    allowed_chr <- c(allowed_chr,names(formals(function_fn))) %>% unique()
+  }
+  if(!identical(allowed_chr, character(0))){
     args_ls <- args_ls[intersect(allowed_chr, names(args_ls))]
   }
   return(args_ls)

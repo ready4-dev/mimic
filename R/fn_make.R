@@ -2276,34 +2276,37 @@ make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), f
 #' @export 
 #' @importFrom purrr discard_at keep_at
 #' @keywords internal
-make_project_2_derive_ls <- function (function_fn = NULL, discard_chr = character(0), keep_chr = character(0)) 
-{
-    derive_ls <- list(inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", 
-        args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", 
-            what_1L_chr = "inputs_ls")), sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", 
-        args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")), 
-        tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", 
-            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")), 
-        treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", 
-            args_env_ls = list(match_value_xx = "arm_1L_chr"), 
-            args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", 
-                type_1L_chr = "Arm", what_1L_chr = c("arm"))), 
-        tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", 
-            args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")), 
-        utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", 
-            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")), 
-        utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", 
-            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")))
-    if (!is.null(function_fn)) {
-        derive_ls <- update_arguments_ls(derive_ls, function_fn = function_fn)
-    }
-    if (!identical(discard_chr, character())) {
-        derive_ls <- derive_ls %>% purrr::discard_at(discard_chr)
-    }
-    if (!identical(keep_chr, character())) {
-        derive_ls <- derive_ls %>% purrr::keep_at(keep_chr)
-    }
-    return(derive_ls)
+make_project_2_derive_ls <- function(function_fn = NULL,
+                                     discard_chr = character(0),
+                                     keep_chr = character(0)){
+  derive_ls <- list(arms_for_non_helpseeking_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")),
+                    arms_for_iar_adjustment_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment")),
+                    arms_for_intervention_costs_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Intervention costs")),
+                    arms_for_offsets_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Cost offsets")),
+                    disciplines_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(total_1L_lgl = F, target_1L_chr = "Worker",type_1L_chr = "concept",what_1L_chr = "resources")),
+                    inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
+                    never_1L_int = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(what_1L_chr = "daystonever")),
+                    sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
+                    tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
+                    treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
+                                                        args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
+                    tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")),
+                    utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
+                    utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")),
+                    workers_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources")), 
+                    medical_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(subset_1L_chr = "Medical", target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources"))
+  )
+  if(!is.null(function_fn)){
+    derive_ls <- update_arguments_ls(derive_ls,
+                                     function_fn = function_fn)
+  }
+  if(!identical(discard_chr, character())){
+    derive_ls <- derive_ls %>% purrr::discard_at(discard_chr)
+  }
+  if(!identical(keep_chr, character())){
+    derive_ls <- derive_ls %>% purrr::keep_at(keep_chr)
+  }
+  return(derive_ls)
 }
 #' Make project 2 episode sequence
 #' @description make_project_2_episode_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 episode sequence. The function is called for its side effects and does not return a value.
@@ -2357,8 +2360,7 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSeq
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(assert_1L_lgl = FALSE, 
         episode_end_1L_chr = end_mdl_1L_chr, k10_1L_chr = change_first_mdl, 
-        k10_relapse_1L_chr = change_relapse_1L_chr, k10_var_1L_chr = outcome_var_1L_chr, 
-        workers_chr = workers_chr, medical_chr = workers_medical_chr)
+        k10_relapse_1L_chr = change_relapse_1L_chr, k10_var_1L_chr = outcome_var_1L_chr)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(episode_1L_int = "episode_1L_int")
     return(X_MimicEvent)
 }
@@ -2372,28 +2374,24 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSeq
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @keywords internal
-make_project_2_initialise_ls <- function (derive_ls = list()) 
-{
-    initialise_ls <- make_initialise_ls(default_fn = function(X, 
-        sensitivities_ls = NULL) {
-        if (is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, 
-            list())) {
-            costs_chr <- character(0)
-        }
-        else {
-            costs_chr <- paste0("Cost", c("", paste0("_", sensitivities_ls$costs_ls %>% 
-                names())))
-        }
-        renewSlot(X, "ds_tb", c("Episode", "ClinicalPsychologistUseMins", 
-            "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", 
-            "NurseUseMins", "OtherUseMins", "TotalUseMins", costs_chr) %>% 
-            purrr::reduce(.init = X@ds_tb, ~.x %>% dplyr::mutate(`:=`(!!rlang::sym(.y), 
-                0))))
-    }, derive_ls = derive_ls, update_fn = function(modifiable_chr) setdiff(modifiable_chr, 
-        c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", 
-            "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", 
-            "TotalUseMins")))
-    return(initialise_ls)
+make_project_2_initialise_ls <- function(derive_ls = list()){
+  initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL, X_MimicVariable = MimicVariables()) {
+    if(is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, list())){
+      costs_chr <- character(0)
+    }else{
+      costs_chr <- paste0("Cost",c("", paste0("_",sensitivities_ls$costs_ls %>% names())))
+    }
+    renewSlot(X, "ds_tb", 
+              c(manufacture(X_MimicVariable, type_1L_chr = "measure", total_1L_lgl = T, what_1L_chr = "resources"), costs_chr) %>%
+                purrr::reduce(.init = X@ds_tb,
+                              ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0)))
+  },
+  derive_ls = derive_ls,
+  update_fn = identity
+  # function(modifiable_chr) setdiff(modifiable_chr,
+  #                                            c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins"))
+  )
+  return(initialise_ls)
 }
 #' Make project 2 K10 change models
 #' @description make_project_2_k10_change_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 k10 change models. The function returns K10 (a list).
@@ -6049,12 +6047,11 @@ make_sensitivities_ls <- function (timestamp_1L_chr = "_YR1")
 #' @export 
 #' @importFrom purrr discard_at
 #' @keywords internal
-make_sim_env_ls <- function (sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration") 
-{
-    sim_env_ls <- sim_env_ls %>% purrr::discard_at(c("discard")) %>% 
-        append(append_ls)
-    sim_env_ls[names(sim_env_ls) %>% sort()]
-    return(sim_env_ls)
+make_sim_env_ls <- function(sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration"){
+  sim_env_ls <- sim_env_ls %>%
+    purrr::discard_at(discard_chr) %>% append(append_ls) 
+  sim_env_ls[names(sim_env_ls) %>% sort()]
+  return(sim_env_ls)
 }
 #' Make simulated draws
 #' @description make_simulated_draws() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulated draws. The function returns Simulations (a data.frame).

@@ -15,6 +15,8 @@
 \alias{manufacture,MimicInputs-method}
 \alias{manufacture-MimicDerivations}
 \alias{manufacture,MimicDerivations-method}
+\alias{manufacture-MimicVariables}
+\alias{manufacture,MimicVariables-method}
 \title{Manufacture a new object}
 \usage{
 \S4method{manufacture}{MimicArguments}(
@@ -40,8 +42,14 @@
   batch_1L_int = integer(0),
   draws_tb = NULL,
   extras_ls = list(),
-  type_1L_chr = c("current", "entry"),
-  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
+  include_chr = "Modelled",
+  subset_1L_chr = character(0),
+  target_1L_chr = character(0),
+  total_1L_lgl = TRUE,
+  type_1L_chr = c("current", "concept", "entry", "measure"),
+  what_1L_chr = c("draws_tb", "append_ls", "args_all", "daystonever", "iterations",
+    "modifiable", "outcomes", "population_ls", "resources", "utilities"),
+  ...
 )
 
 \S4method{manufacture}{MimicRepos}(
@@ -67,15 +75,26 @@
   X_MimicConfiguration = MimicConfiguration(),
   ...
 )
+
+\S4method{manufacture}{MimicVariables}(
+  x,
+  include_chr = character(0),
+  subset_1L_chr = character(0),
+  target_1L_chr = character(0),
+  total_1L_lgl = FALSE,
+  type_1L_chr = c("measure", "concept"),
+  what_1L_chr = c("both", "outcomes", "resources"),
+  ...
+)
 }
 \arguments{
-\item{x}{An object of class MimicDerivations}
+\item{x}{An object of class MimicVariables}
 
 \item{batch_1L_int}{Batch (an integer vector of length one), Default: integer(0)}
 
 \item{env_ls}{Environment list (a list of environments), Default: list()}
 
-\item{what_1L_chr}{What (a character vector of length one), Default: c("args_ls")}
+\item{what_1L_chr}{What (a character vector of length one), Default: c("both", "outcomes", "resources")}
 
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 
@@ -83,13 +102,19 @@
 
 \item{append_ls}{Append (a list), Default: list()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("all", "batch_to", "draw_to")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("measure","concept")}
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: 'NA'}
 
 \item{draws_tb}{Draws (a tibble), Default: NULL}
 
 \item{extras_ls}{Extras (a list), Default: list()}
+
+\item{include_chr}{Include (a character vector of length one), Default: character(0)}
+
+\item{subset_1L_chr}{Subset (a character vector of length one), Default: character(0)}
+
+\item{target_1L_chr}{Target (a character vector of length one), Default: character(0)}
 
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 
@@ -100,8 +125,12 @@
 \item{flatten_1L_lgl}{Flatten (a logical vector of length one), Default: FALSE}
 
 \item{name_1L_chr}{Name (a character vector of length one), Default: character(0)}
+
+\item{total_1L_chr}{Total (a character vector of length one), Default: character(0)}
 }
 \value{
+Object (an output object of multiple potential types)
+
 Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
@@ -130,4 +159,6 @@ manufacture method applied to MimicPopulation
 manufacture method applied to MimicInputs
 
 manufacture method applied to MimicDerivations
+
+manufacture method applied to MimicVariables
 }

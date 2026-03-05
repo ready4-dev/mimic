@@ -731,6 +731,7 @@ add_episode <- function(X_Ready4useDyad,
   # X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% dplyr::mutate(Episode = Episode + 1))
   ## Add conditional (on Episode>1) logic to calculate K10 / Utility at start of episode
   if(episode_1L_int >1){
+    #NEed to update to formally schedule this Relapse event
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", X_Ready4useDyad@ds_tb %>% 
                                    dplyr::mutate(K10Discharge = K10, 
                                                  K10ChangeDischarge = K10_change))

@@ -63,9 +63,9 @@ renew_MimicConfiguration <- function(x,
   # type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)
   if(what_1L_chr == "legacy"){
-    if(is.na(x@modifiable_chr[1])){
-      x <- renewSlot(x, "modifiable_chr", character(0))
-    }
+    # if(is.na(x@modifiable_chr[1])){
+    #   x <- renewSlot(x, "modifiable_chr", character(0))
+    # }
     if(identical(x@x_MimicAlgorithms@main_ls, list("UPDATE"))){
       x <- renewSlot(x, "x_MimicAlgorithms", renewSlot(x@x_MimicAlgorithms, "main_ls", env_ls$main_ls))
     }

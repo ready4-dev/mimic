@@ -33,6 +33,8 @@ Configuration details for a simulation run.
 
 \item{\code{x_MimicAlgorithms}}{(an instance of the MimicAlgorithms class)}
 
+\item{\code{x_MimicArguments}}{(an instance of the MimicArguments class)}
+
 \item{\code{x_MimicEventsList}}{(an instance of the MimicEventsList class)}
 
 \item{\code{x_MimicInputs}}{(an instance of the MimicInputs class)}

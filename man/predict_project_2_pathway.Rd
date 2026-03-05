@@ -78,7 +78,7 @@ predict_project_2_pathway(
 \item{X_MimicConfiguration}{PARAM_DESCRIPTION, Default: MimicConfiguration()}
 }
 \value{
-Population ls$X (A dataset and data dictionary pair.)
+X_Ready4useDyad (A dataset and data dictionary pair.)
 }
 \description{
 predict_project_2_pathway() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict project 2 pathway. The function is called for its side effects and does not return a value.

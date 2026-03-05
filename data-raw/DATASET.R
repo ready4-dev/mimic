@@ -157,6 +157,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "start_dtm",  
                                                                   "tx_prefix_1L_chr",
                                                                   "x_MimicAlgorithms",
+                                                                  "x_MimicArguments",
                                                                   "x_MimicEventsList",
                                                                   "x_MimicInputs",
                                                                   "x_MimicVariables") %>% list(), 
@@ -172,6 +173,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   "Date",#"POSIXt", 
                                                                   "character",
                                                                   "MimicAlgorithms",
+                                                                  "MimicArguments",
                                                                   "MimicEventsList",
                                                                   "MimicInputs", 
                                                                   "MimicVariables"
@@ -189,7 +191,7 @@ y <- ready4class::ready4class_constructor() %>%
                                                                   tx_prefix_1L_chr = "'Treatment'")),
                                                                 class_desc_chr= "Configuration details for a simulation run.",
                                                                 parent_class_chr = "Ready4Module",
-                                                                inc_clss_ls = list("MimicAlgorithms","MimicEventsList","MimicInputs"
+                                                                inc_clss_ls = list("MimicAlgorithms","MimicArguments","MimicEventsList","MimicInputs"
                                                                                    ) %>% list()),
                    ready4class::make_pt_ready4class_constructor(make_s3_lgl = FALSE, 
                                                                 name_stub_chr = "Derivations",
