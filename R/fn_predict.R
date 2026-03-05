@@ -371,23 +371,23 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   }
   append_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, extras_ls = list(), what_1L_chr = "append_ls")
   X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
-                                    env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
+                                    env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
                                     Y_Ready4Module = MimicPopulation())
   episode_1L_int <- 1L
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
+                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
                              event_1L_chr = "EpisodeOfCareSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration) 
   episode_1L_int <- 2L
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
+                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
                              event_1L_chr = "RepeatEpisodeOfCareSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
   update_1L_int <- 1L
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
+                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
                              event_1L_chr = "UpdateUntreatedOutcomesSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
   update_1L_int <- 2L
   X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
+                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
                              event_1L_chr = "WrapUpSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
   X_Ready4useDyad <- X_MimicPopulation@x_MimicActive@x_Ready4useDyad
   return(X_Ready4useDyad)
