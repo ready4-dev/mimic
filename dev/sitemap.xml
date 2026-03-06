@@ -18,6 +18,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicTrigger-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/MimicVariables-class.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_activity.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_age_to_project_dss.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/add_aqol8d_from_k10.html</loc></url>
@@ -158,6 +159,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_mds_services_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_mds_unique_measures.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_model_dyad_ls.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_outcomes_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_outcomes_vars.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_parsnip_mdl.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_phn_lup.html</loc></url>
@@ -167,6 +169,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_1_k10_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_1_params_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_1_results_synthesis.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_append_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_arms_extras_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_days_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_derive_ls.html</loc></url>
@@ -178,9 +181,11 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_labels.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_minutes_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_outcomes_ls.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_outcomes_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_regression_to_mean.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_regressions_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_report.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_resources_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_results.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_results_synthesis.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_results_tb.html</loc></url>
@@ -191,6 +196,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_theme_fn.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_untreated_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_vars.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_2_wrap_up_sequence.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_activity_ds.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_aqol6d_mdls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_project_chu9d_mdls.html</loc></url>
@@ -227,6 +233,7 @@
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_regression_report.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_regressions_ls.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_report_data.html</loc></url>
+<url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_resources_tb.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_results_matrix.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_results_summary.html</loc></url>
 <url><loc>https://ready4-dev.github.io/mimic/dev/reference/make_results_synthesis.html</loc></url>

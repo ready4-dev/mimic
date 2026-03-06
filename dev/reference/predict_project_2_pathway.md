@@ -136,4 +136,4 @@ predict_project_2_pathway(
 
 ## Value
 
-Population ls\$X (A dataset and data dictionary pair.)
+X (A dataset and data dictionary pair.)

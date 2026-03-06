@@ -24,10 +24,6 @@ Configuration details for a simulation run.
 
   Iterations (a list)
 
-- `modifiable_chr`:
-
-  Modifiable (a character vector)
-
 - `prior_batches_1L_int`:
 
   Prior batches (an integer vector of length one)
@@ -48,6 +44,10 @@ Configuration details for a simulation run.
 
   (an instance of the MimicAlgorithms class)
 
+- `x_MimicArguments`:
+
+  (an instance of the MimicArguments class)
+
 - `x_MimicEventsList`:
 
   (an instance of the MimicEventsList class)
@@ -55,6 +55,10 @@ Configuration details for a simulation run.
 - `x_MimicInputs`:
 
   (an instance of the MimicInputs class)
+
+- `x_MimicVariables`:
+
+  (an instance of the MimicVariables class)
 
 - `dissemination_1L_chr`:
 

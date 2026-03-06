@@ -14,6 +14,8 @@ manufacture method applied to MimicInputs
 
 manufacture method applied to MimicDerivations
 
+manufacture method applied to MimicVariables
+
 ## Usage
 
 ``` r
@@ -43,8 +45,14 @@ manufacture(
   batch_1L_int = integer(0),
   draws_tb = NULL,
   extras_ls = list(),
-  type_1L_chr = c("current", "entry"),
-  what_1L_chr = c("draws_tb", "args_all", "iterations", "population_ls")
+  include_chr = "Modelled",
+  subset_1L_chr = character(0),
+  target_1L_chr = character(0),
+  total_1L_lgl = TRUE,
+  type_1L_chr = c("current", "concept", "entry", "measure"),
+  what_1L_chr = c("draws_tb", "append_ls", "args_all", "daystonever", "iterations",
+    "modifiable", "outcomes", "population_ls", "resources", "utilities"),
+  ...
 )
 
 # S4 method for class 'MimicRepos'
@@ -74,13 +82,25 @@ manufacture(
   X_MimicConfiguration = MimicConfiguration(),
   ...
 )
+
+# S4 method for class 'MimicVariables'
+manufacture(
+  x,
+  include_chr = character(0),
+  subset_1L_chr = character(0),
+  target_1L_chr = character(0),
+  total_1L_lgl = FALSE,
+  type_1L_chr = c("measure", "concept"),
+  what_1L_chr = c("both", "outcomes", "resources"),
+  ...
+)
 ```
 
 ## Arguments
 
 - x:
 
-  An object of class MimicDerivations
+  An object of class MimicVariables
 
 - batch_1L_int:
 
@@ -92,7 +112,8 @@ manufacture(
 
 - what_1L_chr:
 
-  What (a character vector of length one), Default: c("args_ls")
+  What (a character vector of length one), Default: c("both",
+  "outcomes", "resources")
 
 - X_MimicConfiguration:
 
@@ -108,8 +129,8 @@ manufacture(
 
 - type_1L_chr:
 
-  Type (a character vector of length one), Default: c("all", "batch_to",
-  "draw_to")
+  Type (a character vector of length one), Default: c("measure",
+  "concept")
 
 - arm_1L_chr:
 
@@ -122,6 +143,22 @@ manufacture(
 - extras_ls:
 
   Extras (a list), Default: list()
+
+- include_chr:
+
+  Include (a character vector), Default: character(0)
+
+- subset_1L_chr:
+
+  Subset (a character vector of length one), Default: character(0)
+
+- target_1L_chr:
+
+  Target (a character vector of length one), Default: character(0)
+
+- total_1L_lgl:
+
+  Total (a logical vector of length one), Default: FALSE
 
 - prefix_1L_chr:
 
@@ -145,6 +182,8 @@ manufacture(
   Name (a character vector of length one), Default: character(0)
 
 ## Value
+
+Object (an output object of multiple potential types)
 
 Object (an output object of multiple potential types)
 

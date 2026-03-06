@@ -8,7 +8,7 @@ Arguments (a list).
 ## Usage
 
 ``` r
-update_arguments_ls(args_ls, function_fn)
+update_arguments_ls(args_ls, function_fn, allowed_chr = character(0))
 ```
 
 ## Arguments
@@ -20,6 +20,10 @@ update_arguments_ls(args_ls, function_fn)
 - function_fn:
 
   Function (a function)
+
+- allowed_chr:
+
+  Allowed (a character vector), Default: character(0)
 
 ## Value
 

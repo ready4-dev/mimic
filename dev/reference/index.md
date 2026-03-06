@@ -8,6 +8,9 @@
 - [`MimicUtility-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
   [`MimicUtility`](https://ready4-dev.github.io/mimic/dev/reference/MimicUtility-class.md)
   : MimicUtility
+- [`MimicVariables-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicVariables-class.md)
+  [`MimicVariables`](https://ready4-dev.github.io/mimic/dev/reference/MimicVariables-class.md)
+  : MimicVariables
 - [`MimicAlgorithms-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
   [`MimicAlgorithms`](https://ready4-dev.github.io/mimic/dev/reference/MimicAlgorithms-class.md)
   : MimicAlgorithms
@@ -23,15 +26,15 @@
 - [`MimicEventsList-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicEventsList-class.md)
   [`MimicEventsList`](https://ready4-dev.github.io/mimic/dev/reference/MimicEventsList-class.md)
   : MimicEventsList
-- [`MimicConfiguration-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
-  [`MimicConfiguration`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
-  : MimicConfiguration
 - [`MimicDerivations-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.md)
   [`MimicDerivations`](https://ready4-dev.github.io/mimic/dev/reference/MimicDerivations-class.md)
   : MimicDerivations
 - [`MimicArguments-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.md)
   [`MimicArguments`](https://ready4-dev.github.io/mimic/dev/reference/MimicArguments-class.md)
   : MimicArguments
+- [`MimicConfiguration-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
+  [`MimicConfiguration`](https://ready4-dev.github.io/mimic/dev/reference/MimicConfiguration-class.md)
+  : MimicConfiguration
 - [`MimicSchedule-class`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
   [`MimicSchedule`](https://ready4-dev.github.io/mimic/dev/reference/MimicSchedule-class.md)
   : MimicSchedule
@@ -72,6 +75,7 @@
   [`manufacture(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicInputs>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   [`manufacture(`*`<MimicDerivations>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
+  [`manufacture(`*`<MimicVariables>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/manufacture-methods.md)
   : Manufacture a new object
 - [`metamorphose(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/metamorphose-methods.md)
   : Metamorphose a model module to a model module of a different
