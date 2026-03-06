@@ -1827,6 +1827,24 @@ make_model_dyad_ls <- function (X_Ready4useDyad = ready4use::Ready4useDyad(), Y_
         Y_Ready4useDyad = Y_Ready4useDyad)
     return(model_dyad_ls)
 }
+#' Make outcomes tibble
+#' @description make_outcomes_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make outcomes tibble. The function returns Outcomes (a tibble).
+#' @param outcomes_chr Outcomes (a character vector), Default: character(0)
+#' @param categories_chr Categories (a character vector), Default: character(0)
+#' @param derivation_chr Derivation (a character vector), Default: character(0)
+#' @param subcategories_chr Subcategories (a character vector), Default: character(0)
+#' @return Outcomes (a tibble)
+#' @rdname make_outcomes_tb
+#' @export 
+#' @importFrom tibble tibble
+#' @keywords internal
+make_outcomes_tb <- function (outcomes_chr = character(0), categories_chr = character(0), 
+    derivation_chr = character(0), subcategories_chr = character(0)) 
+{
+    outcomes_tb <- tibble::tibble(Outcome = outcomes_chr, Category = categories_chr, 
+        Subcategory = subcategories_chr, Derivation = derivation_chr)
+    return(outcomes_tb)
+}
 #' Make outcomes variables
 #' @description make_outcomes_vars() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make outcomes variables. The function returns Outcomes (a character vector).
 #' @param X_Ready4useDyad PARAM_DESCRIPTION
@@ -2163,6 +2181,23 @@ make_project_1_results_synthesis <- function (inputs_ls, results_ls, modifiable_
         type_1L_chr = type_1L_chr)
     return(X_Ready4useDyad)
 }
+#' Make project 2 append list
+#' @description make_project_2_append_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 append list. The function returns Append (a list).
+#' @param arms_for_iar_adjustment_chr Arms for Initial Assessment andeferral adjustment (a character vector)
+#' @param arms_for_non_helpseeking_chr Arms for non helpseeking (a character vector)
+#' @param never_1L_int Never (an integer vector of length one)
+#' @return Append (a list)
+#' @rdname make_project_2_append_ls
+#' @export 
+#' @keywords internal
+make_project_2_append_ls <- function (arms_for_iar_adjustment_chr, arms_for_non_helpseeking_chr, 
+    never_1L_int) 
+{
+    append_ls <- list(arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
+        arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
+        never_1L_int = never_1L_int)
+    return(append_ls)
+}
 #' Make project 2 arms extras list
 #' @description make_project_2_arms_extras_ls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 arms extras list. The function returns Arms extras (a list).
 #' @param arms_chr Arms (a character vector)
@@ -2276,37 +2311,57 @@ make_project_2_days_mdls <- function (X_Ready4useDyad, add_chr = character(0), f
 #' @export 
 #' @importFrom purrr discard_at keep_at
 #' @keywords internal
-make_project_2_derive_ls <- function(function_fn = NULL,
-                                     discard_chr = character(0),
-                                     keep_chr = character(0)){
-  derive_ls <- list(arms_for_non_helpseeking_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")),
-                    arms_for_iar_adjustment_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "IAR adjustment")),
-                    arms_for_intervention_costs_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Intervention costs")),
-                    arms_for_offsets_chr = MimicDerivations(method_1L_chr = "procure", args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, target_1L_chr = "Arm", type_1L_chr = "Cost offsets")),
-                    disciplines_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(total_1L_lgl = F, target_1L_chr = "Worker",type_1L_chr = "concept",what_1L_chr = "resources")),
-                    inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", what_1L_chr = "inputs_ls")),
-                    never_1L_int = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(what_1L_chr = "daystonever")),
-                    sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")),
-                    tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")),
-                    treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", args_env_ls = list(match_value_xx = "arm_1L_chr"),
-                                                        args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", type_1L_chr = "Arm", what_1L_chr = c("arm"))),
-                    tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")),
-                    utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")),
-                    utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")),
-                    workers_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources")), 
-                    medical_chr = MimicDerivations(method_1L_chr = "manufacture", args_fixed_ls = list(subset_1L_chr = "Medical", target_1L_chr = "Worker", total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources"))
-  )
-  if(!is.null(function_fn)){
-    derive_ls <- update_arguments_ls(derive_ls,
-                                     function_fn = function_fn)
-  }
-  if(!identical(discard_chr, character())){
-    derive_ls <- derive_ls %>% purrr::discard_at(discard_chr)
-  }
-  if(!identical(keep_chr, character())){
-    derive_ls <- derive_ls %>% purrr::keep_at(keep_chr)
-  }
-  return(derive_ls)
+make_project_2_derive_ls <- function (function_fn = NULL, discard_chr = character(0), keep_chr = character(0)) 
+{
+    derive_ls <- list(arms_for_non_helpseeking_chr = MimicDerivations(method_1L_chr = "procure", 
+        args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, 
+            target_1L_chr = "Arm", type_1L_chr = "Helpseeking adjustment")), 
+        arms_for_iar_adjustment_chr = MimicDerivations(method_1L_chr = "procure", 
+            args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, 
+                target_1L_chr = "Arm", type_1L_chr = "IAR adjustment")), 
+        arms_for_intervention_costs_chr = MimicDerivations(method_1L_chr = "procure", 
+            args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, 
+                target_1L_chr = "Arm", type_1L_chr = "Intervention costs")), 
+        arms_for_offsets_chr = MimicDerivations(method_1L_chr = "procure", 
+            args_fixed_ls = list(empty_xx = character(0), match_value_xx = T, 
+                target_1L_chr = "Arm", type_1L_chr = "Cost offsets")), 
+        disciplines_chr = MimicDerivations(method_1L_chr = "manufacture", 
+            args_fixed_ls = list(total_1L_lgl = F, target_1L_chr = "Worker", 
+                type_1L_chr = "concept", what_1L_chr = "resources")), 
+        inputs_ls = MimicDerivations(method_1L_chr = "manufactureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicInputs", 
+                what_1L_chr = "inputs_ls")), never_1L_int = MimicDerivations(method_1L_chr = "manufacture", 
+            args_fixed_ls = list(what_1L_chr = "daystonever")), 
+        sensitivities_ls = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@sensitivities_ls")), 
+        tfmn_ls = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@transformations_ls")), 
+        treatment_1L_chr = MimicDerivations(method_1L_chr = "procure", 
+            args_env_ls = list(match_value_xx = "arm_1L_chr"), 
+            args_fixed_ls = list(empty_xx = character(0), target_1L_chr = "Treatment", 
+                type_1L_chr = "Arm", what_1L_chr = c("arm"))), 
+        tx_prefix_1L_chr = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "tx_prefix_1L_chr")), 
+        utilities_chr = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@names_chr")), 
+        utility_fns_ls = MimicDerivations(method_1L_chr = "procureSlot", 
+            args_fixed_ls = list(slot_nm_1L_chr = "x_MimicAlgorithms@x_MimicUtility@mapping_ls")), 
+        workers_chr = MimicDerivations(method_1L_chr = "manufacture", 
+            args_fixed_ls = list(target_1L_chr = "Worker", total_1L_lgl = F, 
+                type_1L_chr = "concept", what_1L_chr = "resources")), 
+        medical_chr = MimicDerivations(method_1L_chr = "manufacture", 
+            args_fixed_ls = list(subset_1L_chr = "Medical", target_1L_chr = "Worker", 
+                total_1L_lgl = F, type_1L_chr = "concept", what_1L_chr = "resources")))
+    if (!is.null(function_fn)) {
+        derive_ls <- update_arguments_ls(derive_ls, function_fn = function_fn)
+    }
+    if (!identical(discard_chr, character())) {
+        derive_ls <- derive_ls %>% purrr::discard_at(discard_chr)
+    }
+    if (!identical(keep_chr, character())) {
+        derive_ls <- derive_ls %>% purrr::keep_at(keep_chr)
+    }
+    return(derive_ls)
 }
 #' Make project 2 episode sequence
 #' @description make_project_2_episode_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 episode sequence. The function is called for its side effects and does not return a value.
@@ -2351,7 +2406,6 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSeq
     X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn)
     X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr, 
         vars_chr = vars_chr)
-    X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(never_1L_int = "never_1L_int")
     X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
     X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
     X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
@@ -2374,24 +2428,24 @@ make_project_2_episode_sequence <- function (event_nm_1L_chr = "EpisodeOfCareSeq
 #' @importFrom dplyr mutate
 #' @importFrom rlang sym
 #' @keywords internal
-make_project_2_initialise_ls <- function(derive_ls = list()){
-  initialise_ls <- make_initialise_ls(default_fn = function(X, sensitivities_ls = NULL, X_MimicVariable = MimicVariables()) {
-    if(is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, list())){
-      costs_chr <- character(0)
-    }else{
-      costs_chr <- paste0("Cost",c("", paste0("_",sensitivities_ls$costs_ls %>% names())))
-    }
-    renewSlot(X, "ds_tb", 
-              c(manufacture(X_MimicVariable, type_1L_chr = "measure", total_1L_lgl = T, what_1L_chr = "resources"), costs_chr) %>%
-                purrr::reduce(.init = X@ds_tb,
-                              ~ .x %>% dplyr::mutate(!!rlang::sym(.y) :=0)))
-  },
-  derive_ls = derive_ls,
-  update_fn = identity
-  # function(modifiable_chr) setdiff(modifiable_chr,
-  #                                            c("ClinicalPsychologistUseMins", "GPUseMins", "PsychiatristUseMins", "OtherMedicalUseMins", "NurseUseMins", "OtherUseMins", "TotalUseMins"))
-  )
-  return(initialise_ls)
+make_project_2_initialise_ls <- function (derive_ls = list()) 
+{
+    initialise_ls <- make_initialise_ls(default_fn = function(X, 
+        sensitivities_ls = NULL, X_MimicVariable = MimicVariables()) {
+        if (is.null(sensitivities_ls$costs_ls) | identical(sensitivities_ls$costs_ls, 
+            list())) {
+            costs_chr <- character(0)
+        }
+        else {
+            costs_chr <- paste0("Cost", c("", paste0("_", sensitivities_ls$costs_ls %>% 
+                names())))
+        }
+        renewSlot(X, "ds_tb", c(manufacture(X_MimicVariable, 
+            type_1L_chr = "measure", total_1L_lgl = T, what_1L_chr = "resources"), 
+            costs_chr) %>% purrr::reduce(.init = X@ds_tb, ~.x %>% 
+            dplyr::mutate(`:=`(!!rlang::sym(.y), 0))))
+    }, derive_ls = derive_ls, update_fn = identity)
+    return(initialise_ls)
 }
 #' Make project 2 K10 change models
 #' @description make_project_2_k10_change_mdls() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 k10 change models. The function returns K10 (a list).
@@ -2726,6 +2780,19 @@ make_project_2_outcomes_ls <- function ()
         "iar_dst_practitioner_level_of_care"))
     return(outcomes_ls)
 }
+#' Make project 2 outcomes tibble
+#' @description make_project_2_outcomes_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 outcomes tibble. The function returns Outcomes (a tibble).
+
+#' @return Outcomes (a tibble)
+#' @rdname make_project_2_outcomes_tb
+#' @export 
+#' @keywords internal
+make_project_2_outcomes_tb <- function () 
+{
+    outcomes_tb <- make_outcomes_tb("K10", categories_chr = "Clinical", 
+        subcategories_chr = "Psychological distress", derivation_chr = "Modelled")
+    return(outcomes_tb)
+}
 #' Make project 2 regression to mean
 #' @description make_project_2_regression_to_mean() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 regression to mean. The function is called for its side effects and does not return a value.
 #' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'RegressionToMean'
@@ -2866,6 +2933,24 @@ make_project_2_report <- function (model_data_ls = NULL, arms_chr, params_tb, pe
             dplyr::ungroup())
     }
     return(data_xx)
+}
+#' Make project 2 resources tibble
+#' @description make_project_2_resources_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 resources tibble. The function returns Resources (a tibble).
+
+#' @return Resources (a tibble)
+#' @rdname make_project_2_resources_tb
+#' @export 
+#' @keywords internal
+make_project_2_resources_tb <- function () 
+{
+    resources_tb <- make_resources_tb(c("Episode", make_disciplines()), 
+        categories_chr = c("Episode of care", rep("Worker", 6)), 
+        derivation_chr = c("Increment", rep("Modelled", 6)), 
+        totals_chr = c(NA_character_, rep("Total", 6)), subcategories_chr = c(NA_character_, 
+            "NonMedical", "Medical", "Medical", "Medical", "NonMedical", 
+            "NonMedical"), measures_chr = c("", rep("UseMins", 
+            6)))
+    return(resources_tb)
 }
 #' Make project 2 results
 #' @description make_project_2_results() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 results. The function returns Sim results (a list).
@@ -3360,7 +3445,8 @@ make_project_2_untreated_sequence <- function (event_nm_1L_chr = "UpdateUntreate
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(action_fn)
     X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(add_sensitivity_1L_lgl = FALSE, 
-        k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
+        defaults_ls = NULL, k10_draws_fn = draws_fn, k10_var_1L_chr = outcome_var_1L_chr)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(update_1L_int = "update_1L_int")
     return(X_MimicEvent)
 }
 #' Make project 2 variables
@@ -3405,6 +3491,45 @@ make_project_2_vars <- function (type_1L_chr = c("drop", "clinical", "keep", "mo
         vars_chr <- setdiff(vars_chr, exclude_chr)
     }
     return(vars_chr)
+}
+#' Make project 2 wrap up sequence
+#' @description make_project_2_wrap_up_sequence() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project 2 wrap up sequence. The function is called for its side effects and does not return a value.
+#' @param event_nm_1L_chr Event name (a character vector of length one), Default: 'WrapUpSequence'
+#' @param outcome_var_1L_chr Outcome variable (a character vector of length one), Default: 'K10'
+#' @param ineligible_1L_chr Ineligible (a character vector of length one), Default: character(0)
+#' @param functions_ls Functions (a list), Default: make_ineligibility_fns_ls()
+#' @param type_schedule_1L_chr Type schedule (a character vector of length one), Default: 'End'
+#' @param use_schedule_1L_chr Use schedule (a character vector of length one), Default: 'Y'
+#' @param use_trigger_1L_chr Use trigger (a character vector of length one), Default: 'Z'
+#' @param validate_schedule_1L_chr Validate schedule (a character vector of length one), Default: character(0)
+#' @return X (Model event scheduling and event logic data.)
+#' @rdname make_project_2_wrap_up_sequence
+#' @export 
+#' @keywords internal
+make_project_2_wrap_up_sequence <- function (event_nm_1L_chr = "WrapUpSequence", outcome_var_1L_chr = "K10", 
+    ineligible_1L_chr = character(0), functions_ls = make_ineligibility_fns_ls(), 
+    type_schedule_1L_chr = "End", use_schedule_1L_chr = "Y", 
+    use_trigger_1L_chr = "Z", validate_schedule_1L_chr = character(0)) 
+{
+    X_MimicEvent <- MimicEvent()
+    X_MimicEvent@x_MimicEligible@ineligible_1L_chr <- ineligible_1L_chr
+    X_MimicEvent@x_MimicEligible@functions_ls <- functions_ls
+    X_MimicEvent@x_MimicSchedule@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn <- update_scheduled_date
+    X_MimicEvent@x_MimicSchedule@use_1L_chr <- use_schedule_1L_chr
+    X_MimicEvent@x_MimicSchedule@validate_chr <- validate_schedule_1L_chr
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicSchedule@functions_ls$schedule_fn)
+    X_MimicEvent@x_MimicSchedule@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(type_1L_chr = type_schedule_1L_chr)
+    X_MimicEvent@x_MimicTrigger@assert_1L_lgl <- FALSE
+    X_MimicEvent@x_MimicTrigger@event_1L_chr <- event_nm_1L_chr
+    X_MimicEvent@x_MimicTrigger@use_1L_chr <- use_trigger_1L_chr
+    X_MimicEvent@x_MimicTrigger@functions_ls$action_fn <- add_project_2_model_wrap_up
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@iterations_1L_lgl <- T
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@derive_ls <- make_project_2_derive_ls(X_MimicEvent@x_MimicTrigger@functions_ls$action_fn)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_fixed_ls <- list(defaults_ls = NULL, 
+        outcome_1L_chr = outcome_var_1L_chr)
+    X_MimicEvent@x_MimicTrigger@x_MimicArguments@x_MimicDerivations@args_env_ls <- list(update_1L_int = "update_1L_int")
+    return(X_MimicEvent)
 }
 #' Make project activity dataset
 #' @description make_project_activity_ds() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make project activity dataset. The function returns Activity (a tibble).
@@ -5858,6 +5983,28 @@ make_report_data <- function (model_data_ls = NULL, date_end_dtm = as.POSIXct("2
     }
     return(data_xx)
 }
+#' Make resources tibble
+#' @description make_resources_tb() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make resources tibble. The function returns Resources (a tibble).
+#' @param resources_chr Resources (a character vector), Default: character(0)
+#' @param categories_chr Categories (a character vector), Default: character(0)
+#' @param derivation_chr Derivation (a character vector), Default: character(0)
+#' @param measures_chr Measures (a character vector), Default: character(0)
+#' @param subcategories_chr Subcategories (a character vector), Default: character(0)
+#' @param totals_chr Totals (a character vector), Default: character(0)
+#' @return Resources (a tibble)
+#' @rdname make_resources_tb
+#' @export 
+#' @importFrom tibble tibble
+#' @keywords internal
+make_resources_tb <- function (resources_chr = character(0), categories_chr = character(0), 
+    derivation_chr = character(0), measures_chr = character(0), 
+    subcategories_chr = character(0), totals_chr = character(0)) 
+{
+    resources_tb <- tibble::tibble(Resource = resources_chr, 
+        Category = categories_chr, Subcategory = subcategories_chr, 
+        Total = totals_chr, Measure = measures_chr, Derivation = derivation_chr)
+    return(resources_tb)
+}
 #' Make results matrix
 #' @description make_results_matrix() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make results matrix. The function returns Results (a matrix).
 #' @param data_tb Data (a tibble)
@@ -6047,11 +6194,12 @@ make_sensitivities_ls <- function (timestamp_1L_chr = "_YR1")
 #' @export 
 #' @importFrom purrr discard_at
 #' @keywords internal
-make_sim_env_ls <- function(sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration"){
-  sim_env_ls <- sim_env_ls %>%
-    purrr::discard_at(discard_chr) %>% append(append_ls) 
-  sim_env_ls[names(sim_env_ls) %>% sort()]
-  return(sim_env_ls)
+make_sim_env_ls <- function (sim_env_ls, append_ls = list(), discard_chr = "X_MimicConfiguration") 
+{
+    sim_env_ls <- sim_env_ls %>% purrr::discard_at(discard_chr) %>% 
+        append(append_ls)
+    sim_env_ls[names(sim_env_ls) %>% sort()]
+    return(sim_env_ls)
 }
 #' Make simulated draws
 #' @description make_simulated_draws() is a Make function that creates a new R object. Specifically, this function implements an algorithm to make simulated draws. The function returns Simulations (a data.frame).

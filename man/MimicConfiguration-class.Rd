@@ -21,8 +21,6 @@ Configuration details for a simulation run.
 
 \item{\code{iterations_ls}}{Iterations (a list)}
 
-\item{\code{modifiable_chr}}{Modifiable (a character vector)}
-
 \item{\code{prior_batches_1L_int}}{Prior batches (an integer vector of length one)}
 
 \item{\code{seed_1L_int}}{Seed (an integer vector of length one)}

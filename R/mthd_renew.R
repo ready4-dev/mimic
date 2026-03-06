@@ -199,21 +199,23 @@ methods::setMethod("renew", "MimicPopulation", function (x, batch_1L_int = integ
 #' @export 
 #' @importFrom purrr modify_at
 #' @importFrom ready4 renew
-methods::setMethod("renew", "MimicConfiguration", function(x,
-                                                           env_ls = list(),
-                                                           what_1L_chr = c("legacy"),
-                                                           ...){
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "legacy"){
-    if(identical(x@x_MimicAlgorithms@main_ls, list("UPDATE"))){
-      x <- renewSlot(x, "x_MimicAlgorithms", renewSlot(x@x_MimicAlgorithms, "main_ls", env_ls$main_ls))
+methods::setMethod("renew", "MimicConfiguration", function (x, env_ls = list(), what_1L_chr = c("legacy"), ...) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "legacy") {
+        if (identical(x@x_MimicAlgorithms@main_ls, list("UPDATE"))) {
+            x <- renewSlot(x, "x_MimicAlgorithms", renewSlot(x@x_MimicAlgorithms, 
+                "main_ls", env_ls$main_ls))
+        }
+        if (identical(x@x_MimicAlgorithms@processing_ls$initialise_ls, 
+            list("UPDATE"))) {
+            new_ls <- make_simulation_fns_ls("processing", initialise_ls = env_ls$initialise_ls)
+            new_ls <- new_ls$initialise_ls
+            new_ls <- x@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", 
+                ~new_ls)
+            x <- renewSlot(x, "x_MimicAlgorithms@processing_ls", 
+                new_ls)
+        }
     }
-    if(identical(x@x_MimicAlgorithms@processing_ls$initialise_ls, list("UPDATE"))){
-      new_ls <- make_simulation_fns_ls("processing", initialise_ls = env_ls$initialise_ls)
-      new_ls <- new_ls$initialise_ls
-      new_ls <- x@x_MimicAlgorithms@processing_ls %>% purrr::modify_at(.at = "initialise_ls", ~new_ls)
-      x <- renewSlot(x,"x_MimicAlgorithms@processing_ls", new_ls)
-    }
-  }
-  return(x)
+    return(x)
 })

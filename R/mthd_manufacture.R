@@ -14,34 +14,34 @@
 #' @export 
 #' @importFrom purrr map pluck
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicArguments", function(x,
-                                                             batch_1L_int = integer(0),
-                                                             env_ls = list(),
-                                                             what_1L_chr = c("args_ls"),
-                                                             X_MimicConfiguration = MimicConfiguration(),
-                                                             ...){
-  what_1L_chr <- match.arg(what_1L_chr)
-  object_xx <- list()
-  if(what_1L_chr == "args_ls"){
-    object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), X_MimicConfiguration = X_MimicConfiguration)
-    if(!identical(x@derive_ls, list())){
-      object_xx <- object_xx %>%
-        append(x@derive_ls %>% purrr::map(~{
-          manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, X_MimicConfiguration = X_MimicConfiguration) 
-        }))
+methods::setMethod("manufacture", "MimicArguments", function (x, batch_1L_int = integer(0), env_ls = list(), what_1L_chr = c("args_ls"), 
+    X_MimicConfiguration = MimicConfiguration(), ...) 
+{
+    what_1L_chr <- match.arg(what_1L_chr)
+    object_xx <- list()
+    if (what_1L_chr == "args_ls") {
+        object_xx <- manufacture(x@x_MimicDerivations, env_ls = env_ls, 
+            flatten_1L_lgl = FALSE, what_1L_chr = c("args_ls"), 
+            X_MimicConfiguration = X_MimicConfiguration)
+        if (!identical(x@derive_ls, list())) {
+            object_xx <- object_xx %>% append(x@derive_ls %>% 
+                purrr::map(~{
+                  manufacture(.x, env_ls = env_ls, flatten_1L_lgl = TRUE, 
+                    X_MimicConfiguration = X_MimicConfiguration)
+                }))
+        }
+        if (!identical(x@models_ls, list())) {
+            object_xx <- object_xx %>% append(x@models_ls %>% 
+                purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, 
+                  "models_ls") %>% purrr::pluck(.x)))
+        }
+        if (!identical(batch_1L_int, integer(0)) & x@iterations_1L_lgl) {
+            object_xx <- object_xx %>% append(list(iterations_int = manufacture(X_MimicConfiguration, 
+                batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
+        }
+        object_xx <- object_xx[!duplicated(names(object_xx))]
     }
-    if(!identical(x@models_ls, list())){
-      object_xx <- object_xx %>%
-        append(x@models_ls %>%
-                 purrr::map(~procureSlot(X_MimicConfiguration@x_MimicInputs, "models_ls") %>% purrr::pluck(.x)))
-    }
-    if(!identical(batch_1L_int, integer(0)) & x@iterations_1L_lgl){
-      object_xx <- object_xx %>%
-        append(list(iterations_int = manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")))
-    }
-    object_xx <- object_xx[!duplicated(names(object_xx))]
-  }
-  return(object_xx)
+    return(object_xx)
 })
 #' 
 #' Manufacture a new object
@@ -83,110 +83,113 @@ methods::setMethod("manufacture", "MimicEligible", function (x, append_ls = list
 #' @param batch_1L_int Batch (an integer vector of length one), Default: integer(0)
 #' @param draws_tb Draws (a tibble), Default: NULL
 #' @param extras_ls Extras (a list), Default: list()
-#' @param include_chr Include (a character vector of length one), Default: character(0)
+#' @param include_chr Include (a character vector), Default: 'Modelled'
 #' @param subset_1L_chr Subset (a character vector of length one), Default: character(0)
 #' @param target_1L_chr Target (a character vector of length one), Default: character(0)
-#' @param total_1L_chr Total (a character vector of length one), Default: character(0)
-#' @param type_1L_chr Type (a character vector of length one), Default: c("current","concept", "entry", "measure")
-#' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "args_all", "daystonever", "iterations", "modifiable","outcomes", "population_ls", "resources", "utilities")
+#' @param total_1L_lgl Total (a logical vector of length one), Default: TRUE
+#' @param type_1L_chr Type (a character vector of length one), Default: c("current", "concept", "entry", "measure")
+#' @param what_1L_chr What (a character vector of length one), Default: c("draws_tb", "append_ls", "args_all", "daystonever", "iterations", 
+#'    "modifiable", "outcomes", "population_ls", "resources", "utilities")
 #' @param ... Additional arguments
 #' @return Object (an output object of multiple potential types)
 #' @rdname manufacture-methods
 #' @aliases manufacture,MimicConfiguration-method
 #' @export 
+#' @importFrom lubridate days
 #' @importFrom purrr flatten_int
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicConfiguration", function(x,
-                                                                 arm_1L_chr = NA_character_,
-                                                                 batch_1L_int = integer(0),
-                                                                 draws_tb = NULL,
-                                                                 extras_ls = list(),
-                                                                 include_chr = "Modelled",
-                                                                 subset_1L_chr = character(0),
-                                                                 target_1L_chr = character(0),
-                                                                 total_1L_lgl = TRUE,
-                                                                 type_1L_chr = c("current","concept", "entry", "measure"),
-                                                                 what_1L_chr = c("draws_tb", "append_ls", "args_all","daystonever", "iterations", "modifiable","outcomes", "population_ls", "resources", "utilities"),
-                                                                 ...){
-  type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "args_all"){
-    object_xx <- list(
-      arm_1L_chr = arm_1L_chr,
-      batch_1L_int = batch_1L_int,
-      draws_tb = draws_tb,
-      X_MimicConfiguration = x) %>%
-      append(extras_ls) 
-    object_xx <- object_xx[!duplicated(names(object_xx))]
-  }
-  if(what_1L_chr == "append_ls"){
-    object_xx <-   manufacture(x@x_MimicArguments, batch_1L_int = batch_1L_int,
-                               env_ls = make_sim_env_ls(manufacture(x, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, extras_ls = extras_ls, what_1L_chr = "args_all"),
-                                                        discard_chr = "X_MimicConfiguration"),
-                               what_1L_chr = "args_ls", X_MimicConfiguration = x)
-  }
-  if(what_1L_chr == "draws_tb"){
-    iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations")
-    if(identical(batch_1L_int, integer(0))){
-      batch_1L_int <- 0
+methods::setMethod("manufacture", "MimicConfiguration", function (x, arm_1L_chr = NA_character_, batch_1L_int = integer(0), 
+    draws_tb = NULL, extras_ls = list(), include_chr = "Modelled", 
+    subset_1L_chr = character(0), target_1L_chr = character(0), 
+    total_1L_lgl = TRUE, type_1L_chr = c("current", "concept", 
+        "entry", "measure"), what_1L_chr = c("draws_tb", "append_ls", 
+        "args_all", "daystonever", "iterations", "modifiable", 
+        "outcomes", "population_ls", "resources", "utilities"), 
+    ...) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "args_all") {
+        object_xx <- list(arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, 
+            draws_tb = draws_tb, X_MimicConfiguration = x) %>% 
+            append(extras_ls)
+        object_xx <- object_xx[!duplicated(names(object_xx))]
     }
-    inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
-    object_xx <- make_draws_tb(inputs_ls, 
-                               extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn,
-                               iterations_int = iterations_int, 
-                               drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
-                               drop_suffix_1L_chr = x@drop_suffix_1L_chr, 
-                               seed_1L_int = x@seed_1L_int + batch_1L_int)
-  }
-  if(what_1L_chr == "daystonever"){
-    object_xx <- floor(x@horizon_dtm/lubridate::days(1))+1
-  }
-  if(what_1L_chr == "iterations"){
-    if(identical(batch_1L_int, integer(0))){
-      object_xx <- x@iterations_ls %>% purrr::flatten_int()
-    }else{
-      object_xx <- x@iterations_ls[[batch_1L_int]]
-    } 
-  }
-  if(what_1L_chr %in% c("modifiable","outcomes", "resources", "utilities")){
-    object_xx <- c(character(0))
-    if(what_1L_chr %in% c("modifiable", "outcomes")){
-      object_xx <- c(object_xx,
-                     manufacture(x@x_MimicVariables, include_chr = include_chr, subset_1L_chr = subset_1L_chr, target_1L_chr = target_1L_chr, total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"))
+    if (what_1L_chr == "append_ls") {
+        object_xx <- manufacture(x@x_MimicArguments, batch_1L_int = batch_1L_int, 
+            env_ls = make_sim_env_ls(manufacture(x, arm_1L_chr = arm_1L_chr, 
+                batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
+                extras_ls = extras_ls, what_1L_chr = "args_all"), 
+                discard_chr = "X_MimicConfiguration"), what_1L_chr = "args_ls", 
+            X_MimicConfiguration = x)
     }
-    if(what_1L_chr %in% c("modifiable", "utilities")){
-      object_xx <- c(object_xx, x@x_MimicAlgorithms@x_MimicUtility@names_chr)
+    if (what_1L_chr == "draws_tb") {
+        iterations_int <- manufacture(x, batch_1L_int = batch_1L_int, 
+            what_1L_chr = "iterations")
+        if (identical(batch_1L_int, integer(0))) {
+            batch_1L_int <- 0
+        }
+        inputs_ls <- manufacture(x@x_MimicInputs, what_1L_chr = "inputs_ls")
+        object_xx <- make_draws_tb(inputs_ls, extra_draws_fn = x@x_MimicAlgorithms@processing_ls$extra_draws_fn, 
+            iterations_int = iterations_int, drop_missing_1L_lgl = x@drop_missing_1L_lgl, 
+            drop_suffix_1L_chr = x@drop_suffix_1L_chr, seed_1L_int = x@seed_1L_int + 
+                batch_1L_int)
     }
-    if(what_1L_chr %in% c("modifiable", "resources")){
-      object_xx <- c(object_xx,manufacture(x@x_MimicVariables, include_chr = include_chr, subset_1L_chr = subset_1L_chr, target_1L_chr = target_1L_chr, total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "resources"))
+    if (what_1L_chr == "daystonever") {
+        object_xx <- floor(x@horizon_dtm/lubridate::days(1)) + 
+            1
     }
-    object_xx <- object_xx %>% unique()
-  }
-  if(what_1L_chr == "population_ls"){
-    if(type_1L_chr == "current"){
-      object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+    if (what_1L_chr == "iterations") {
+        if (identical(batch_1L_int, integer(0))) {
+            object_xx <- x@iterations_ls %>% purrr::flatten_int()
+        }
+        else {
+            object_xx <- x@iterations_ls[[batch_1L_int]]
+        }
     }
-    if(type_1L_chr == "entry"){
-      object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
-                                         arm_1L_chr = arm_1L_chr, 
-                                         default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn,
-                                         default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls,
-                                                                X_MimicVariable = x@x_MimicVariables),
-                                         derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls,
-                                         draws_tb = draws_tb,
-                                         horizon_dtm = x@horizon_dtm,
-                                         iterations_int = manufacture(x, batch_1L_int = batch_1L_int, what_1L_chr = "iterations"), 
-                                         modifiable_chr = c(manufacture(x, include_chr = include_chr, target_1L_chr = target_1L_chr, total_1L_lgl = total_1L_lgl, type_1L_chr = "measure", what_1L_chr = "outcomes"),
-                                                            manufacture(x, what_1L_chr = "utilities")),
-                                         start_dtm = x@start_dtm,  
-                                         tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
-                                         tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, empty_xx = NULL, target_1L_chr = "Treatment duration"),
-                                         tidy_cols_1L_lgl = T,
-                                         tx_prefix_1L_chr = x@tx_prefix_1L_chr) %>%
-        update_population_ls(population_ls = NULL,  type_1L_chr = "form")
+    if (what_1L_chr %in% c("modifiable", "outcomes", "resources", 
+        "utilities")) {
+        object_xx <- c(character(0))
+        if (what_1L_chr %in% c("modifiable", "outcomes")) {
+            object_xx <- c(object_xx, manufacture(x@x_MimicVariables, 
+                include_chr = include_chr, subset_1L_chr = subset_1L_chr, 
+                target_1L_chr = target_1L_chr, total_1L_lgl = total_1L_lgl, 
+                type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"))
+        }
+        if (what_1L_chr %in% c("modifiable", "utilities")) {
+            object_xx <- c(object_xx, x@x_MimicAlgorithms@x_MimicUtility@names_chr)
+        }
+        if (what_1L_chr %in% c("modifiable", "resources")) {
+            object_xx <- c(object_xx, manufacture(x@x_MimicVariables, 
+                include_chr = include_chr, subset_1L_chr = subset_1L_chr, 
+                target_1L_chr = target_1L_chr, total_1L_lgl = total_1L_lgl, 
+                type_1L_chr = type_1L_chr, what_1L_chr = "resources"))
+        }
+        object_xx <- object_xx %>% unique()
     }
-  }
-  return(object_xx)
+    if (what_1L_chr == "population_ls") {
+        if (type_1L_chr == "current") {
+            object_xx <- manufacture(x@x_MimicPopulation, what_1L_chr = what_1L_chr)
+        }
+        if (type_1L_chr == "entry") {
+            object_xx <- add_enter_model_event(X_Ready4useDyad = x@x_MimicInputs@y_Ready4useDyad, 
+                arm_1L_chr = arm_1L_chr, default_fn = x@x_MimicAlgorithms@processing_ls$initialise_ls$default_fn, 
+                default_args_ls = list(sensitivities_ls = x@x_MimicAlgorithms@sensitivities_ls, 
+                  X_MimicVariable = x@x_MimicVariables), derive_fn_ls = x@x_MimicAlgorithms@processing_ls$initialise_ls$derive_ls, 
+                draws_tb = draws_tb, horizon_dtm = x@horizon_dtm, 
+                iterations_int = manufacture(x, batch_1L_int = batch_1L_int, 
+                  what_1L_chr = "iterations"), modifiable_chr = c(manufacture(x, 
+                  include_chr = include_chr, target_1L_chr = target_1L_chr, 
+                  total_1L_lgl = total_1L_lgl, type_1L_chr = "measure", 
+                  what_1L_chr = "outcomes"), manufacture(x, what_1L_chr = "utilities")), 
+                start_dtm = x@start_dtm, tfmn_ls = x@x_MimicAlgorithms@transformations_ls, 
+                tx_duration_dtm = procure(x, match_value_xx = arm_1L_chr, 
+                  empty_xx = NULL, target_1L_chr = "Treatment duration"), 
+                tidy_cols_1L_lgl = T, tx_prefix_1L_chr = x@tx_prefix_1L_chr) %>% 
+                update_population_ls(population_ls = NULL, type_1L_chr = "form")
+        }
+    }
+    return(object_xx)
 })
 #' 
 #' Manufacture a new object
@@ -334,65 +337,70 @@ methods::setMethod("manufacture", "MimicDerivations", function (x, env_ls = list
 #' @name manufacture-MimicVariables
 #' @description manufacture method applied to MimicVariables
 #' @param x An object of class MimicVariables
-#' @param include_chr Include (a character vector of length one), Default: character(0)
+#' @param include_chr Include (a character vector), Default: character(0)
 #' @param subset_1L_chr Subset (a character vector of length one), Default: character(0)
 #' @param target_1L_chr Target (a character vector of length one), Default: character(0)
-#' @param total_1L_chr Total (a character vector of length one), Default: character(0)
-#' @param type_1L_chr Type (a character vector of length one), Default: c("measure","concept")
+#' @param total_1L_lgl Total (a logical vector of length one), Default: FALSE
+#' @param type_1L_chr Type (a character vector of length one), Default: c("measure", "concept")
 #' @param what_1L_chr What (a character vector of length one), Default: c("both", "outcomes", "resources")
 #' @param ... Additional arguments
 #' @return Object (an output object of multiple potential types)
 #' @rdname manufacture-methods
 #' @aliases manufacture,MimicVariables-method
 #' @export 
-#' @importFrom stringr str_remove str_sub
+#' @importFrom dplyr filter pull mutate group_by reframe select
+#' @importFrom purrr map2_chr flatten_chr discard
 #' @importFrom ready4 manufacture
-methods::setMethod("manufacture", "MimicVariables", function(x,
-                                                             include_chr = character(0),#c("Modelled", "Total"),
-                                                             subset_1L_chr = character(0),
-                                                             target_1L_chr = character(0),
-                                                             total_1L_lgl = FALSE,
-                                                             type_1L_chr = c("measure","concept"),
-                                                             what_1L_chr = c("both", "outcomes", "resources"),
-                                                             ...){
-  type_1L_chr <- match.arg(type_1L_chr)
-  what_1L_chr <- match.arg(what_1L_chr)
-  if(what_1L_chr == "outcomes"){
-    object_xx <- x@outcomes_tb
-  }
-  if(what_1L_chr == "resources"){
-    object_xx <- x@resources_tb 
-  }
-  if(what_1L_chr %in% c("outcomes", "resources")){
-    if(!identical(target_1L_chr, character(0))){
-      object_xx <- object_xx %>% dplyr::filter(Category == target_1L_chr)
+methods::setMethod("manufacture", "MimicVariables", function (x, include_chr = character(0), subset_1L_chr = character(0), 
+    target_1L_chr = character(0), total_1L_lgl = FALSE, type_1L_chr = c("measure", 
+        "concept"), what_1L_chr = c("both", "outcomes", "resources"), 
+    ...) 
+{
+    type_1L_chr <- match.arg(type_1L_chr)
+    what_1L_chr <- match.arg(what_1L_chr)
+    if (what_1L_chr == "outcomes") {
+        object_xx <- x@outcomes_tb
     }
-    if(!identical(subset_1L_chr, character(0))){
-      object_xx <- object_xx %>% dplyr::filter(Subcategory == subset_1L_chr)
+    if (what_1L_chr == "resources") {
+        object_xx <- x@resources_tb
     }
-    if(!identical(include_chr, character(0))){
-      object_xx <- object_xx %>% dplyr::filter(Derivation %in% include_chr)
+    if (what_1L_chr %in% c("outcomes", "resources")) {
+        if (!identical(target_1L_chr, character(0))) {
+            object_xx <- object_xx %>% dplyr::filter(Category == 
+                target_1L_chr)
+        }
+        if (!identical(subset_1L_chr, character(0))) {
+            object_xx <- object_xx %>% dplyr::filter(Subcategory == 
+                subset_1L_chr)
+        }
+        if (!identical(include_chr, character(0))) {
+            object_xx <- object_xx %>% dplyr::filter(Derivation %in% 
+                include_chr)
+        }
+        if (what_1L_chr == "outcomes") {
+            object_xx <- object_xx %>% dplyr::pull(Outcome)
+        }
+        if (what_1L_chr == "resources") {
+            if (type_1L_chr == "concept") {
+                object_xx <- object_xx %>% dplyr::mutate(Measure = "")
+            }
+            object_xx <- object_xx %>% dplyr::mutate(ResourceUse = paste0(Resource, 
+                Measure)) %>% dplyr::group_by(Category) %>% dplyr::reframe(ResourceUse = ResourceUse, 
+                Totals = purrr::map2_chr(Total, Measure, ~ifelse(is.na(.x) | 
+                  (!total_1L_lgl), NA_character_, paste0(.x, 
+                  .y)))) %>% dplyr::select(-Category) %>% purrr::flatten_chr() %>% 
+                purrr::discard(is.na) %>% unique()
+        }
     }
-    if(what_1L_chr == "outcomes"){
-      object_xx <- object_xx %>% dplyr::pull(Outcome)
+    if (what_1L_chr == "both") {
+        object_xx <- c(character(0), manufacture(x, include_chr = include_chr, 
+            subset_1L_chr = subset_1L_chr, target_1L_chr = intersect(target_1L_chr, 
+                x@outcomes_tb$Category), total_1L_lgl = total_1L_lgl, 
+            type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"), 
+            manufacture(x, include_chr = include_chr, subset_1L_chr = subset_1L_chr, 
+                target_1L_chr = intersect(target_1L_chr, x@resources_tb$Category), 
+                total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, 
+                what_1L_chr = "resources"))
     }
-    if(what_1L_chr == "resources"){
-      if(type_1L_chr == "concept"){
-        object_xx <- object_xx %>%
-          dplyr::mutate(Measure = "")
-      }
-      object_xx <- object_xx %>% 
-        dplyr::mutate(ResourceUse = paste0(Resource, Measure)) %>%
-        dplyr::group_by(Category) %>% 
-        dplyr::reframe(ResourceUse = ResourceUse, Totals = purrr::map2_chr(Total, Measure, ~ifelse(is.na(.x) | (!total_1L_lgl), NA_character_, paste0(.x,.y)))) %>%  
-        dplyr::select(-Category) %>% purrr::flatten_chr() %>% purrr::discard(is.na) %>% unique()
-    }
-  }
-  if(what_1L_chr == "both"){
-    object_xx <- c(character(0),
-                   manufacture(x, include_chr =  include_chr, subset_1L_chr = subset_1L_chr, target_1L_chr = intersect(target_1L_chr, x@outcomes_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "outcomes"),
-                   manufacture(x,  include_chr =  include_chr, subset_1L_chr = subset_1L_chr, target_1L_chr = intersect(target_1L_chr, x@resources_tb$Category), total_1L_lgl = total_1L_lgl, type_1L_chr = type_1L_chr, what_1L_chr = "resources")
-    )
-  }
-  return(object_xx)
+    return(object_xx)
 })

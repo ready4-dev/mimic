@@ -13,7 +13,7 @@
 #' @exportClass MimicVariables
 MimicVariables <- methods::setClass("MimicVariables",
 contains = "Ready4Module",
-slots = c(outcomes_tb = "tbl_df",resources_tb = "tbl_df", dissemination_1L_chr = "character"),
+slots = c(outcomes_tb = "tbl_df",resources_tb = "tbl_df",dissemination_1L_chr = "character"),
 prototype =  list(outcomes_tb = make_outcomes_tb(),resources_tb = make_resources_tb()))
 
 

@@ -319,78 +319,82 @@ predict_from_pool <- function (pooled_xx, as_1L_chr = c("vector", "histogram", "
 #' @param utilities_chr Utilities (a character vector), Default: c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2")
 #' @param utility_fns_ls Utility functions (a list), Default: make_utility_fns_ls(utilities_chr = utilities_chr)
 #' @param X_MimicConfiguration PARAM_DESCRIPTION, Default: MimicConfiguration()
-#' @return X_Ready4useDyad (A dataset and data dictionary pair.)
+#' @return X (A dataset and data dictionary pair.)
 #' @rdname predict_project_2_pathway
 #' @export 
-#' @importFrom lubridate years weeks days
-predict_project_2_pathway <- function (inputs_ls = NULL, 
-                                       add_logic_fn = identity, 
-                                       arm_1L_chr, 
-                                       arms_chr = character(0),
-                                       arms_for_intervention_costs_chr = character(0),
-                                       arms_for_offsets_chr = character(0), 
-                                       arms_for_non_helpseeking_chr = character(0), 
-                                       arms_for_iar_adjustment_chr = character(0), 
-                                       batch_1L_int = integer(0), ###
-                                       # derive_extras_ls = list(),
-                                       draws_tb = NULL,  ###
-                                       extra_draws_fn = NULL,
-                                       horizon_dtm = lubridate::years(1), 
-                                       iterations_int = integer(0), 
-                                       modifiable_chr = make_project_2_vars("modify"),
-                                       seed_1L_int = 2001L, 
-                                       sensitivities_ls = make_project_2_sensitivities_ls(), 
-                                       start_dtm = Sys.Date(), 
-                                       tfmn_ls = make_class_tfmns(), 
-                                       tx_duration_dtm = lubridate::weeks(12), 
-                                       treatment_ls = NULL,
-                                       utilities_chr = c("AQoL8D", "EQ5D", "EQ5DM2", "SF6D", "SF6DM2"),
-                                       utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
-                                       X_MimicConfiguration = MimicConfiguration()
-) 
+#' @importFrom lubridate years weeks
+predict_project_2_pathway <- function (inputs_ls = NULL, add_logic_fn = identity, arm_1L_chr, 
+    arms_chr = character(0), arms_for_intervention_costs_chr = character(0), 
+    arms_for_offsets_chr = character(0), arms_for_non_helpseeking_chr = character(0), 
+    arms_for_iar_adjustment_chr = character(0), batch_1L_int = integer(0), 
+    draws_tb = NULL, extra_draws_fn = NULL, horizon_dtm = lubridate::years(1), 
+    iterations_int = integer(0), modifiable_chr = make_project_2_vars("modify"), 
+    seed_1L_int = 2001L, sensitivities_ls = make_project_2_sensitivities_ls(), 
+    start_dtm = Sys.Date(), tfmn_ls = make_class_tfmns(), tx_duration_dtm = lubridate::weeks(12), 
+    treatment_ls = NULL, utilities_chr = c("AQoL8D", "EQ5D", 
+        "EQ5DM2", "SF6D", "SF6DM2"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
+    X_MimicConfiguration = MimicConfiguration()) 
 {
-  X_MimicConfiguration <- renew(X_MimicConfiguration, 
-                                env_ls = list(main_ls = list(`Project 2` = predict_project_2_pathway), 
-                                              initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)),
-                                what_1L_chr = c("legacy"))
-  if(identical(names(X_MimicConfiguration@arms_tb), "Arm")){
-    X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
-                                      "arms_tb",
-                                      make_arms_tb(X_MimicConfiguration@arms_tb,
-                                                   settings_ls = X_MimicConfiguration@arms_tb$Arm %>% 
-                                                     make_project_2_arms_extras_ls(arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr,
-                                                                                   arms_for_intervention_costs_chr = arms_for_intervention_costs_chr,
-                                                                                   arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr,
-                                                                                   arms_for_offsets_chr = arms_for_offsets_chr,
-                                                                                   treatment_ls = treatment_ls,
-                                                                                   tx_duration_dtm = tx_duration_dtm)))
-  }
-  ## Preliminary
-  if (is.null(draws_tb)) {
-    draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "draws_tb") 
-  }
-  append_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, extras_ls = list(), what_1L_chr = "append_ls")
-  X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
-                                    env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
-                                    Y_Ready4Module = MimicPopulation())
-  episode_1L_int <- 1L
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
-                             event_1L_chr = "EpisodeOfCareSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration) 
-  episode_1L_int <- 2L
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
-                             event_1L_chr = "RepeatEpisodeOfCareSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
-  update_1L_int <- 1L
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
-                             event_1L_chr = "UpdateUntreatedOutcomesSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
-  update_1L_int <- 2L
-  X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int,
-                             env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),
-                             event_1L_chr = "WrapUpSequence", type_1L_chr = "event", X_MimicConfiguration = X_MimicConfiguration)
-  X_Ready4useDyad <- X_MimicPopulation@x_MimicActive@x_Ready4useDyad
-  return(X_Ready4useDyad)
+    X_MimicConfiguration <- renew(X_MimicConfiguration, env_ls = list(main_ls = list(`Project 2` = predict_project_2_pathway), 
+        initialise_ls = make_project_2_initialise_ls(derive_ls = X_MimicConfiguration@x_MimicAlgorithms@x_MimicUtility@mapping_ls)), 
+        what_1L_chr = c("legacy"))
+    if (identical(names(X_MimicConfiguration@arms_tb), "Arm")) {
+        X_MimicConfiguration <- renewSlot(X_MimicConfiguration, 
+            "arms_tb", make_arms_tb(X_MimicConfiguration@arms_tb, 
+                settings_ls = X_MimicConfiguration@arms_tb$Arm %>% 
+                  make_project_2_arms_extras_ls(arms_for_iar_adjustment_chr = arms_for_iar_adjustment_chr, 
+                    arms_for_intervention_costs_chr = arms_for_intervention_costs_chr, 
+                    arms_for_non_helpseeking_chr = arms_for_non_helpseeking_chr, 
+                    arms_for_offsets_chr = arms_for_offsets_chr, 
+                    treatment_ls = treatment_ls, tx_duration_dtm = tx_duration_dtm)))
+    }
+    if (is.null(draws_tb)) {
+        draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, 
+            what_1L_chr = "draws_tb")
+    }
+    append_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
+        batch_1L_int = batch_1L_int, draws_tb = draws_tb, extras_ls = list(), 
+        what_1L_chr = "append_ls")
+    X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, 
+        batch_1L_int = batch_1L_int, draws_tb = draws_tb, env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), 
+            envir = environment()), predict_project_2_pathway, 
+            allowed_chr = c("episode_1L_int", "update_1L_int")), 
+            append_ls = append_ls, discard_chr = "X_MimicConfiguration"), 
+        Y_Ready4Module = MimicPopulation())
+    episode_1L_int <- 1L
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), 
+            envir = environment()), predict_project_2_pathway, 
+            allowed_chr = c("episode_1L_int", "update_1L_int")), 
+            append_ls = append_ls, discard_chr = "X_MimicConfiguration"), 
+        event_1L_chr = "EpisodeOfCareSequence", type_1L_chr = "event", 
+        X_MimicConfiguration = X_MimicConfiguration)
+    episode_1L_int <- 2L
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), 
+            envir = environment()), predict_project_2_pathway, 
+            allowed_chr = c("episode_1L_int", "update_1L_int")), 
+            append_ls = append_ls, discard_chr = "X_MimicConfiguration"), 
+        event_1L_chr = "RepeatEpisodeOfCareSequence", type_1L_chr = "event", 
+        X_MimicConfiguration = X_MimicConfiguration)
+    update_1L_int <- 1L
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), 
+            envir = environment()), predict_project_2_pathway, 
+            allowed_chr = c("episode_1L_int", "update_1L_int")), 
+            append_ls = append_ls, discard_chr = "X_MimicConfiguration"), 
+        event_1L_chr = "UpdateUntreatedOutcomesSequence", type_1L_chr = "event", 
+        X_MimicConfiguration = X_MimicConfiguration)
+    update_1L_int <- 2L
+    X_MimicPopulation <- renew(X_MimicPopulation, batch_1L_int = batch_1L_int, 
+        env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), 
+            envir = environment()), predict_project_2_pathway, 
+            allowed_chr = c("episode_1L_int", "update_1L_int")), 
+            append_ls = append_ls, discard_chr = "X_MimicConfiguration"), 
+        event_1L_chr = "WrapUpSequence", type_1L_chr = "event", 
+        X_MimicConfiguration = X_MimicConfiguration)
+    X_Ready4useDyad <- X_MimicPopulation@x_MimicActive@x_Ready4useDyad
+    return(X_Ready4useDyad)
 }
 #' Predict with sim
 #' @description predict_with_sim() is a Predict function that applies a model to make predictions. Specifically, this function implements an algorithm to predict with sim. The function returns Output (an output object of multiple potential types).
@@ -427,102 +431,85 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
 #' @importFrom purrr safely walk map
 #' @importFrom dplyr filter
 #' @importFrom rlang exec
-predict_with_sim <- function (inputs_ls = NULL, 
-                              arms_chr = c("Intervention", "Comparator"), 
-                              comparator_fn = predict_comparator_pathway, 
-                              draws_tb = NULL,
-                              drop_missing_1L_lgl = FALSE, 
-                              drop_suffix_1L_chr = character(0), 
-                              extra_draws_fn = NULL,
-                              horizon_dtm = lubridate::years(1), 
-                              intervention_fn = predict_digital_pathway, 
-                              iterations_ls = make_batches(5, of_1L_int = 20), 
-                              modifiable_chr = c("treatment_status", "Minutes", "k10", "AQoL6D", "CHU9D"), 
-                              prior_batches_1L_int = 0, 
-                              purge_1L_lgl = TRUE, 
-                              seed_1L_int = 2001L, 
-                              sensitivities_ls = make_sensitivities_ls(), 
-                              start_dtm = Sys.Date(), 
-                              synthesis_fn = make_project_results_synthesis,
-                              tfmn_ls = make_class_tfmns(),
-                              type_1L_chr = c("D", "AB", "C", "NULL"), 
-                              unlink_1L_lgl = FALSE, 
-                              utilities_chr = c("AQoL6D", "CHU9D"), 
-                              utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr),
-                              write_to_1L_chr = character(0),
-                              X_MimicConfiguration = MimicConfiguration(),
-                              Y_MimicRepos = MimicRepos(),
-                              ...) 
+predict_with_sim <- function (inputs_ls = NULL, arms_chr = c("Intervention", "Comparator"), 
+    comparator_fn = predict_comparator_pathway, draws_tb = NULL, 
+    drop_missing_1L_lgl = FALSE, drop_suffix_1L_chr = character(0), 
+    extra_draws_fn = NULL, horizon_dtm = lubridate::years(1), 
+    intervention_fn = predict_digital_pathway, iterations_ls = make_batches(5, 
+        of_1L_int = 20), modifiable_chr = c("treatment_status", 
+        "Minutes", "k10", "AQoL6D", "CHU9D"), prior_batches_1L_int = 0, 
+    purge_1L_lgl = TRUE, seed_1L_int = 2001L, sensitivities_ls = make_sensitivities_ls(), 
+    start_dtm = Sys.Date(), synthesis_fn = make_project_results_synthesis, 
+    tfmn_ls = make_class_tfmns(), type_1L_chr = c("D", "AB", 
+        "C", "NULL"), unlink_1L_lgl = FALSE, utilities_chr = c("AQoL6D", 
+        "CHU9D"), utility_fns_ls = make_utility_fns_ls(utilities_chr = utilities_chr), 
+    write_to_1L_chr = character(0), X_MimicConfiguration = MimicConfiguration(), 
+    Y_MimicRepos = MimicRepos(), ...) 
 {
-  type_1L_chr <- match.arg(type_1L_chr)
-  if (!identical(seed_1L_int, integer(0))) {
-    set.seed(seed_1L_int)
-  }
-  if (identical(write_to_1L_chr, character(0))) {
-    write_to_1L_chr <- tempdir()
-  }
-  predict_safely_fn <- purrr::safely(.f = write_batch, quiet = FALSE)
-  if (unlink_1L_lgl) {
-    list.files(write_to_1L_chr)[endsWith(list.files(write_to_1L_chr), 
-                                         ".RDS")] %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-                                                                                 "/", .x)))
-  }
-  extras_ls <- list(...)
-  if(!identical(X_MimicConfiguration,MimicConfiguration())){
-    batches_int <- 1:length(X_MimicConfiguration@iterations_ls)
-  }else{
-    batches_int <- 1:length(iterations_ls)
-  }
-  output_xx <- batches_int %>% purrr::map(~{ 
-    if(!is.null(draws_tb)){ 
-      if(!identical(X_MimicConfiguration,MimicConfiguration())){
-        iterations_int <- manufacture(X_MimicConfiguration, batch_1L_int = .x, what_1L_chr = "iterations")
-      }else{
-        iterations_int <- iterations_ls[[.x]]
-      }
-      filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% iterations_int) 
-    }else{
-      filtered_draws_tb <- NULL
-    } 
-    args_ls <- list(batch_1L_int = .x, 
-                    arms_chr = arms_chr, 
-                    comparator_fn = comparator_fn, 
-                    draws_tb = filtered_draws_tb,
-                    drop_missing_1L_lgl = drop_missing_1L_lgl, 
-                    drop_suffix_1L_chr = drop_suffix_1L_chr, 
-                    extra_draws_fn = extra_draws_fn,
-                    horizon_dtm = horizon_dtm, 
-                    inputs_ls = inputs_ls, 
-                    intervention_fn = intervention_fn, 
-                    iterations_ls = iterations_ls, 
-                    modifiable_chr = modifiable_chr, 
-                    prior_batches_1L_int = prior_batches_1L_int, 
-                    seed_1L_int = seed_1L_int, 
-                    sensitivities_ls = sensitivities_ls, 
-                    start_dtm = start_dtm, 
-                    tfmn_ls = tfmn_ls, 
-                    utilities_chr = utilities_chr, 
-                    utility_fns_ls = utility_fns_ls,
-                    write_to_1L_chr = write_to_1L_chr,
-                    X_MimicConfiguration = X_MimicConfiguration,
-                    Y_MimicRepos = Y_MimicRepos
-    ) %>%
-      append(extras_ls)
-    rlang::exec(predict_safely_fn, !!!args_ls)
-  })
-  if (type_1L_chr != "NULL") {
-    output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
-  }
-  if (purge_1L_lgl) {
-    batches_int %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
-                                               "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
-  }
-  if (type_1L_chr != "NULL") {
-    if(!identical(X_MimicConfiguration,MimicConfiguration())){
-      synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
-      modifiable_chr <- manufacture(X_MimicConfiguration, type_1L_chr = "measure", what_1L_chr = "modifiable")
+    type_1L_chr <- match.arg(type_1L_chr)
+    if (!identical(seed_1L_int, integer(0))) {
+        set.seed(seed_1L_int)
     }
-    output_xx <- synthesis_fn(inputs_ls, results_ls = output_xx, modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
-  }
-  return(output_xx)
+    if (identical(write_to_1L_chr, character(0))) {
+        write_to_1L_chr <- tempdir()
+    }
+    predict_safely_fn <- purrr::safely(.f = write_batch, quiet = FALSE)
+    if (unlink_1L_lgl) {
+        list.files(write_to_1L_chr)[endsWith(list.files(write_to_1L_chr), 
+            ".RDS")] %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
+            "/", .x)))
+    }
+    extras_ls <- list(...)
+    if (!identical(X_MimicConfiguration, MimicConfiguration())) {
+        batches_int <- 1:length(X_MimicConfiguration@iterations_ls)
+    }
+    else {
+        batches_int <- 1:length(iterations_ls)
+    }
+    output_xx <- batches_int %>% purrr::map(~{
+        if (!is.null(draws_tb)) {
+            if (!identical(X_MimicConfiguration, MimicConfiguration())) {
+                iterations_int <- manufacture(X_MimicConfiguration, 
+                  batch_1L_int = .x, what_1L_chr = "iterations")
+            }
+            else {
+                iterations_int <- iterations_ls[[.x]]
+            }
+            filtered_draws_tb <- draws_tb %>% dplyr::filter(Iteration %in% 
+                iterations_int)
+        }
+        else {
+            filtered_draws_tb <- NULL
+        }
+        args_ls <- list(batch_1L_int = .x, arms_chr = arms_chr, 
+            comparator_fn = comparator_fn, draws_tb = filtered_draws_tb, 
+            drop_missing_1L_lgl = drop_missing_1L_lgl, drop_suffix_1L_chr = drop_suffix_1L_chr, 
+            extra_draws_fn = extra_draws_fn, horizon_dtm = horizon_dtm, 
+            inputs_ls = inputs_ls, intervention_fn = intervention_fn, 
+            iterations_ls = iterations_ls, modifiable_chr = modifiable_chr, 
+            prior_batches_1L_int = prior_batches_1L_int, seed_1L_int = seed_1L_int, 
+            sensitivities_ls = sensitivities_ls, start_dtm = start_dtm, 
+            tfmn_ls = tfmn_ls, utilities_chr = utilities_chr, 
+            utility_fns_ls = utility_fns_ls, write_to_1L_chr = write_to_1L_chr, 
+            X_MimicConfiguration = X_MimicConfiguration, Y_MimicRepos = Y_MimicRepos) %>% 
+            append(extras_ls)
+        rlang::exec(predict_safely_fn, !!!args_ls)
+    })
+    if (type_1L_chr != "NULL") {
+        output_xx <- import_results_batches(dir_1L_chr = write_to_1L_chr)
+    }
+    if (purge_1L_lgl) {
+        batches_int %>% purrr::walk(~unlink(paste0(write_to_1L_chr, 
+            "/SimBatch", .x + prior_batches_1L_int, ".RDS")))
+    }
+    if (type_1L_chr != "NULL") {
+        if (!identical(X_MimicConfiguration, MimicConfiguration())) {
+            synthesis_fn <- X_MimicConfiguration@x_MimicAlgorithms@processing_ls$synthesis_fn
+            modifiable_chr <- manufacture(X_MimicConfiguration, 
+                type_1L_chr = "measure", what_1L_chr = "modifiable")
+        }
+        output_xx <- synthesis_fn(inputs_ls, results_ls = output_xx, 
+            modifiable_chr = modifiable_chr, type_1L_chr = type_1L_chr)
+    }
+    return(output_xx)
 }

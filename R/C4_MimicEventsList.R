@@ -14,7 +14,7 @@
 MimicEventsList <- methods::setClass("MimicEventsList",
 contains = "Ready4Module",
 slots = c(events_ls = "list",last_1L_chr = "character",main_chr = "character",dissemination_1L_chr = "character"),
-prototype =  list(events_ls = list(),last_1L_chr = 'WrapUp',main_chr = character(0)))
+prototype =  list(events_ls = list(),last_1L_chr = 'WrapUpSequence',main_chr = character(0)))
 
 
 methods::setValidity(methods::className("MimicEventsList"),

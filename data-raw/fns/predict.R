@@ -287,17 +287,7 @@ predict_project_2_pathway <- function (inputs_ls = NULL,
   ## Preliminary
   if (is.null(draws_tb)) {
     draws_tb <- manufacture(X_MimicConfiguration, batch_1L_int = batch_1L_int, what_1L_chr = "draws_tb") 
-    # draws_tb <- make_draws_tb(inputs_ls, 
-    #                           drop_missing_1L_lgl = T, drop_suffix_1L_chr = "_mean",
-    #                           extra_draws_fn = extra_draws_fn,
-    #                           iterations_int = iterations_int, 
-    #                           seed_1L_int = seed_1L_int)
   }
-
-  ##
-  #### Enter model ####
-  ###
-  ### Now includes conditional starting population customisation (adjusting for non-helpseeking and non-IAR parameters)
   append_ls <- manufacture(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, extras_ls = list(), what_1L_chr = "append_ls")
   X_MimicPopulation <- metamorphose(X_MimicConfiguration, arm_1L_chr = arm_1L_chr, batch_1L_int = batch_1L_int, draws_tb = draws_tb, 
                                     env_ls = make_sim_env_ls(update_arguments_ls(mget(ls(), envir = environment()), predict_project_2_pathway, allowed_chr = c("episode_1L_int", "update_1L_int")), append_ls = append_ls, discard_chr = "X_MimicConfiguration"),

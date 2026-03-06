@@ -1260,11 +1260,11 @@ make_model_dyad_ls <- function(X_Ready4useDyad = ready4use::Ready4useDyad(),
   return(model_dyad_ls)
 }
 make_outcomes_tb <- function(outcomes_chr = character(0),
-                             catgories_chr = character(0),
+                             categories_chr = character(0),
                              derivation_chr = character(0),
                              subcategories_chr = character(0)){
   outcomes_tb <- tibble::tibble(Outcome = outcomes_chr, 
-                                Category = catgories_chr, 
+                                Category = categories_chr, 
                                 Subcategory = subcategories_chr,
                                 Derivation = derivation_chr)
   return(outcomes_tb)
@@ -2038,7 +2038,7 @@ make_project_2_outcomes_ls <- function(){
 }
 make_project_2_outcomes_tb <- function(){
   outcomes_tb <- make_outcomes_tb("K10", 
-                                  catgories_chr = "Clinical", 
+                                  categories_chr = "Clinical", 
                                   subcategories_chr = "Psychological distress",
                                   derivation_chr = "Modelled")
   return(outcomes_tb)
@@ -2177,14 +2177,14 @@ make_project_2_report <- function (model_data_ls = NULL,
   }
   return(data_xx)
 }
-make_project_2_resoures_tb <- function(){
-  resoures_tb <- make_resources_tb(c("Episode",make_disciplines()), #"ordered"
+make_project_2_resources_tb <- function(){
+  resources_tb <- make_resources_tb(c("Episode",make_disciplines()), #"ordered"
                                    categories_chr = c("Episode of care", rep("Worker", 6)), 
                                    derivation_chr = c("Increment", rep("Modelled",6)),
                                    totals_chr = c(NA_character_, rep("Total",6)), 
                                    subcategories_chr = c(NA_character_,"NonMedical", "Medical","Medical","Medical","NonMedical","NonMedical"),
                                    measures_chr = c("",rep("UseMins",6)))
-  return(resoures_tb)
+  return(resources_tb)
 }
 make_project_2_results <- function (X_Ready4useDyad, 
                                     inputs_ls, 

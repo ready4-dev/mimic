@@ -102,7 +102,7 @@
 
 \item{append_ls}{Append (a list), Default: list()}
 
-\item{type_1L_chr}{Type (a character vector of length one), Default: c("measure","concept")}
+\item{type_1L_chr}{Type (a character vector of length one), Default: c("measure", "concept")}
 
 \item{arm_1L_chr}{Arm (a character vector of length one), Default: 'NA'}
 
@@ -110,11 +110,13 @@
 
 \item{extras_ls}{Extras (a list), Default: list()}
 
-\item{include_chr}{Include (a character vector of length one), Default: character(0)}
+\item{include_chr}{Include (a character vector), Default: character(0)}
 
 \item{subset_1L_chr}{Subset (a character vector of length one), Default: character(0)}
 
 \item{target_1L_chr}{Target (a character vector of length one), Default: character(0)}
+
+\item{total_1L_lgl}{Total (a logical vector of length one), Default: FALSE}
 
 \item{prefix_1L_chr}{Prefix (a character vector of length one), Default: character(0)}
 
@@ -125,8 +127,6 @@
 \item{flatten_1L_lgl}{Flatten (a logical vector of length one), Default: FALSE}
 
 \item{name_1L_chr}{Name (a character vector of length one), Default: character(0)}
-
-\item{total_1L_chr}{Total (a character vector of length one), Default: character(0)}
 }
 \value{
 Object (an output object of multiple potential types)

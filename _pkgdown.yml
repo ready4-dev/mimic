@@ -19,14 +19,15 @@ reference:
 - contents:
   - MimicActive
   - MimicUtility
+  - MimicVariables
   - MimicAlgorithms
   - MimicInputs
   - MimicPopulation
   - MimicRepos
   - MimicEventsList
-  - MimicConfiguration
   - MimicDerivations
   - MimicArguments
+  - MimicConfiguration
   - MimicSchedule
   - MimicTrigger
   - MimicEligible
@@ -50,6 +51,7 @@ reference:
   - manufacture-MimicInputs
   - manufacture-MimicPopulation
   - manufacture-MimicRepos
+  - manufacture-MimicVariables
   - metamorphose-MimicConfiguration
   - procure-MimicConfiguration
   - prognosticate-MimicConfiguration
