@@ -130,32 +130,59 @@ import_project_data <- function (path_to_private_1L_chr, dir_1L_chr, custom_1L_c
   }
   return(data_ls)
 }
-import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr) {
+import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr = character(0), drop_params_1L_lgl = FALSE, ratify_1L_lgl = FALSE, suffix_1L_chr = "", Y_MimicRepos = MimicRepos()
+                                    # , y_1L_chr = "Y_Ready4useDyad", z_1L_chr = "Z_Ready4useDyad"
+                                    ) {
+  if(identical(dir_1L_chr, character(0))){
+    dir_1L_chr <- manufacture(Y_MimicRepos, suffix_1L_chr = suffix_1L_chr, type_1L_chr = "batch_to", what_1L_chr = "sim_ws_dirs_chr") 
+  }
   files_chr <- list.files(dir_1L_chr, full.names = F)
   files_chr <- files_chr[endsWith(files_chr, ".RDS")] %>% sort()
   if(identical(batches_1L_int, integer(0))){
     batches_1L_int <- length(files_chr)
   }
+  if(drop_params_1L_lgl){
+    param_names_chr <- setdiff(ingest(Y_MimicRepos, batches_int = batches_1L_int, type_1L_chr = "ParamDraws") %>% names(), "Iteration")
+  }
+  if(ratify_1L_lgl){
+    # pass_1L_lgl <- ratify(Y, batches_int = 1:batches_1L_int, type_1L_chr = "ParamDraws") # This needs to be a ratify method first
+  }
   results_ls <- 1:batches_1L_int %>% purrr::reduce(.init = list(), 
                                                    ~{
                                                      additions_ls <- readRDS(paste0(dir_1L_chr, "/", files_chr[.y]))
+                                                     if(drop_params_1L_lgl){
+                                                       additions_ls <- additions_ls %>% purrr::map(~{
+                                                           .x %>% renewSlot("ds_tb", dplyr::select(.x@ds_tb, - tidyselect::all_of(param_names_chr)))
+                                                         
+                                                       })
+                                                     }
+                                                     ## Add bit that renames list elements to Y_Ready4useDyad and Z_Ready4useDyad if they are not already named that.
                                                      if(length(additions_ls)==1){
                                                        additions_ls <- additions_ls[[1]]
                                                      }
                                                      if (identical(.x, list())) {
                                                        additions_ls
                                                      } else {
-                                                       y_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Y_Ready4useDyad, 
-                                                                                       Y_Ready4useDyad = additions_ls$Y_Ready4useDyad) %>% 
-                                                         update_mismatched_vars()
-                                                       z_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Z_Ready4useDyad, 
-                                                                                       Y_Ready4useDyad = additions_ls$Z_Ready4useDyad) %>% 
-                                                         update_mismatched_vars()
-                                                       list(Y_Ready4useDyad = renewSlot(y_dyad_ls$X_Ready4useDyad, 
-                                                                                        "ds_tb", dplyr::bind_rows(y_dyad_ls$X_Ready4useDyad@ds_tb, 
-                                                                                                                  y_dyad_ls$Y_Ready4useDyad@ds_tb)), Z_Ready4useDyad = renewSlot(z_dyad_ls$X_Ready4useDyad, 
-                                                                                                                                                                                 "ds_tb", dplyr::bind_rows(z_dyad_ls$X_Ready4useDyad@ds_tb, 
-                                                                                                                                                                                                           z_dyad_ls$Y_Ready4useDyad@ds_tb)))
+                                                       # current_ls <- .x
+                                                       .x %>% purrr::map2(additions_ls, ~{
+                                                         dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x, Y_Ready4useDyad = .y) %>% 
+                                                           update_mismatched_vars()
+                                                         renewSlot(dyad_ls$X_Ready4useDyad, 
+                                                                   "ds_tb", dplyr::bind_rows(dyad_ls$X_Ready4useDyad@ds_tb, 
+                                                                                             dyad_ls$Y_Ready4useDyad@ds_tb))
+                                                       })
+                                                       # y_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Y_Ready4useDyad, 
+                                                       #                                 Y_Ready4useDyad = additions_ls$Y_Ready4useDyad) %>% 
+                                                       #   update_mismatched_vars()
+                                                       # z_dyad_ls <- make_model_dyad_ls(X_Ready4useDyad = .x$Z_Ready4useDyad, 
+                                                       #                                 Y_Ready4useDyad = additions_ls$Z_Ready4useDyad) %>% 
+                                                       #   update_mismatched_vars()
+                                                       # list(Y_Ready4useDyad = renewSlot(y_dyad_ls$X_Ready4useDyad, 
+                                                       #                                  "ds_tb", dplyr::bind_rows(y_dyad_ls$X_Ready4useDyad@ds_tb, 
+                                                       #                                                            y_dyad_ls$Y_Ready4useDyad@ds_tb)), 
+                                                       #      Z_Ready4useDyad = renewSlot(z_dyad_ls$X_Ready4useDyad, 
+                                                       #                                  "ds_tb", dplyr::bind_rows(z_dyad_ls$X_Ready4useDyad@ds_tb, 
+                                                       #                                                            z_dyad_ls$Y_Ready4useDyad@ds_tb)))
                                                      }
                                                    })
   return(results_ls)
