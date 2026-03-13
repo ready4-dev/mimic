@@ -6,6 +6,9 @@ library(mimic)
 #> Registered S3 method overwritten by 'BCEA':
 #>   method     from
 #>   plot.evppi voi
+#> Registered S3 method overwritten by 'lme4':
+#>   method           from
+#>   na.action.merMod car
 #> Registered S3 methods overwritten by 'ggalt':
 #>   method                  from   
 #>   grobHeight.absoluteGrob ggplot2
