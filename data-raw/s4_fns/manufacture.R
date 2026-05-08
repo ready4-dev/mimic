@@ -37,7 +37,7 @@ manufacture_MimicConfiguration <- function(x,
                                            target_1L_chr = character(0),
                                            total_1L_lgl = TRUE,
                                            type_1L_chr = c("current","concept", "entry", "measure"),
-                                           what_1L_chr = c("draws_tb", "append_ls", "args_all","daystonever", "iterations", "modifiable","outcomes", "population_ls", "resources", "utilities"),
+                                           what_1L_chr = c("draws_tb", "append_ls", "args_all", "daystonever", "iterations", "modifiable", "outcomes", "population_ls", "resources", "utilities"),
                                            ...){
   type_1L_chr <- match.arg(type_1L_chr)
   what_1L_chr <- match.arg(what_1L_chr)

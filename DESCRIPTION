@@ -108,6 +108,7 @@ Collate:
     'mthd_metamorphose.R'
     'mthd_procure.R'
     'mthd_prognosticate.R'
+    'mthd_ratify.R'
     'mthd_renew.R'
     'pkg_mimic.R'
 Depends: 

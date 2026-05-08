@@ -2829,20 +2829,17 @@ add_regressions <- function (regressions_ls,
 }
 add_severity_cuts <- function(X_Ready4useDyad,
                               add_severity_1L_lgl = TRUE,
+                              cut_var_1L_chr = "Distress",
                               severity_fn = make_k10_severity_cuts,
                               severity_var_1L_chr = "k10_start"){
   if (add_severity_1L_lgl) {
     severity_ls <- severity_fn()
     X_Ready4useDyad <- renewSlot(X_Ready4useDyad, "ds_tb", 
-                                 X_Ready4useDyad@ds_tb %>% dplyr::mutate(Distress = dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                                                                                                       severity_ls$Low[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                                                                                                       severity_ls$Low[2] ~ "Low", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                                                                                                       severity_ls$Moderate[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                                                                                                       severity_ls$Moderate[2] ~ "Moderate", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                                                                                                       severity_ls$High[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                                                                                                       severity_ls$High[2] ~ "High", as.numeric(!!rlang::sym(severity_var_1L_chr)) >= 
-                                                                                                       severity_ls$VeryHigh[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= 
-                                                                                                       severity_ls$VeryHigh[2] ~ "VeryHigh", T ~ NA_character_)))
+                                 names(severity_ls) %>% purrr::reduce(.init = X_Ready4useDyad@ds_tb %>% dplyr::mutate(!!rlang::sym(cut_var_1L_chr) := NA_character_), 
+                                 ~{
+                                   dplyr::mutate(.x, `:=`(!!rlang::sym(cut_var_1L_chr), dplyr::case_when(as.numeric(!!rlang::sym(severity_var_1L_chr)) >= (severity_ls  %>% purrr::pluck(.y))[1] & as.numeric(!!rlang::sym(severity_var_1L_chr)) <= (severity_ls %>% purrr::pluck(.y))[2] ~ .y, 
+                                                                                                         T ~ !!rlang::sym(cut_var_1L_chr))))
+                                 }))
   }
   return(X_Ready4useDyad)
 }

@@ -4,12 +4,30 @@
 \alias{import_results_batches}
 \title{Import results batches}
 \usage{
-import_results_batches(batches_1L_int = integer(0), dir_1L_chr)
+import_results_batches(
+  batches_1L_int = integer(0),
+  dir_1L_chr = character(0),
+  drop_params_1L_lgl = FALSE,
+  ratify_1L_lgl = FALSE,
+  suffix_1L_chr = "",
+  use_chr = character(0),
+  Y_MimicRepos = MimicRepos()
+)
 }
 \arguments{
 \item{batches_1L_int}{Batches (an integer vector of length one), Default: integer(0)}
 
 \item{dir_1L_chr}{Directory (a character vector of length one)}
+
+\item{drop_params_1L_lgl}{Drop parameters (a logical vector of length one), Default: FALSE}
+
+\item{ratify_1L_lgl}{Ratify (a logical vector of length one), Default: FALSE}
+
+\item{suffix_1L_chr}{Suffix (a character vector of length one), Default: ""}
+
+\item{use_chr}{Use (a character vector), Default: character(0)}
+
+\item{Y_MimicRepos}{(an instance of the MimicRepos class), Default: MimicRepos()}
 }
 \value{
 Results (a list)
