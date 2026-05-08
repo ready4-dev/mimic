@@ -13,6 +13,7 @@ To install a development version of this software, run the following
 commands in your R console:
 
 ``` r
+
 utils::install.packages("devtools")
 
 devtools::install_github("ready4-dev/mimic")

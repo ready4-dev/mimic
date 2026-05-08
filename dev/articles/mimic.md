@@ -1,6 +1,7 @@
 # mimic
 
 ``` r
+
 library(mimic)
 #> Loading required package: ready4
 #> Registered S3 method overwritten by 'BCEA':

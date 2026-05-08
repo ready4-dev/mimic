@@ -1,4 +1,6 @@
-# Renew (update) values
+# Ratify that input or output data meet validity criteria
+
+ratify method applied to MimicRepos
 
 renew method applied to MimicActive
 
@@ -9,6 +11,21 @@ renew method applied to MimicConfiguration
 ## Usage
 
 ``` r
+# S4 method for class 'MimicRepos'
+ratify(
+  x,
+  batches_int = integer(0),
+  gh_token_1L_chr = "",
+  key_1L_chr = NULL,
+  match_xx = NULL,
+  prefix_1L_chr = character(0),
+  suffix_1L_chr = "",
+  remote_fls_chr = NA_character_,
+  type_1L_chr = c("MimicInputs", "ParamDraws", "list", "element"),
+  what_chr = character(0),
+  ...
+)
+
 # S4 method for class 'MimicActive'
 renew(
   x,
@@ -45,6 +62,48 @@ renew(x, env_ls = list(), what_1L_chr = c("legacy"), ...)
 
   An object of class MimicConfiguration
 
+- batches_int:
+
+  Batches (an integer vector), Default: integer(0)
+
+- gh_token_1L_chr:
+
+  GitHub token (a character vector of length one), Default: ""
+
+- key_1L_chr:
+
+  Key (a character vector of length one), Default: NULL
+
+- match_xx:
+
+  Match (an object), Default: NULL
+
+- prefix_1L_chr:
+
+  Prefix (a character vector of length one), Default: character(0)
+
+- suffix_1L_chr:
+
+  Suffix (a character vector of length one), Default: ""
+
+- remote_fls_chr:
+
+  Remote files (a character vector), Default: NA_character\_
+
+- type_1L_chr:
+
+  Type (a character vector of length one), Default: c("trigger",
+  "customise", "filter", "event", "reset", "schedule", "switch",
+  "transform")
+
+- what_chr:
+
+  What (a character vector), Default: character(0)
+
+- ...:
+
+  Additional arguments
+
 - batch_1L_int:
 
   Batch (an integer vector of length one), Default: integer(0)
@@ -57,19 +116,9 @@ renew(x, env_ls = list(), what_1L_chr = c("legacy"), ...)
 
   Event (a character vector of length one), Default: character(0)
 
-- type_1L_chr:
-
-  Type (a character vector of length one), Default: c("trigger",
-  "customise", "filter", "event", "reset", "schedule", "switch",
-  "transform")
-
 - X_MimicConfiguration:
 
   PARAM_DESCRIPTION, Default: MimicConfiguration()
-
-- ...:
-
-  Additional arguments
 
 - population_ls:
 
@@ -84,6 +133,8 @@ renew(x, env_ls = list(), what_1L_chr = c("legacy"), ...)
   What (a character vector of length one), Default: c("legacy")
 
 ## Value
+
+x (An object of class MimicRepos)
 
 x (An object of class MimicActive)
 

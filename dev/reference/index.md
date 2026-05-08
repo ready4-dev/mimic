@@ -84,7 +84,8 @@
   : Procure data from a model module
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
   : Prognosticate (make predictions) by solving a forward problem
-- [`renew(`*`<MimicActive>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+- [`ratify(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+  [`renew(`*`<MimicActive>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
   [`renew(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
   [`renew(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
-  : Renew (update) values
+  : Ratify that input or output data meet validity criteria

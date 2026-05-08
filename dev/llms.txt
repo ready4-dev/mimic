@@ -13,6 +13,7 @@ To install a development version of this software, run the following
 commands in your R console:
 
 ``` r
+
 utils::install.packages("devtools")
 
 devtools::install_github("ready4-dev/mimic")
@@ -104,10 +105,11 @@ devtools::install_github("ready4-dev/mimic")
   : Procure data from a model module
 - [`prognosticate(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/prognosticate-methods.md)
   : Prognosticate (make predictions) by solving a forward problem
-- [`renew(`*`<MimicActive>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+- [`ratify(`*`<MimicRepos>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
+  [`renew(`*`<MimicActive>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
   [`renew(`*`<MimicPopulation>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
   [`renew(`*`<MimicConfiguration>`*`)`](https://ready4-dev.github.io/mimic/dev/reference/renew-methods.md)
-  : Renew (update) values
+  : Ratify that input or output data meet validity criteria
 
 # Articles
 
