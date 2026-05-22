@@ -37,5 +37,5 @@ ratify_MimicRepos <- function(x,
     }
     pass_1L_lgl <- assertthat::assert_that(identical(ingest_xx, match_xx), msg = "Ingested data does not match test data.")
   }
-  return(pass_1L_lgl)
+  return(x)
 }

@@ -153,7 +153,7 @@ import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr = ch
   }
   if(ratify_1L_lgl){
     # pass_1L_lgl <- ratify(Y, batches_int = integer(0), type_1L_chr = "ParamDraws") 
-    pass_1L_lgl <- ratify(Y, batches_int = batches_int , type_1L_chr = "ParamDraws") 
+    Y_MimicRepos <- ratify(Y_MimicRepos, batches_int = batches_int , type_1L_chr = "ParamDraws") 
   }
   results_ls <- 
     # batches_int %>% 

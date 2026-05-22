@@ -2189,6 +2189,7 @@ make_project_2_resources_tb <- function(){
 make_project_2_results <- function (X_Ready4useDyad, 
                                     inputs_ls, 
                                     comparator_1L_chr = "Comparator",
+                                    groups_ls = list(diagnosis_ls = c("Diagnosis"), distress_ls = c("Distress")),
                                     intervention_1L_chr = "Intervention",
                                     min_cell_size_1L_int = 30L, 
                                     modifiable_chr = character(0), outcomes_chr = character(0), 
@@ -2210,28 +2211,47 @@ make_project_2_results <- function (X_Ready4useDyad,
                                        modifiable_chr = modifiable_chr, 
                                        numeric_only_1L_lgl = T)
   }
-  full_combos_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Diagnosis", "Distress"), min_cell_size_1L_int = min_cell_size_1L_int, 
-                                         outcomes_chr = outcomes_chr,
-                                         timestamp_1L_chr = timestamp_1L_chr,
-                                         utilities_chr = utilities_chr)
-  diagnosis_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Diagnosis"), 
-                                       min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
-                                       timestamp_1L_chr = timestamp_1L_chr,
-                                       utilities_chr = utilities_chr)
-  distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"),
-                                      min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr,
-                                      timestamp_1L_chr = timestamp_1L_chr,
-                                      utilities_chr = utilities_chr)
-  total_ls <- make_results_summary(X_Ready4useDyad, 
-                                   min_cell_size_1L_int = min_cell_size_1L_int, 
-                                   timestamp_1L_chr = timestamp_1L_chr,
-                                   outcomes_chr = outcomes_chr, utilities_chr = utilities_chr)
-  sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad, 
-                         diagnosis_ls = diagnosis_ls,
-                         distress_ls = distress_ls,
-                         full_combos_ls = full_combos_ls, 
-                         total_ls = total_ls,
-                         size_1L_int = X_Ready4useDyad@ds_tb$UID %>% unique() %>% length())
+
+  if(is.null(names(groups_ls))){
+    names(groups_ls) <- groups_ls %>% purrr::map_chr(~.x %>% paste0("_ls"))
+  }
+  sim_results_ls <- append(list(D_Ready4useDyad = X_Ready4useDyad),
+                           groups_ls %>% purrr::map(~make_results_summary(X_Ready4useDyad, group_by_chr = .x, min_cell_size_1L_int = min_cell_size_1L_int, 
+                                                          outcomes_chr = outcomes_chr,
+                                                          timestamp_1L_chr = timestamp_1L_chr,
+                                                          utilities_chr = utilities_chr))
+                           )
+  sim_results_ls <- append(sim_results_ls,
+                           list(full_combos_ls = make_results_summary(X_Ready4useDyad, group_by_chr = groups_ls %>% purrr::flatten_chr(), min_cell_size_1L_int = min_cell_size_1L_int, 
+                                                                         outcomes_chr = outcomes_chr,
+                                                                         timestamp_1L_chr = timestamp_1L_chr,
+                                                                         utilities_chr = utilities_chr)))
+  
+  sim_results_ls <- append(sim_results_ls,
+                           list(total_ls = make_results_summary(X_Ready4useDyad, min_cell_size_1L_int = min_cell_size_1L_int, 
+                                                                outcomes_chr = outcomes_chr,
+                                                                timestamp_1L_chr = timestamp_1L_chr,
+                                                                utilities_chr = utilities_chr)))
+  sim_results_ls <- append(sim_results_ls,
+                           list(size_1L_int = X_Ready4useDyad@ds_tb$UID %>% unique() %>% length()))
+  # diagnosis_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Diagnosis"), 
+  #                                      min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr, 
+  #                                      timestamp_1L_chr = timestamp_1L_chr,
+  #                                      utilities_chr = utilities_chr)
+  # distress_ls <- make_results_summary(X_Ready4useDyad, group_by_chr = c("Distress"),
+  #                                     min_cell_size_1L_int = min_cell_size_1L_int, outcomes_chr = outcomes_chr,
+  #                                     timestamp_1L_chr = timestamp_1L_chr,
+  #                                     utilities_chr = utilities_chr)
+  # total_ls <- make_results_summary(X_Ready4useDyad, 
+  #                                  min_cell_size_1L_int = min_cell_size_1L_int, 
+  #                                  timestamp_1L_chr = timestamp_1L_chr,
+  #                                  outcomes_chr = outcomes_chr, utilities_chr = utilities_chr)
+  # sim_results_ls <- list(D_Ready4useDyad = X_Ready4useDyad, 
+  #                        diagnosis_ls = diagnosis_ls,
+  #                        distress_ls = distress_ls,
+  #                        full_combos_ls = full_combos_ls, 
+  #                        total_ls = total_ls,
+  #                        size_1L_int = X_Ready4useDyad@ds_tb$UID %>% unique() %>% length())
   return(sim_results_ls)
 }
 make_project_2_results_synthesis <- function (inputs_ls, 

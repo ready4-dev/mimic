@@ -201,7 +201,7 @@ import_results_batches <- function (batches_1L_int = integer(0), dir_1L_chr = ch
     param_names_chr <- setdiff(ingest(Y_MimicRepos, batches_int = batches_1L_int, type_1L_chr = "ParamDraws") %>% names(), "Iteration")
   }
   if(ratify_1L_lgl){
-    pass_1L_lgl <- ratify(Y, batches_int = batches_int , type_1L_chr = "ParamDraws") 
+    Y_MimicRepos <- ratify(Y_MimicRepos, batches_int = batches_int , type_1L_chr = "ParamDraws") 
   }
   results_ls <- 
     paste0(dir_1L_chr, "/", files_chr) %>%
